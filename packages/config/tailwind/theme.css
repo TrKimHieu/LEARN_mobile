@@ -1,0 +1,76 @@
+@theme {
+  /* ------------------------------------------------------------------ */
+  /* Design tokens LEARN — spec §14.2. Không tím, không đổi.             */
+  /* Khối này là ràng buộc [SPEC]: giữ nguyên giá trị.                   */
+  /* ------------------------------------------------------------------ */
+  --color-navy-900: #0b1220;
+  --color-navy-800: #0f1720;
+  --color-navy-700: #16202e;
+  --color-navy-600: #1f2c3f;
+  --color-sky-500: #5ec8f5;
+
+  --color-surface-100: #f4fbff;
+  --color-surface-200: #e9f4fb;
+
+  --color-ink-900: #0f1720;
+  --color-ink-700: #334155;
+  --color-ink-500: #64748b;
+  --color-ink-300: #94a3b8;
+
+  --font-sans: ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+  --font-mono: ui-monospace, 'Cascadia Code', 'JetBrains Mono', Menlo, monospace;
+
+  /* ------------------------------------------------------------------ */
+  /* Bổ sung (không thuộc [SPEC], chỉ mở rộng — xem docs/adr/0004).      */
+  /* ------------------------------------------------------------------ */
+
+  /* Sắc độ dẫn xuất của accent sky §14.2 — cùng hue, dùng cho nút và    */
+  /* cạnh nổi 3D. Nền sky luôn đi với chữ navy-900 (tương phản 9.86:1);  */
+  /* chữ trắng trên sky chỉ 1.90:1 — trượt AA nên không dùng.            */
+  --color-sky-50: #eaf8fe;
+  --color-sky-100: #d3f0fd;
+  --color-sky-300: #a9e2fa;
+  --color-sky-400: #7fd3f7;
+  --color-sky-600: #2ba9e0;
+  /* sky-700 là bậc DUY NHẤT của thang sky dùng cho CHỮ. Giá trị cũ #1b87b8 chỉ
+     đạt 4.04:1 trên nền trắng và 3.72:1 trên nền sky-50 — trượt AA, và đây là
+     màu của mục điều hướng đang chọn, nhãn `Badge tone="info"` và mọi liên kết
+     nội dòng, nên lỗi lặp trên 18/18 màn (đo bằng axe-core, xem
+     `scripts/audit-a11y.mjs`). Giá trị mới giữ nguyên hue 198°, chỉ hạ độ sáng:
+     trắng 5.61 · sky-50 5.17 · sky-100 4.71 · surface-100 5.37 — tất cả đạt AA. */
+  --color-sky-700: #116f97;
+
+  /* Sắc độ navy/surface trung gian cho shell và đường viền. */
+  --color-navy-500: #2b3b52;
+  --color-surface-300: #d8e9f4;
+  --color-surface-400: #bcd9ea;
+
+  /* Màu phản hồi chức năng — KHÔNG phải màu thương hiệu. Chỉ dùng cho   */
+  /* đúng/sai, cảnh báo, lỗi. Luôn kèm icon, không bao giờ chỉ dựa màu.  */
+  /* Bậc -700 đạt AA với chữ trắng; bậc -500 chỉ cho nền/đồ hoạ.         */
+  --color-success-50: #e8f8f1;
+  --color-success-100: #cdefe1;
+  --color-success-500: #15a97a;
+  --color-success-700: #0e7a58;
+
+  --color-danger-50: #fdecec;
+  --color-danger-100: #fbd8d8;
+  --color-danger-500: #e04848;
+  --color-danger-700: #b02a2a;
+
+  --color-warning-50: #fef5e7;
+  --color-warning-100: #fce8c7;
+  --color-warning-500: #e0a33a;
+  /* Cũ #9a6b16 chỉ đạt 4.33:1 trên nền warning-50 — trượt AA ở dải "Chế độ demo"
+     và nhãn cảnh báo. Mới: warning-50 5.88 · warning-100 5.30 · trắng 6.36, và
+     chữ trắng trên nền này vẫn 6.36 nên ghi chú phía trên vẫn đúng. */
+  --color-warning-700: #81570e;
+
+  /* Bo góc — thang thống nhất, thẻ bo góc theo HANDBOOK §18. */
+  --radius-card: 1rem;
+  --radius-pill: 9999px;
+
+  /* Đổ bóng — nông, lạnh, ăn theo navy thay vì đen trung tính. */
+  --shadow-card: 0 1px 2px rgb(15 23 32 / 0.04), 0 2px 8px rgb(15 23 32 / 0.04);
+  --shadow-raised: 0 2px 4px rgb(15 23 32 / 0.06), 0 8px 24px rgb(15 23 32 / 0.08);
+}

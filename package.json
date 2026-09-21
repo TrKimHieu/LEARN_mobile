@@ -1,0 +1,45 @@
+{
+  "name": "learn",
+  "version": "0.1.0",
+  "private": true,
+  "description": "LEARN — Turn your documents into interactive learning.",
+  "workspaces": [
+    "apps/*",
+    "packages/*"
+  ],
+  "engines": {
+    "node": ">=20"
+  },
+  "scripts": {
+    "dev": "concurrently -k -n web,api,worker -c cyan,green,yellow \"npm:dev -w apps/web\" \"npm:dev -w apps/api\" \"npm:dev -w apps/worker\"",
+    "dev:api": "npm run dev -w apps/api",
+    "dev:worker": "npm run dev -w apps/worker",
+    "dev:web": "npm run dev -w apps/web",
+    "build": "npm run build -w apps/api && npm run build -w apps/worker && npm run build -w apps/web",
+    "typecheck": "npm run typecheck --workspaces --if-present",
+    "lint": "eslint . && prettier --check .",
+    "test": "vitest run",
+    "test:unit": "vitest run",
+    "test:int": "vitest run --config vitest.int.config.ts",
+    "test:e2e": "playwright test",
+    "db:migrate": "npm run db:migrate -w packages/db",
+    "db:seed": "npm run db:seed -w packages/db",
+    "db:reset": "npm run db:reset -w packages/db",
+    "db:studio": "npm run db:studio -w packages/db",
+    "format": "prettier --write ."
+  },
+  "devDependencies": {
+    "@axe-core/playwright": "^4.13.0",
+    "@eslint/js": "^9.17.0",
+    "@types/node": "^22.10.0",
+    "axe-core": "^4.13.0",
+    "concurrently": "^9.1.0",
+    "eslint": "^9.17.0",
+    "eslint-plugin-jsx-a11y": "^6.10.2",
+    "playwright": "^1.63.0",
+    "prettier": "^3.4.0",
+    "typescript": "^5.7.0",
+    "typescript-eslint": "^8.18.0",
+    "vitest": "^2.1.8"
+  }
+}

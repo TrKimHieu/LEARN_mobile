@@ -1,0 +1,95 @@
+@import '../../../../packages/config/tailwind/theme.css';
+@import 'tailwindcss';
+
+@layer base {
+  :root {
+    color-scheme: light;
+  }
+
+  body {
+    @apply bg-surface-100 text-ink-900 antialiased;
+    font-family: var(--font-sans);
+  }
+}
+
+/* Giảm chuyển động — công tắc toàn cục cho animation thuần CSS.
+   `MotionConfig reducedMotion="user"` ở gốc cây chỉ với tới component `motion.*`;
+   các tiện ích CSS của Tailwind (`animate-pulse` trên skeleton, `animate-spin`)
+   không nghe nó. Khối này phủ nốt phần còn lại. Không đặt `animation: none` vì
+   một số hiệu ứng dùng keyframe để hiện ra — rút ngắn về gần 0 thì phần tử vẫn
+   tới trạng thái cuối, chỉ là tới ngay lập tức. */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+/* Nội dung Lesson render từ Markdown đã sanitize — apps/web/src/components/markdown.tsx */
+.lesson-content h1,
+.lesson-content h2,
+.lesson-content h3,
+.lesson-content h4 {
+  font-weight: 600;
+  color: var(--color-ink-900);
+  margin-top: 1.25em;
+  margin-bottom: 0.5em;
+}
+.lesson-content h1 {
+  font-size: 1.25rem;
+}
+.lesson-content h2 {
+  font-size: 1.125rem;
+}
+.lesson-content h3,
+.lesson-content h4 {
+  font-size: 1rem;
+}
+.lesson-content p {
+  margin-bottom: 0.75em;
+}
+.lesson-content ul,
+.lesson-content ol {
+  margin: 0.5em 0 0.75em 1.25em;
+}
+.lesson-content ul {
+  list-style: disc;
+}
+.lesson-content ol {
+  list-style: decimal;
+}
+.lesson-content li {
+  margin-bottom: 0.25em;
+}
+.lesson-content a {
+  color: var(--color-sky-500);
+  text-decoration: underline;
+}
+.lesson-content code {
+  background: var(--color-surface-200);
+  border-radius: 0.25rem;
+  padding: 0.1em 0.35em;
+  font-family: var(--font-mono);
+  font-size: 0.875em;
+}
+.lesson-content pre {
+  background: var(--color-surface-200);
+  border-radius: 0.5rem;
+  padding: 0.75em 1em;
+  overflow-x: auto;
+  margin-bottom: 0.75em;
+}
+.lesson-content pre code {
+  background: none;
+  padding: 0;
+}
+.lesson-content blockquote {
+  border-left: 3px solid var(--color-ink-300);
+  padding-left: 0.75em;
+  color: var(--color-ink-500);
+  margin-bottom: 0.75em;
+}
