@@ -1,0 +1,1874 @@
+<!doctype html>
+<html lang="vi">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+</head>
+<body>
+<title>Báo cáo kỹ thuật LEARN Mobile</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Hanken+Grotesk:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap">
+<style>
+/* Layout: mục lục dính bên trái + một cột đọc 70ch; hình và bảng được rộng hết cột.
+   Màu: đơn sắc xám như chính ứng dụng (ADR 001). Màu "signal" chỉ dùng cho dữ liệu đang di chuyển. */
+:root{
+  --bg:#f1f1ef; --surface:#fafaf9; --sunk:#e8e8e5; --ink:#1d1e20; --ink-2:#46474a; --ink-3:#6a6b6e;
+  --line:#d9d9d6; --line-2:#bdbdba; --signal:#2c4fd1; --signal-soft:rgba(44,79,209,.11);
+  --paper:#fbfbfa; --paper-line:#dcdcd8;
+  --f-sans:'Hanken Grotesk', ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+  --f-mono:'IBM Plex Mono', ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --bg:#161718; --surface:#1e1f21; --sunk:#26272a; --ink:#e7e7e4; --ink-2:#c1c1bd; --ink-3:#98989b;
+    --line:#2f3033; --line-2:#48494d; --signal:#8ea4ff; --signal-soft:rgba(142,164,255,.15);
+    --paper:#dededa; --paper-line:#3a3b3e; color-scheme:dark;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#161718; --surface:#1e1f21; --sunk:#26272a; --ink:#e7e7e4; --ink-2:#c1c1bd; --ink-3:#98989b;
+  --line:#2f3033; --line-2:#48494d; --signal:#8ea4ff; --signal-soft:rgba(142,164,255,.15);
+  --paper:#dededa; --paper-line:#3a3b3e; color-scheme:dark;
+}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+@media (prefers-reduced-motion: reduce){html{scroll-behavior:auto}}
+body{background:var(--bg);color:var(--ink);font-family:var(--f-sans);font-size:16px;line-height:1.65;-webkit-font-smoothing:antialiased}
+a{color:inherit;text-underline-offset:3px;text-decoration-thickness:1px}
+a:hover{text-decoration-thickness:2px}
+:focus-visible{outline:2px solid var(--signal);outline-offset:2px;border-radius:4px}
+code,kbd{font-family:var(--f-mono);font-size:.86em;background:var(--sunk);padding:.08em .38em;border-radius:4px;overflow-wrap:anywhere}
+h1,h2,h3,h4{text-wrap:balance;line-height:1.2;margin:0}
+p{margin:0}
+
+.shell{display:grid;grid-template-columns:minmax(0,1fr);gap:40px;max-width:1260px;margin:0 auto;padding-inline:clamp(16px,4vw,40px);padding-block:40px 120px}
+@media (min-width:1120px){.shell{grid-template-columns:210px minmax(0,1fr);gap:56px}}
+
+/* ---------- mục lục */
+.toc{font-size:13.5px;line-height:1.45}
+.toc .toc-label{font-family:var(--f-mono);font-size:11px;letter-spacing:.09em;text-transform:uppercase;color:var(--ink-3);margin-bottom:12px}
+.toc ol{list-style:none;margin:0;padding:0;display:grid;gap:2px}
+.toc a{display:flex;gap:10px;padding:6px 8px;border-radius:6px;text-decoration:none;color:var(--ink-2)}
+.toc a:hover{background:var(--sunk);color:var(--ink)}
+.toc a.here{background:var(--sunk);color:var(--ink);font-weight:600}
+.toc .n{font-family:var(--f-mono);font-size:11.5px;color:var(--ink-3);min-width:18px;padding-top:1px}
+@media (min-width:1120px){.toc{position:sticky;top:calc(env(safe-area-inset-top,0px) + 32px);align-self:start;max-height:calc(100vh - 64px);overflow:auto}}
+@media (max-width:1119px){.toc ol{grid-template-columns:repeat(auto-fill,minmax(210px,1fr))}}
+
+main{min-width:0}
+
+/* ---------- đầu trang */
+.masthead{display:grid;gap:22px;padding-bottom:40px}
+.eyebrow{font-family:var(--f-mono);font-size:11.5px;letter-spacing:.1em;text-transform:uppercase;color:var(--ink-3)}
+.masthead h1{font-size:clamp(40px,6.4vw,68px);font-weight:700;letter-spacing:-.035em;line-height:1}
+.masthead h1 span{color:var(--ink-3);font-weight:500}
+.lead{font-size:clamp(17px,2vw,19.5px);line-height:1.55;color:var(--ink-2);max-width:62ch}
+.facts{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:0;border-top:1px solid var(--line);border-bottom:1px solid var(--line);margin:6px 0 0}
+.facts div{padding:14px 16px 14px 0;min-width:0}
+.facts dt{font-family:var(--f-mono);font-size:10.5px;letter-spacing:.08em;text-transform:uppercase;color:var(--ink-3);margin-bottom:4px}
+.facts dd{margin:0;font-size:14.5px;font-weight:600;font-variant-numeric:tabular-nums}
+
+.guide{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:16px}
+.guide > div{border:1px solid var(--line);border-radius:12px;padding:16px 18px;background:var(--surface);min-width:0}
+.guide h4{font-size:14px;font-weight:600;margin-bottom:6px}
+.guide p{font-size:14px;color:var(--ink-2)}
+
+/* ---------- section */
+section.sec{border-top:1px solid var(--line);padding-block:56px 12px;scroll-margin-top:24px}
+.sec-head{display:flex;gap:14px;align-items:baseline;margin-bottom:20px}
+.sec-head .num{font-family:var(--f-mono);font-size:13px;color:var(--ink-3);flex:none}
+.sec-head h2{font-size:clamp(25px,3.2vw,32px);font-weight:700;letter-spacing:-.02em}
+h3{font-size:19px;font-weight:600;letter-spacing:-.01em;margin-top:40px;margin-bottom:10px;scroll-margin-top:24px}
+h3 .num{font-family:var(--f-mono);font-size:12.5px;color:var(--ink-3);font-weight:400;margin-right:10px}
+h4{font-size:15.5px;font-weight:600;margin-top:24px;margin-bottom:6px}
+.prose{display:grid;gap:14px}
+.prose p,.prose li{max-width:72ch}
+.prose ul,.prose ol{margin:0;padding-left:22px;display:grid;gap:6px}
+.muted{color:var(--ink-3)}
+.small{font-size:13.5px}
+
+.tag{display:inline-block;font-family:var(--f-mono);font-size:10.5px;letter-spacing:.04em;line-height:1;padding:4px 7px 3px;border-radius:999px;border:1px solid var(--line-2);color:var(--ink-2);vertical-align:2px;white-space:nowrap}
+.tag.be{border-style:dashed}
+.tag.inf{border-style:dotted;border-width:1.5px}
+
+.note{border:1px solid var(--line);border-radius:12px;padding:16px 18px;background:var(--surface);display:grid;gap:8px;font-size:14.5px}
+.note .note-label{font-family:var(--f-mono);font-size:10.5px;letter-spacing:.09em;text-transform:uppercase;color:var(--ink-3)}
+
+.files{font-family:var(--f-mono);font-size:12px;color:var(--ink-3);line-height:1.6;overflow-wrap:anywhere}
+
+/* ---------- hình */
+figure{margin:22px 0 8px;min-width:0}
+.fig-body{background:var(--paper);border:1px solid var(--paper-line);border-radius:12px;padding:20px;overflow-x:auto}
+pre.mermaid{margin:0;display:flex;justify-content:center;font-family:var(--f-mono);font-size:12px;color:#2a2b2e;white-space:pre}
+figcaption,.figcap{font-size:13.5px;color:var(--ink-3);margin-top:10px;max-width:80ch}
+figcaption b,.figcap b{color:var(--ink-2);font-weight:600}
+.pair{display:grid;gap:4px}
+
+/* ---------- bảng */
+.tbl{overflow-x:auto;border:1px solid var(--line);border-radius:12px;background:var(--surface);margin:18px 0 6px}
+table{border-collapse:collapse;width:100%;font-size:14px;line-height:1.5}
+th,td{text-align:left;padding:10px 14px;border-bottom:1px solid var(--line);vertical-align:top}
+th{font-weight:600;font-size:12.5px;color:var(--ink-2);background:var(--sunk);white-space:nowrap}
+tr:last-child td{border-bottom:0}
+td code{font-size:12px}
+td.num,th.num{text-align:right;font-variant-numeric:tabular-nums;white-space:nowrap}
+
+pre.code{background:var(--sunk);border-radius:10px;padding:16px 18px;overflow-x:auto;font:12.5px/1.6 var(--f-mono);margin:16px 0;color:var(--ink)}
+
+/* ---------- toán */
+.eq{overflow-x:auto;overflow-y:hidden;padding:4px 0;margin:4px 0}
+mjx-container[display="true"]{margin:.6em 0 !important}
+.algo{border-left:0;border:1px solid var(--line);border-radius:12px;padding:18px 20px;background:var(--surface);display:grid;gap:10px;margin:14px 0}
+.algo .algo-h{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;align-items:baseline}
+.algo .algo-h b{font-size:15px}
+.algo ol{margin:0;padding-left:22px;font-size:14.5px;display:grid;gap:3px}
+
+/* ---------- kiến trúc tương tác */
+.arch{margin-top:22px;border:1px solid var(--line);border-radius:16px;background:var(--surface);overflow:hidden}
+.arch-top{display:flex;justify-content:space-between;align-items:baseline;gap:12px;flex-wrap:wrap;padding:16px 18px 0}
+.arch-top .eyebrow{font-size:10.5px}
+.arch-actions{display:grid;grid-template-columns:repeat(auto-fill,minmax(206px,1fr));gap:8px;padding:12px 18px 18px;border-bottom:1px solid var(--line)}
+.act{all:unset;box-sizing:border-box;display:grid;gap:2px;cursor:pointer;border:1px solid var(--line);background:var(--bg);border-radius:10px;padding:10px 12px;min-width:0}
+.act:hover{border-color:var(--line-2)}
+.act:focus-visible{outline:2px solid var(--signal);outline-offset:2px}
+.act[aria-pressed="true"]{background:var(--surface);border-color:var(--ink);box-shadow:inset 0 0 0 1px var(--ink)}
+.act .k{font-family:var(--f-mono);font-size:10.5px;color:var(--ink-3);letter-spacing:.04em}
+.act .t{font-weight:600;font-size:14.5px;line-height:1.3;color:var(--ink)}
+.arch-bar{display:flex;flex-wrap:wrap;gap:10px 14px;align-items:center;padding:12px 18px;border-bottom:1px solid var(--line);background:var(--bg)}
+.ctl{all:unset;box-sizing:border-box;cursor:pointer;display:inline-flex;align-items:center;gap:7px;height:36px;padding:0 14px;border-radius:8px;border:1px solid var(--line-2);font-size:13.5px;font-weight:600;color:var(--ink);background:var(--surface)}
+.ctl:hover{border-color:var(--ink-3)}
+.ctl:focus-visible{outline:2px solid var(--signal);outline-offset:2px}
+.ctl.primary{background:var(--ink);color:var(--bg);border-color:var(--ink)}
+.ctl svg{width:14px;height:14px;fill:currentColor}
+.speed{display:inline-flex;align-items:center;gap:8px;font-size:13px;color:var(--ink-2)}
+.speed select{font:inherit;font-size:13px;height:32px;border-radius:8px;border:1px solid var(--line-2);background:var(--surface);color:var(--ink);padding:0 8px}
+.now{flex:1 1 300px;min-width:0;font-size:14px;line-height:1.45;display:grid;gap:2px}
+.now .cap-meta{font-family:var(--f-mono);font-size:11px;color:var(--ink-3);letter-spacing:.03em}
+.now .cap-meta b{color:var(--signal);font-weight:600}
+.arch-canvas{overflow-x:auto;padding:6px 0}
+#arch{display:block;width:100%;min-width:760px;height:auto}
+.arch-legend{display:flex;flex-wrap:wrap;gap:6px 22px;padding:10px 18px 14px;font-size:12.5px;color:var(--ink-3);border-top:1px solid var(--line)}
+.arch-legend span{display:inline-flex;align-items:center;gap:8px}
+.lg{display:inline-block;width:22px;height:0;border-top:2px solid var(--line-2)}
+.lg.route{border-top:2px dashed var(--signal);opacity:.55}
+.lg.dot{width:10px;height:10px;border:0;border-radius:50%;background:var(--signal)}
+.lg.box{width:16px;height:11px;border:2px solid var(--signal);border-radius:3px;background:var(--signal-soft)}
+.steps{list-style:none;margin:0;padding:10px 12px 16px;display:grid;gap:2px;border-top:1px solid var(--line);counter-reset:s}
+.step{all:unset;box-sizing:border-box;cursor:pointer;display:grid;grid-template-columns:30px minmax(0,1fr);gap:2px 10px;width:100%;padding:8px 10px;border-radius:8px}
+.step:hover{background:var(--bg)}
+.step:focus-visible{outline:2px solid var(--signal);outline-offset:-2px}
+.step .sn{font-family:var(--f-mono);font-size:11.5px;color:var(--ink-3);padding-top:2px;grid-row:span 2;font-variant-numeric:tabular-nums}
+.step .st{font-size:14px;line-height:1.45;color:var(--ink-2)}
+.step .sp{font-family:var(--f-mono);font-size:10.5px;color:var(--ink-3)}
+.step.done .st{color:var(--ink-3)}
+.step.cur{background:var(--signal-soft)}
+.step.cur .st{color:var(--ink);font-weight:500}
+.step.cur .sn{color:var(--signal);font-weight:600}
+
+/* svg kiến trúc */
+.g-box{fill:var(--sunk);fill-opacity:.45;stroke:var(--line-2);stroke-dasharray:3 4;stroke-width:1}
+.g-label{font:600 10px var(--f-mono);letter-spacing:.09em;fill:var(--ink-3)}
+.edge{fill:none;stroke:var(--line-2);stroke-width:1.4;stroke-linejoin:round}
+.edge.route{stroke:var(--signal);stroke-opacity:.42;stroke-dasharray:5 4;stroke-width:1.6}
+.edge.active{stroke:var(--signal);stroke-opacity:1;stroke-dasharray:none;stroke-width:2.6}
+.node rect{fill:var(--surface);stroke:var(--line-2);stroke-width:1.2;transition:stroke .2s,fill .2s}
+.node.static rect{stroke-dasharray:4 3}
+.node .nt{font:600 13px var(--f-sans);fill:var(--ink)}
+.node .ns{font:400 10px var(--f-mono);fill:var(--ink-3)}
+.node.on rect{stroke:var(--signal);stroke-width:2.2;fill:var(--signal-soft)}
+.node.busy rect{animation:busy 1s ease-in-out infinite}
+@keyframes busy{50%{stroke-width:4}}
+.packet{fill:var(--signal)}
+.halo{fill:var(--signal);opacity:.22}
+@media (prefers-reduced-motion: reduce){.node.busy rect{animation:none}.node rect{transition:none}}
+
+.cols{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:16px;margin-top:14px}
+.cols > div{min-width:0}
+.card{border:1px solid var(--line);border-radius:12px;padding:16px 18px;background:var(--surface);display:grid;gap:6px;font-size:14.5px;align-content:start}
+.card h4{margin:0;font-size:14.5px}
+.card p{color:var(--ink-2)}
+.flowidx{display:grid;grid-template-columns:repeat(auto-fill,minmax(230px,1fr));gap:6px;margin:16px 0 4px;padding:0;list-style:none}
+.flowidx a{display:flex;gap:10px;padding:8px 12px;border:1px solid var(--line);border-radius:8px;text-decoration:none;font-size:14px;background:var(--surface)}
+.flowidx a:hover{border-color:var(--line-2)}
+.flowidx .n{font-family:var(--f-mono);font-size:11.5px;color:var(--ink-3);padding-top:2px}
+footer{margin-top:64px;padding-top:20px;border-top:1px solid var(--line);font-size:13px;color:var(--ink-3)}
+</style>
+
+<div class="shell">
+<nav class="toc" aria-label="Mục lục">
+  <div class="toc-label">Mục lục</div>
+  <ol>
+    <li><a href="#tom-tat"><span class="n">1</span>Tóm tắt</a></li>
+    <li><a href="#bai-toan"><span class="n">2</span>Bài toán và phạm vi</a></li>
+    <li><a href="#kien-truc"><span class="n">3</span>Kiến trúc phần mềm</a></li>
+    <li><a href="#dieu-huong"><span class="n">4</span>Điều hướng và máy trạng thái</a></li>
+    <li><a href="#luong"><span class="n">5</span>Luồng nghiệp vụ</a></li>
+    <li><a href="#thuat-toan"><span class="n">6</span>Thuật toán cốt lõi</a></li>
+    <li><a href="#du-lieu"><span class="n">7</span>Mô hình dữ liệu (ERD)</a></li>
+    <li><a href="#cong-nghe"><span class="n">8</span>Công nghệ và tham số</a></li>
+    <li><a href="#danh-gia"><span class="n">9</span>Đánh giá và hướng phát triển</a></li>
+    <li><a href="#phu-luc"><span class="n">10</span>Phụ lục cho nhóm phát triển</a></li>
+  </ol>
+</nav>
+
+<main>
+<header class="masthead">
+  <div class="eyebrow">Báo cáo kỹ thuật · Phân tích mã nguồn · 04/10/2026</div>
+  <h1>LEARN Mobile<br><span>từ tài liệu đến bài học</span></h1>
+  <p class="lead">Phân tích kiến trúc, luồng nghiệp vụ, mô hình dữ liệu và thuật toán của ứng dụng di động LEARN: người học tải tài liệu lên, hệ thống dùng mô hình ngôn ngữ lớn dựng lộ trình bài học, bài tập được chấm tự động ở máy chủ.</p>
+  <dl class="facts">
+    <div><dt>Nền tảng</dt><dd>Expo SDK 57 · RN 0.86</dd></div>
+    <div><dt>Ngôn ngữ</dt><dd>TypeScript 6.0 strict</dd></div>
+    <div><dt>Mã nguồn</dt><dd>75 tệp trong src/ · 17 màn</dd></div>
+    <div><dt>Dữ liệu</dt><dd>22 thực thể · PostgreSQL 16</dd></div>
+    <div><dt>Nhánh</dt><dd>master · 7abc309 + thay đổi chưa commit</dd></div>
+  </dl>
+  <div class="guide">
+    <div><h4>Đọc nhanh cho giảng viên</h4><p>Mục <a href="#tom-tat">1</a>, <a href="#bai-toan">2</a>, <a href="#kien-truc">3</a> (bấm "Chạy" trên sơ đồ kiến trúc), <a href="#thuat-toan">6</a> và <a href="#danh-gia">9</a>: ý tưởng, kiến trúc, mô hình hoá toán học và đánh giá.</p></div>
+    <div><h4>Đọc kỹ cho nhóm phát triển</h4><p>Mục <a href="#dieu-huong">4</a>, <a href="#luong">5</a>, <a href="#du-lieu">7</a>, <a href="#cong-nghe">8</a>, <a href="#phu-luc">10</a>: cây route, 11 luồng có biểu đồ hoạt động và tuần tự, ERD, bảng tham số kèm tên tệp.</p></div>
+  </div>
+</header>
+
+<!-- ============================================================ 1 -->
+<section class="sec" id="tom-tat">
+  <div class="sec-head"><span class="num">01</span><h2>Tóm tắt</h2></div>
+  <div class="prose">
+    <p>LEARN là hệ thống học tập cá nhân hoá: tài liệu do người học tải lên (PDF, DOCX, PPTX, TXT, Markdown) được trích xuất, cắt đoạn và đưa qua mô hình ngôn ngữ lớn (LLM) để sinh lộ trình bài học kèm bài tập bốn dạng câu hỏi. Báo cáo này phân tích <b>LEARN Mobile</b>, ứng dụng khách viết bằng Expo SDK 57 và React Native 0.86. Ứng dụng dùng chung API REST, khoá truy vấn bộ nhớ đệm và lược đồ dữ liệu Zod với bản web, nên có thể xem nó như một lớp trình bày thứ hai trên cùng một hợp đồng dữ liệu.</p>
+    <p>Chúng tôi trình bày (i) kiến trúc phân tầng của ứng dụng và vị trí của nó trong hệ thống phân tán gồm API, hàng đợi, worker AI, cơ sở dữ liệu và kho đối tượng; (ii) mười một luồng nghiệp vụ, mỗi luồng mô hình hoá bằng một biểu đồ hoạt động và một biểu đồ tuần tự; (iii) mô hình dữ liệu quan hệ 22 thực thể; (iv) hình thức hoá các thuật toán cốt lõi gồm chấm điểm và chuẩn hoá câu trả lời, điều kiện hoàn thành bài học, làm mới phiên kiểu <i>single-flight</i>, thăm dò thích nghi theo trạng thái, kiểm tra toàn vẹn tệp, kiểm tra bám nguồn của nội dung AI và sinh bìa khóa học tất định bằng hàm băm FNV-1a.</p>
+    <p>Kết quả phân tích cho thấy ứng dụng tuân thủ nhất quán ba nguyên tắc: yêu cầu HTTP không bao giờ chờ LLM; mọi quyết định có tính tin cậy (chấm điểm, hạn mức, phân quyền) nằm ở máy chủ; và trạng thái máy chủ được quản lý tập trung bởi TanStack Query thay vì sao chép vào state cục bộ.</p>
+  </div>
+</section>
+
+<!-- ============================================================ 2 -->
+<section class="sec" id="bai-toan">
+  <div class="sec-head"><span class="num">02</span><h2>Bài toán và phạm vi phân tích</h2></div>
+  <div class="prose">
+    <p>Người học thường có sẵn tài liệu (giáo trình, slide, ghi chú) nhưng thiếu cấu trúc học theo bước và thiếu bài kiểm tra để tự đánh giá. LEARN giải quyết bằng chuỗi xử lý: <i>tài liệu → đoạn văn bản có truy vết trang → dàn ý → bài học + bài tập → chấm điểm → tiến trình</i>. Ứng dụng di động đảm nhận toàn bộ màn hình phía người học như bản web, cộng thêm phần quản trị rút gọn cho tài khoản <code>ADMIN</code>.</p>
+    <h4>Ràng buộc thiết kế rút ra từ mã nguồn</h4>
+    <ul>
+      <li><b>Bất đồng bộ hoá việc gọi LLM.</b> Ứng dụng chỉ tạo <code>AIJob</code> rồi thăm dò trạng thái, không giữ kết nối chờ kết quả sinh.</li>
+      <li><b>Không tin client.</b> Đáp án đúng chỉ xuất hiện trong <code>SubmissionResult</code> sau khi nộp. Quyền ADMIN ở client chỉ để ẩn giao diện; máy chủ chặn thật bằng <code>RolesGuard</code>.</li>
+      <li><b>Phiên đăng nhập an toàn trên thiết bị.</b> Access token chỉ sống trong bộ nhớ, refresh token nằm trong Keychain/Keystore (ADR 016 của LEARN).</li>
+      <li><b>Đủ năm trạng thái giao diện</b> trên mọi màn có dữ liệu: Đang tải, Trống, Lỗi (kèm <code>requestId</code>), Một phần, Thành công.</li>
+      <li><b>Chạy được trong Expo Go</b>: mọi thư viện native đều thuộc bộ có sẵn của Expo Go, không cần bản build riêng.</li>
+    </ul>
+    <div class="note">
+      <div class="note-label">Phạm vi và nguồn của từng nhận định</div>
+      <p>Thư mục được phân tích là <code>LEARN_mobile</code>. Ứng dụng không chứa pipeline AI, cơ sở dữ liệu hay bộ chấm điểm; các phần đó nằm ở repo <code>../LEARN</code> và được đọc để giải thích hành vi mà ứng dụng phụ thuộc. Mỗi nhận định được gắn nhãn nguồn:</p>
+      <p><span class="tag">Mobile</span> trích trực tiếp từ <code>LEARN_mobile/src</code> &nbsp; <span class="tag be">Backend</span> từ <code>LEARN/apps/api</code>, <code>packages/db/prisma/schema.prisma</code> hoặc <code>docs/HANDBOOK.md</code> &nbsp; <span class="tag inf">Suy luận</span> công thức do báo cáo dựng lại từ mã, không có nguyên văn trong code.</p>
+    </div>
+  </div>
+</section>
+
+<!-- ============================================================ 3 -->
+<section class="sec" id="kien-truc">
+  <div class="sec-head"><span class="num">03</span><h2>Kiến trúc phần mềm</h2></div>
+  <div class="prose">
+    <p>Hệ thống gồm ba vùng triển khai. Ứng dụng di động là một client dày về trình bày nhưng mỏng về nghiệp vụ. Máy chủ LEARN gồm API NestJS và worker AI tách tiến trình, nối nhau qua hàng đợi Redis/BullMQ. Vùng dữ liệu gồm PostgreSQL (nguồn sự thật), kho đối tượng S3/MinIO (tệp gốc, phản hồi thô của LLM) và nhà cung cấp LLM. Chọn một hành động ở bảng điều khiển rồi bấm <b>Chạy</b> để xem gói dữ liệu đi qua từng thành phần; bấm vào một bước trong danh sách để nhảy tới bước đó.</p>
+  </div>
+
+  <div class="arch" id="arch-panel">
+    <div class="arch-top"><span class="eyebrow">Bảng điều khiển · chọn hành động</span><span class="small muted" id="arch-count"></span></div>
+    <div class="arch-actions" id="arch-actions" role="group" aria-label="Hành động mô phỏng"></div>
+    <div class="arch-bar">
+      <button class="ctl primary" id="btn-play" type="button"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M4 2.5v11l9-5.5z"/></svg><span>Chạy</span></button>
+      <button class="ctl" id="btn-step" type="button"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M3 2.5v11l7-5.5zM11 2.5h2v11h-2z"/></svg>Bước tiếp</button>
+      <button class="ctl" id="btn-reset" type="button"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M8 2a6 6 0 1 0 6 6h-2a4 4 0 1 1-1.2-2.85L9 7h5V2l-1.8 1.8A6 6 0 0 0 8 2z"/></svg>Đặt lại</button>
+      <label class="speed" for="speed">Tốc độ
+        <select id="speed"><option value="0.5">0,5×</option><option value="1" selected>1×</option><option value="2">2×</option></select>
+      </label>
+      <div class="now" aria-live="polite"><span class="cap-meta" id="cap-meta"></span><span id="cap-text"></span></div>
+    </div>
+    <div class="arch-canvas"><svg id="arch" viewBox="0 0 1000 620" role="img" aria-label="Sơ đồ kiến trúc LEARN Mobile và máy chủ LEARN"></svg></div>
+    <div class="arch-legend">
+      <span><i class="lg"></i>Kết nối tĩnh</span>
+      <span><i class="lg route"></i>Tuyến của hành động đang chọn</span>
+      <span><i class="lg dot"></i>Gói dữ liệu đang di chuyển</span>
+      <span><i class="lg box"></i>Thành phần đang xử lý</span>
+    </div>
+    <ol class="steps" id="arch-steps"></ol>
+  </div>
+  <p class="figcap"><b>Hình 3.1</b> Kiến trúc triển khai và mô phỏng luồng. Vùng trái <span class="tag">Mobile</span>, hai vùng còn lại <span class="tag be">Backend</span>. Nút "Zod contracts" viền đứt vì là mã dùng chung lúc biên dịch, không phải thành phần chạy.</p>
+
+  <h3 id="tang"><span class="num">3.1</span>Phân tầng trong ứng dụng di động</h3>
+  <div class="tbl"><table>
+    <thead><tr><th>Tầng</th><th>Thành phần</th><th>Trách nhiệm</th><th>Tệp chính</th></tr></thead>
+    <tbody>
+      <tr><td>Trình bày</td><td>Màn hình Expo Router, bộ component <code>ui/</code>, Markdown, Mascot, CourseCover</td><td>Render, năm trạng thái UI, trợ năng (role, live region, nhãn), phản hồi xúc giác</td><td><code>src/app/**</code>, <code>src/components/**</code></td></tr>
+      <tr><td>Trạng thái phiên</td><td><code>AuthProvider</code>, <code>ThemeProvider</code></td><td>Máy trạng thái <code>AuthStatus</code>; bảng màu Sáng/Tối/Tự động</td><td><code>features/auth/auth-context.tsx</code>, <code>theme/theme.tsx</code></td></tr>
+      <tr><td>Trạng thái máy chủ</td><td>Hook TanStack Query theo nghiệp vụ</td><td>Cache, vô hiệu hoá sau mutation, thăm dò, phân trang cursor</td><td><code>features/*/…-api.ts</code>, <code>lib/query-client.ts</code></td></tr>
+      <tr><td>Truy cập API</td><td><code>apiFetch</code>, <code>ApiClientError</code>, <code>refreshSession</code></td><td>Gắn Bearer và header native, tự làm mới khi 401, chuẩn hoá lỗi theo envelope</td><td><code>lib/api-client.ts</code></td></tr>
+      <tr><td>Lưu trữ thiết bị</td><td>SecureStore, AsyncStorage, FileSystem, Crypto</td><td>Refresh token; lựa chọn giao diện; đọc byte tệp; băm SHA-256</td><td><code>lib/token-store.ts</code>, <code>features/documents/documents-api.ts</code></td></tr>
+      <tr><td>Hợp đồng</td><td>Zod schema chép từ <code>@learn/contracts</code></td><td>Kiểu TypeScript, kiểm form phía client, dấu vân tay <code>CONTRACTS_HASH</code></td><td><code>src/contracts/*</code> (sinh tự động)</td></tr>
+    </tbody>
+  </table></div>
+
+  <h3><span class="num">3.2</span>Các quyết định kiến trúc</h3>
+  <div class="cols">
+    <div class="card"><h4>Tách trạng thái máy chủ khỏi trạng thái giao diện</h4><p>Dữ liệu từ API chỉ sống trong cache React Query. Context chỉ giữ phiên và giao diện. Màn đích tự đọc dữ liệu mới nhất; params điều hướng chỉ mang ID.</p></div>
+    <div class="card"><h4>Khoá truy vấn trùng bản web</h4><p><code>['courses', id, 'lessons']</code>, <code>['progress', …]</code>… giống hệt web, nên việc vô hiệu hoá sau mutation có thể đối chiếu một-một giữa hai client.</p></div>
+    <div class="card"><h4>Hợp đồng chép có kiểm soát</h4><p><code>sync-contracts.mjs --check</code> chạy trong <code>typecheck</code>; khi chạy, <code>GET /meta</code> so <code>contractsHash</code> và <code>minMobileVersion</code> để phát hiện lệch phiên bản.</p></div>
+    <div class="card"><h4>Tải tệp thẳng lên kho đối tượng</h4><p>API chỉ ký presigned URL; byte tệp không đi qua tiến trình Node. Checksum SHA-256 tính ở thiết bị để máy chủ chống trùng và kiểm toàn vẹn.</p></div>
+    <div class="card"><h4>Guard điều hướng khai báo</h4><p><code>Stack.Protected</code> làm các route trong app không tồn tại khi chưa đăng nhập; đăng nhập xong app tự chuyển nhánh, không gọi <code>router.replace</code>.</p></div>
+    <div class="card"><h4>Đơn sắc có chủ đích</h4><p>Chỉ dùng xám trung tính, bỏ cặp gần-trắng/gần-đen; trạng thái đúng/sai mã hoá bằng icon, chữ và kiểu viền (liền/đứt), không dựa vào màu.</p></div>
+  </div>
+</section>
+
+<!-- ============================================================ 4 -->
+<section class="sec" id="dieu-huong">
+  <div class="sec-head"><span class="num">04</span><h2>Điều hướng và các máy trạng thái</h2></div>
+  <div class="prose">
+    <p>Ứng dụng dùng Expo Router với route theo tệp trong <code>src/app/</code>. Root Stack có ba nhóm <code>Stack.Protected</code>: nhóm khách <code>(auth)</code>, nhóm đã đăng nhập, và nhóm chỉ dành cho ADMIN. Chi tiết khóa học, bài học và bài tập nằm ngoài Tabs nên che thanh tab khi đi sâu; tạo khóa học và sửa bài học mở dạng modal. <span class="tag">Mobile</span></p>
+  </div>
+<pre class="code">Root Stack                                            src/app/_layout.tsx
+├─ Protected guard = !authed
+│   └─ (auth)  login · register · forgot-password · reset-password   ← learn://reset-password?token=…
+├─ Protected guard = authed
+│   ├─ (tabs)  index (Tổng quan) · courses · progress · settings · admin*   backBehavior="history"
+│   ├─ course/new                                   modal
+│   ├─ course/[courseId]                            che tab bar
+│   ├─ course/[courseId]/lesson/[lessonId]          che tab bar
+│   ├─ course/[courseId]/lesson/[lessonId]/practice ?exercise=&lt;id&gt;
+│   └─ course/[courseId]/lesson/[lessonId]/edit     modal
+├─ Protected guard = authed &amp;&amp; role = ADMIN
+│   └─ admin/ai-jobs · admin/ai-jobs/[jobId]
+└─ +not-found                                       * tab admin: href = null nếu không phải ADMIN</pre>
+
+  <div class="cols">
+    <figure>
+      <div class="fig-body"><pre class="mermaid">
+%%{init: {"theme": "neutral"}}%%
+stateDiagram-v2
+  [*] --> loading
+  loading --> guest: không có refresh token
+  loading --> authed: refresh 200
+  loading --> guest: refresh bị từ chối 401
+  loading --> offline: lỗi mạng, giữ token
+  offline --> loading: Thử lại
+  guest --> authed: login hoặc register
+  authed --> guest: logout hoặc logout-all
+  authed --> guest: refresh thất bại giữa phiên
+</pre></div>
+      <figcaption><b>Hình 4.1</b> Máy trạng thái <code>AuthStatus</code>. Trạng thái <code>offline</code> tách khỏi <code>guest</code> để mất mạng không đẩy người dùng về màn đăng nhập. <span class="tag">Mobile</span></figcaption>
+    </figure>
+    <figure>
+      <div class="fig-body"><pre class="mermaid">
+%%{init: {"theme": "neutral"}}%%
+stateDiagram-v2
+  [*] --> QUEUED
+  QUEUED --> RUNNING: worker nhận, update có điều kiện
+  QUEUED --> CANCELLED: huỷ
+  RUNNING --> CANCELLED: huỷ
+  RUNNING --> SUCCEEDED: có thể kèm PARTIAL_FAILURES
+  RUNNING --> FAILED: lỗi hoặc quá 15 phút
+  FAILED --> QUEUED: retry, attempt tăng, tối đa 3
+  SUCCEEDED --> [*]
+  CANCELLED --> [*]
+</pre></div>
+      <figcaption><b>Hình 4.2</b> Máy trạng thái <code>AIJob</code>. Ứng dụng thăm dò khi ở <code>QUEUED</code> hoặc <code>RUNNING</code>. <span class="tag be">Backend</span></figcaption>
+    </figure>
+    <figure>
+      <div class="fig-body"><pre class="mermaid">
+%%{init: {"theme": "neutral"}}%%
+stateDiagram-v2
+  [*] --> PENDING: xin upload-url
+  PENDING --> UPLOADED: confirm
+  PENDING --> [*]: dọn sau 2 giờ
+  UPLOADED --> EXTRACTING: worker nhận
+  EXTRACTING --> EXTRACTED: chunk xong
+  EXTRACTING --> FAILED: sai định dạng, quá trang
+  EXTRACTED --> [*]
+  FAILED --> [*]
+</pre></div>
+      <figcaption><b>Hình 4.3</b> Vòng đời <code>Document</code>. Ứng dụng chỉ thăm dò khi có tài liệu ở <code>UPLOADED</code> hoặc <code>EXTRACTING</code>; <code>PENDING</code> bị loại để vòng thăm dò luôn dừng. <span class="tag">Mobile</span> <span class="tag be">Backend</span></figcaption>
+    </figure>
+    <figure>
+      <div class="fig-body"><pre class="mermaid">
+%%{init: {"theme": "neutral"}}%%
+stateDiagram-v2
+  [*] --> NOT_STARTED
+  NOT_STARTED --> IN_PROGRESS: mở bài, POST start
+  NOT_STARTED --> IN_PROGRESS: nộp bài tập đầu tiên
+  IN_PROGRESS --> COMPLETED: mọi bài tập đạt passScore
+  COMPLETED --> COMPLETED: nộp lại, cập nhật bestScore
+</pre></div>
+      <figcaption><b>Hình 4.4</b> Tiến trình một bài học của một người học (<code>LearningProgress</code>). <span class="tag">Mobile</span> <span class="tag be">Backend</span></figcaption>
+    </figure>
+  </div>
+</section>
+
+<!-- ============================================================ 5 -->
+<section class="sec" id="luong">
+  <div class="sec-head"><span class="num">05</span><h2>Luồng nghiệp vụ</h2></div>
+  <div class="prose">
+    <p>Mỗi luồng được mô tả bằng hai góc nhìn bổ sung nhau. <b>Biểu đồ hoạt động</b> trả lời câu hỏi "quyết định nào xảy ra theo thứ tự nào", gồm cả nhánh lỗi. <b>Biểu đồ tuần tự</b> trả lời "ai gọi ai, mang dữ liệu gì". Các biểu đồ được dựng lại từ mã của màn hình và hook tương ứng.</p>
+  </div>
+  <ul class="flowidx">
+    <li><a href="#f1"><span class="n">5.1</span>Khởi động và khôi phục phiên</a></li>
+    <li><a href="#f2"><span class="n">5.2</span>Đăng nhập, đăng ký, đăng xuất</a></li>
+    <li><a href="#f3"><span class="n">5.3</span>Gọi API và làm mới token</a></li>
+    <li><a href="#f4"><span class="n">5.4</span>Tạo khóa học</a></li>
+    <li><a href="#f5"><span class="n">5.5</span>Tải tài liệu và trích xuất</a></li>
+    <li><a href="#f6"><span class="n">5.6</span>Sinh bài học bằng AI</a></li>
+    <li><a href="#f7"><span class="n">5.7</span>Đọc và biên tập bài học</a></li>
+    <li><a href="#f8"><span class="n">5.8</span>Làm bài tập và chấm điểm</a></li>
+    <li><a href="#f9"><span class="n">5.9</span>Theo dõi tiến trình</a></li>
+    <li><a href="#f10"><span class="n">5.10</span>Gói dịch vụ và hạn mức</a></li>
+    <li><a href="#f11"><span class="n">5.11</span>Quản trị AI Job</a></li>
+  </ul>
+
+  <!-- 5.1 -->
+  <h3 id="f1"><span class="num">5.1</span>Khởi động ứng dụng và khôi phục phiên</h3>
+  <div class="prose"><p>Khi mở app, <code>RootLayout</code> nạp bốn weight của Hanken Grotesk (lỗi nạp font vẫn chạy bằng font hệ thống), sau đó <code>AuthProvider</code> đổi refresh token trong SecureStore lấy phiên mới. Màn Tổng quan gọi <code>GET /meta</code> để nhắc cập nhật khi phiên bản app thấp hơn mức tối thiểu máy chủ còn hỗ trợ.</p>
+  <p class="files">src/app/_layout.tsx · features/auth/auth-context.tsx · lib/api-client.ts · lib/token-store.ts · lib/server-meta.ts</p></div>
+  <figure><div class="fig-body"><pre class="mermaid">
+%%{init: {"theme": "neutral"}}%%
+flowchart TD
+  S(("Mở app")) --> F["Nạp 4 weight Hanken Grotesk"]
+  F --> P["Gắn SafeArea, QueryClient, Theme, AuthProvider"]
+  P --> R{"Có refresh token trong SecureStore?"}
+  R -->|Không| G["status = guest"]
+  R -->|Có| X["POST /auth/refresh"]
+  X --> Q{"Kết quả"}
+  Q -->|200| A["Lưu phiên, status = authed"]
+  Q -->|401| C["Xoá token"] --> G
+  Q -->|Lỗi mạng| O["status = offline, giữ token"]
+  O --> T["Người dùng chạm Thử lại"] --> R
+  G --> L["Nhánh auth: màn Đăng nhập"]
+  A --> M["Nhánh tabs: Tổng quan, gọi GET /meta"]
+  M --> V{"Phiên bản app nhỏ hơn minMobileVersion?"}
+  V -->|Có| U["Hiện thẻ Có phiên bản mới"]
+  V -->|Không| K(("Sẵn sàng"))
+  U --> K
+</pre></div><figcaption><b>Hình 5.1a</b> Biểu đồ hoạt động khởi động. <span class="tag">Mobile</span></figcaption></figure>
+  <figure><div class="fig-body"><pre class="mermaid">
+%%{init: {"theme": "neutral"}}%%
+sequenceDiagram
+  autonumber
+  participant L as RootLayout
+  participant A as AuthProvider
+  participant C as api-client
+  participant S as SecureStore
+  participant API as REST API
+  participant DB as PostgreSQL
+  L->>A: mount, status = loading
+  A->>C: readRefreshToken()
+  C->>S: getItemAsync learn.refreshToken
+  S-->>C: token hoặc null
+  alt không có token
+    A->>A: status = guest
+  else có token
+    A->>C: refreshSession()
+    C->>API: POST /auth/refresh, header x-learn-client native
+    API->>DB: so SHA-256, thu hồi token cũ, cấp token mới cùng familyId
+    DB-->>API: user và cặp token
+    API-->>C: 200 accessToken, refreshToken, user
+    C->>S: setItemAsync token mới
+    C-->>A: session
+    A-->>L: status = authed
+    L->>API: GET /meta
+    API-->>L: apiVersion, contractsHash, minMobileVersion
+  end
+</pre></div><figcaption><b>Hình 5.1b</b> Biểu đồ tuần tự khôi phục phiên. <span class="tag">Mobile</span> <span class="tag be">Backend</span></figcaption></figure>
+
+  <!-- 5.2 -->
+  <h3 id="f2"><span class="num">5.2</span>Đăng nhập, đăng ký, quên mật khẩu, đăng xuất</h3>
+  <div class="prose"><p>Form kiểm dữ liệu bằng chính schema Zod của máy chủ (<code>loginSchema</code>, <code>registerSchema</code>, <code>forgotPasswordSchema</code>) và báo lỗi ngay dưới ô sai. Quên mật khẩu luôn trả cùng một thông báo để không lộ email nào đã đăng ký; đặt lại mật khẩu mở bằng deep link <code>learn://reset-password</code>. Đăng xuất luôn xoá phiên trên máy kể cả khi API lỗi.</p>
+  <p class="files">src/app/(auth)/* · features/auth/auth-context.tsx · app/(tabs)/settings.tsx</p></div>
+  <figure><div class="fig-body"><pre class="mermaid">
+%%{init: {"theme": "neutral"}}%%
+flowchart TD
+  S(("Màn khách")) --> K{"Người dùng chọn"}
+  K -->|Đăng nhập| L1["Nhập email, mật khẩu"]
+  K -->|Đăng ký| R1["Nhập tên, email, mật khẩu 8 đến 72 ký tự"]
+  K -->|Quên mật khẩu| F1["Nhập email"]
+  L1 --> Z{"Schema Zod hợp lệ?"}
+  R1 --> Z
+  Z -->|Không| ER["Báo lỗi dưới ô sai"] --> K
+  Z -->|Có| P["POST /auth/login hoặc /auth/register"]
+  P --> OK{"Thành công?"}
+  OK -->|Không| EM["Hiện lỗi từ envelope"] --> K
+  OK -->|Có| ST["storeSession, status = authed"] --> APP["Guard tự mở nhánh tabs"]
+  F1 --> FP["POST /auth/forgot-password"] --> MSG["Luôn báo đã gửi thư"]
+  MSG --> DL["Mở learn://reset-password?token=..."] --> RS["POST /auth/reset-password"] --> K
+  APP --> LO{"Đăng xuất"}
+  LO -->|Máy này| O1["POST /auth/logout"]
+  LO -->|Mọi thiết bị| O2["POST /auth/logout-all"]
+  O1 --> CL["clearSession, queryClient.clear, status = guest"]
+  O2 --> CL
+  CL --> K
+</pre></div><figcaption><b>Hình 5.2a</b> Biểu đồ hoạt động xác thực. <span class="tag">Mobile</span></figcaption></figure>
+  <figure><div class="fig-body"><pre class="mermaid">
+%%{init: {"theme": "neutral"}}%%
+sequenceDiagram
+  autonumber
+  actor U as Người học
+  participant V as Màn Đăng nhập
+  participant A as AuthProvider
+  participant C as api-client
+  participant S as SecureStore
+  participant API as REST API
+  U->>V: nhập email, mật khẩu
+  V->>V: loginSchema.safeParse
+  V->>A: login(input)
+  A->>C: apiFetch POST /auth/login
+  C->>API: email, password, header native
+  API->>API: argon2id verify, tạo RefreshToken lưu hash
+  API-->>C: 200 user, accessToken, refreshToken
+  C->>S: setItemAsync refreshToken
+  A-->>V: status = authed
+  Note over V,A: Stack.Protected đổi nhánh, không cần router.replace
+  U->>A: logoutAll()
+  A->>C: POST /auth/logout-all kèm refreshToken
+  C->>API: thu hồi mọi family của user
+  API-->>C: 204
+  C->>S: deleteItemAsync
+  A->>A: queryClient.clear, status = guest
+</pre></div><figcaption><b>Hình 5.2b</b> Biểu đồ tuần tự đăng nhập và đăng xuất mọi thiết bị. <span class="tag">Mobile</span></figcaption></figure>
+
+  <!-- 5.3 -->
+  <h3 id="f3"><span class="num">5.3</span>Gọi API có xác thực và làm mới token</h3>
+  <div class="prose"><p>Mọi request đi qua <code>apiFetch</code>. Khi nhận 401 ở endpoint không thuộc <code>/auth/*</code>, hàm gọi <code>refreshSession()</code> đúng một lần rồi gửi lại request với cờ <code>retried</code>. Nhiều request cùng dính 401 chỉ gây một lượt refresh vì máy chủ coi việc gửi lại refresh token đã xoay vòng là tái sử dụng và thu hồi cả family. Lỗi trả về được chuẩn hoá thành <code>ApiClientError(status, code, detail, requestId, meta)</code>.</p>
+  <p class="files">lib/api-client.ts · lib/query-client.ts · lib/__tests__/api-client.test.ts</p></div>
+  <figure><div class="fig-body"><pre class="mermaid">
+%%{init: {"theme": "neutral"}}%%
+flowchart TD
+  S(("apiFetch")) --> H["Gắn x-learn-client native và Bearer nếu có"]
+  H --> N{"fetch thành công?"}
+  N -->|Không| NE["ApiClientError 0 NETWORK"]
+  N -->|Có| U{"401, chưa retried, không phải /auth/*?"}
+  U -->|Có| SF{"Đã có lượt refresh đang chạy?"}
+  SF -->|Có| W["Chờ chung Promise"]
+  SF -->|Không| RF["POST /auth/refresh"] --> W
+  W --> OK{"Refresh thành công?"}
+  OK -->|Có| RT["Gửi lại request, retried = true"] --> S
+  OK -->|Không| EX["onSessionExpired, về guest"] --> TH
+  U -->|Không| E{"res.ok?"}
+  E -->|Không| EV["Đọc envelope: code, detail, requestId, meta"] --> TH["throw ApiClientError"]
+  E -->|Có| R204{"204?"}
+  R204 -->|Có| UD["trả undefined"]
+  R204 -->|Không| JS["trả JSON"]
+</pre></div><figcaption><b>Hình 5.3a</b> Biểu đồ hoạt động của <code>apiFetch</code>. <span class="tag">Mobile</span></figcaption></figure>
+  <figure><div class="fig-body"><pre class="mermaid">
+%%{init: {"theme": "neutral"}}%%
+sequenceDiagram
+  autonumber
+  participant Q1 as Query A
+  participant Q2 as Query B
+  participant C as api-client
+  participant S as SecureStore
+  participant API as REST API
+  Q1->>C: apiFetch /progress/overview
+  Q2->>C: apiFetch /workspace
+  C->>API: hai request với access token cũ
+  API-->>C: 401 và 401
+  C->>C: refreshing rỗng, tạo Promise mới
+  C->>C: request thứ hai dùng lại Promise đang chạy
+  C->>S: readRefreshToken
+  C->>API: POST /auth/refresh, chỉ một lần
+  API-->>C: cặp token mới, token cũ bị thu hồi
+  C->>S: writeRefreshToken
+  C->>API: gửi lại hai request, retried = true
+  API-->>C: 200 và 200
+  C-->>Q1: dữ liệu
+  C-->>Q2: dữ liệu
+  Note over C,API: gửi token cũ hai lần sẽ bị coi là tái sử dụng và thu hồi cả family
+</pre></div><figcaption><b>Hình 5.3b</b> Biểu đồ tuần tự làm mới kiểu single-flight khi hai truy vấn cùng hết hạn. <span class="tag">Mobile</span> <span class="tag be">Backend</span></figcaption></figure>
+
+  <!-- 5.4 -->
+  <h3 id="f4"><span class="num">5.4</span>Tạo khóa học</h3>
+  <div class="prose"><p>Modal <code>course/new</code> kiểm dữ liệu bằng <code>createCourseSchema</code> (thông báo tiếng Việt định nghĩa ngay trong contracts), gọi <code>POST /courses</code>, vô hiệu hoá cache <code>courses</code> và <code>progress</code>, rồi đóng modal và mở khóa học vừa tạo. Vượt hạn mức trả 402 và được hiển thị bằng <code>QuotaNotice</code>.</p>
+  <p class="files">src/app/course/new.tsx · features/courses/courses-api.ts · contracts/course.ts</p></div>
+  <figure><div class="fig-body"><pre class="mermaid">
+%%{init: {"theme": "neutral"}}%%
+flowchart TD
+  S(("Chạm Tạo khóa học")) --> O["Mở modal course/new"]
+  O --> I["Nhập tên, mô tả, ngôn ngữ vi hoặc en"]
+  I --> Z{"createCourseSchema hợp lệ?"}
+  Z -->|Không| FE["Lỗi tiếng Việt dưới ô"] --> I
+  Z -->|Có| P["POST /api/v1/courses"]
+  P --> R{"Kết quả"}
+  R -->|402 QUOTA_EXCEEDED| QN["QuotaNotice: đã dùng trên hạn mức"]
+  R -->|Lỗi khác| IE["InlineError kèm requestId"]
+  R -->|Thành công| INV["Invalidate courses và progress"]
+  INV --> NAV["router.dismiss, push course/id"]
+</pre></div><figcaption><b>Hình 5.4a</b> Biểu đồ hoạt động tạo khóa học. <span class="tag">Mobile</span></figcaption></figure>
+  <figure><div class="fig-body"><pre class="mermaid">
+%%{init: {"theme": "neutral"}}%%
+sequenceDiagram
+  autonumber
+  actor U as Người học
+  participant M as Modal course/new
+  participant Q as React Query
+  participant API as REST API
+  participant DB as PostgreSQL
+  U->>M: nhập thông tin
+  M->>M: createCourseSchema.safeParse
+  M->>Q: useCreateCourse.mutateAsync
+  Q->>API: POST /courses
+  API->>DB: tăng UsageCounter COURSES_CREATED, insert Course DRAFT
+  DB-->>API: Course
+  API-->>Q: CourseDetail
+  Q->>Q: invalidate courses, progress
+  M->>M: dismiss modal, push màn khóa học
+</pre></div><figcaption><b>Hình 5.4b</b> Biểu đồ tuần tự tạo khóa học. <span class="tag">Mobile</span> <span class="tag be">Backend</span></figcaption></figure>
+
+  <!-- 5.5 -->
+  <h3 id="f5"><span class="num">5.5</span>Tải tài liệu lên và trích xuất</h3>
+  <div class="prose"><p>Luồng ba bước của HANDBOOK §7.2: xin URL, PUT thẳng lên kho, xác nhận. MIME được suy từ đuôi tệp (Android hay khai sai <code>.md</code>, <code>.docx</code>); byte tệp đọc bằng <code>File</code> của expo-file-system, băm bằng expo-crypto. Sau khi xác nhận, worker trích xuất bất đồng bộ; danh sách tài liệu tự thăm dò mỗi 3 giây để nhãn "Đang trích xuất" tự đổi sang "Đã trích xuất".</p>
+  <p class="files">app/course/[courseId]/index.tsx · features/documents/documents-api.ts · features/courses/courses-api.ts · contracts/document-types.ts</p></div>
+  <figure><div class="fig-body"><pre class="mermaid">
+%%{init: {"theme": "neutral"}}%%
+flowchart TD
+  S(("Chạm Chọn tệp")) --> PK["DocumentPicker.getDocumentAsync"]
+  PK --> CN{"Người dùng huỷ?"}
+  CN -->|Có| X(("Dừng"))
+  CN -->|Không| MT{"Đuôi tệp là pdf, docx, pptx, txt, md?"}
+  MT -->|Không| UE["Báo loại tệp chưa hỗ trợ"]
+  MT -->|Có| RD["Đọc byte, tính SHA-256"]
+  RD --> UU["POST upload-url"]
+  UU --> Q{"Phản hồi"}
+  Q -->|402 hoặc trùng checksum| QN["QuotaNotice hoặc InlineError"]
+  Q -->|documentId, uploadUrl| PUT["PUT byte lên presigned URL"]
+  PUT --> PO{"PUT thành công?"}
+  PO -->|Không| SE["Báo cần S3_PUBLIC_ENDPOINT theo IP LAN"]
+  PO -->|Có| CF["POST confirm sizeBytes"]
+  CF --> EN["Máy chủ enqueue document-extract"]
+  EN --> PL["Thăm dò mỗi 3 giây"]
+  PL --> ST{"Trạng thái"}
+  ST -->|UPLOADED hoặc EXTRACTING| PL
+  ST -->|EXTRACTED| OK["Nhãn Đã trích xuất, bật nút Sinh bài học"]
+  ST -->|FAILED| FL["Hiện errorMessage"]
+</pre></div><figcaption><b>Hình 5.5a</b> Biểu đồ hoạt động tải tài liệu. <span class="tag">Mobile</span></figcaption></figure>
+  <figure><div class="fig-body"><pre class="mermaid">
+%%{init: {"theme": "neutral"}}%%
+sequenceDiagram
+  autonumber
+  actor U as Người học
+  participant V as Màn Khóa học
+  participant UP as useUploadDocument
+  participant API as REST API
+  participant S3 as Object Storage
+  participant RQ as Redis BullMQ
+  participant W as AI Worker
+  participant DB as PostgreSQL
+  U->>V: chọn tệp
+  V->>UP: mutateAsync(asset)
+  UP->>UP: mimeFromFilename, đọc byte, SHA-256
+  UP->>API: POST /courses/:id/documents/upload-url
+  API->>DB: insert Document PENDING
+  API-->>UP: documentId, uploadUrl, expiresInSec
+  UP->>S3: PUT byte, Content-Type
+  S3-->>UP: 200
+  UP->>API: POST /documents/:id/confirm
+  API->>DB: status UPLOADED
+  API->>RQ: enqueue document-extract
+  RQ->>W: job
+  W->>S3: GET object
+  W->>W: magic bytes, trích văn bản, chuẩn hoá, cắt chunk
+  W->>DB: insert DocumentChunk, status EXTRACTED
+  loop mỗi 3 giây khi còn UPLOADED hoặc EXTRACTING
+    V->>API: GET /courses/:id/documents
+    API-->>V: danh sách và trạng thái
+  end
+</pre></div><figcaption><b>Hình 5.5b</b> Biểu đồ tuần tự tải tài liệu và trích xuất. <span class="tag">Mobile</span> <span class="tag be">Backend</span></figcaption></figure>
+
+  <!-- 5.6 -->
+  <h3 id="f6"><span class="num">5.6</span>Sinh bài học bằng AI và theo dõi job</h3>
+  <div class="prose"><p>Nút "Sinh bài học" chỉ bật khi khóa có ít nhất một tài liệu <code>EXTRACTED</code>; lý do bị khoá luôn hiển thị vì nút disabled không có tooltip trên điện thoại. Độ khó chọn ở thanh phân đoạn được đưa vào prompt. <code>AiJobProgress</code> thăm dò mỗi 2 giây và ánh xạ trạng thái job sang biểu cảm mascot. Khi job thành công trọn vẹn, màn hình tự đi tiếp sau 900 ms; khi thành công một phần, danh sách node lỗi được giữ lại để người học đọc.</p>
+  <p class="files">features/ai/ai-api.ts · features/ai/ai-job-progress.tsx · app/course/[courseId]/index.tsx · features/ai/__tests__/partial-failures.test.ts</p></div>
+  <figure><div class="fig-body"><pre class="mermaid">
+%%{init: {"theme": "neutral"}}%%
+flowchart TD
+  subgraph APP["Ứng dụng di động"]
+    a1(("Bắt đầu")) --> a2{"Có tài liệu EXTRACTED?"}
+    a2 -->|Không| a3["Nút bị khoá, hiện lý do"]
+    a2 -->|Có| a4["Chọn độ khó, POST generate-lessons"]
+    a4 --> a5{"Phản hồi"}
+    a5 -->|402| a6["QuotaNotice"]
+    a5 -->|AiJobSummary| a7["AiJobProgress, thăm dò 2 giây"]
+    a7 --> a8{"status"}
+    a8 -->|QUEUED hoặc RUNNING| a7
+    a8 -->|SUCCEEDED trọn vẹn| a9["Mascot celebrate, 900 ms sau refetch bài học"]
+    a8 -->|SUCCEEDED + PARTIAL_FAILURES| a10["Liệt kê node lỗi, nút Xem bài đã sinh"]
+    a8 -->|FAILED| a11["Hiện lỗi, nút Thử lại"]
+    a8 -->|CANCELLED| a12["Đã huỷ job"]
+  end
+  subgraph SRV["AI Worker"]
+    w1["QUEUED sang RUNNING bằng update có điều kiện"] --> w2["Giai đoạn A: outline, 1 lời gọi LLM"]
+    w2 --> w3["Giai đoạn B: lesson + exercise mỗi node, song song tối đa 3"]
+    w3 --> w4{"Validation 4 tầng"}
+    w4 -->|Sai schema hoặc luật| w5["Thử lại kèm mô tả lỗi"] --> w3
+    w4 -->|Đạt| w6["Gắn confidence HIGH hoặc LOW"]
+    w6 --> w7{"Có node thành công?"}
+    w7 -->|Không| w8["FAILED, không ghi gì"]
+    w7 -->|Có| w9["Ghi một transaction, SUCCEEDED"]
+  end
+  a4 -.-> w1
+  w9 -.-> a8
+  w8 -.-> a8
+</pre></div><figcaption><b>Hình 5.6a</b> Biểu đồ hoạt động hai làn: ứng dụng và worker. <span class="tag">Mobile</span> <span class="tag be">Backend</span></figcaption></figure>
+  <figure><div class="fig-body"><pre class="mermaid">
+%%{init: {"theme": "neutral"}}%%
+sequenceDiagram
+  autonumber
+  participant V as Màn Khóa học
+  participant Q as React Query
+  participant API as REST API
+  participant DB as PostgreSQL
+  participant RQ as Redis BullMQ
+  participant W as AI Worker
+  participant LLM as LLM Provider
+  participant S3 as Object Storage
+  V->>Q: generate.mutateAsync difficulty
+  Q->>API: POST /ai/courses/:id/generate-lessons
+  API->>DB: tăng AI_JOBS_RUN nguyên tử, insert AIJob QUEUED
+  API->>RQ: enqueue lesson-generate, idempotencyKey
+  API-->>Q: AiJobSummary
+  Q-->>V: activeJobId
+  RQ->>W: job
+  W->>DB: UPDATE status RUNNING WHERE status QUEUED
+  W->>LLM: outline từ heading path và 200 ký tự đầu mỗi chunk
+  LLM-->>W: danh sách node kèm chunkIds
+  par tối đa 3 lời gọi đồng thời
+    W->>LLM: lesson + exercise cho node i, toàn văn chunk
+    LLM-->>W: JSON theo schema
+  end
+  W->>S3: lưu raw response
+  W->>W: schema, luật nghiệp vụ, bám nguồn, sanitize
+  W->>DB: transaction Lesson, Exercise, Question, GenerationRun
+  loop mỗi 2 giây khi QUEUED hoặc RUNNING
+    V->>API: GET /ai/jobs/:id
+    API-->>V: status, progress, progressLabel, error
+  end
+  V->>Q: refetch lessons
+</pre></div><figcaption><b>Hình 5.6b</b> Biểu đồ tuần tự sinh bài học. <span class="tag">Mobile</span> <span class="tag be">Backend</span></figcaption></figure>
+
+  <!-- 5.7 -->
+  <h3 id="f7"><span class="num">5.7</span>Đọc và biên tập bài học</h3>
+  <div class="prose"><p>Mở bài lần đầu tự đánh dấu <code>IN_PROGRESS</code>. Nội dung Markdown được lexer của <code>marked</code> tách thành token và vẽ bằng <code>Text</code>/<code>View</code> native, nên không có HTML nào được thực thi; link chỉ mở nếu là http/https. Bài có <code>confidence = LOW</code> hiện cảnh báo lệch nguồn và mở sẵn khối "Nguồn" chứa đoạn tài liệu gốc. Người học có thể sửa, xoá (có bước xác nhận) và sắp xếp lại thứ tự bài.</p>
+  <p class="files">app/course/[courseId]/lesson/[lessonId]/index.tsx · …/edit.tsx · components/markdown.tsx · features/learning/lesson-sources.tsx · features/learning/lesson-path.tsx</p></div>
+  <figure><div class="fig-body"><pre class="mermaid">
+%%{init: {"theme": "neutral"}}%%
+flowchart TD
+  S(("Mở bài")) --> L["GET /courses/:id/lessons/:lessonId"]
+  L --> NS{"progress = NOT_STARTED?"}
+  NS -->|Có| ST["POST start, sang IN_PROGRESS"] --> RD
+  NS -->|Không| RD["Lexer marked, token sang Text và View native"]
+  RD --> CF{"confidence = LOW?"}
+  CF -->|Có| WN["Cảnh báo lệch nguồn, mở sẵn khối Nguồn"] --> AC
+  CF -->|Không| AC{"Hành động"}
+  AC -->|Mục lục| TOC["Cuộn tới heading h1 đến h3"]
+  AC -->|Nguồn| SRC["GET sources, cache 5 phút"]
+  AC -->|Sửa| ED["Modal edit, PATCH lesson"]
+  AC -->|Xoá| DEL{"Xác nhận?"}
+  DEL -->|Có| DD["DELETE, router.back"]
+  AC -->|Bài trước hoặc sau| NX["router.replace"]
+  AC -->|Làm bài tập| PR["push practice"]
+  S2(("Ở màn khóa học")) --> MV["Chạm mũi tên lên hoặc xuống"]
+  MV --> RO["PATCH /lessons/reorder với toàn bộ thứ tự mới"]
+  RO --> SC["setQueryData lessons"]
+</pre></div><figcaption><b>Hình 5.7a</b> Biểu đồ hoạt động đọc, sửa, xoá và sắp xếp bài học. <span class="tag">Mobile</span></figcaption></figure>
+  <figure><div class="fig-body"><pre class="mermaid">
+%%{init: {"theme": "neutral"}}%%
+sequenceDiagram
+  autonumber
+  actor U as Người học
+  participant V as LessonScreen
+  participant Q as React Query
+  participant API as REST API
+  participant DB as PostgreSQL
+  U->>V: mở bài
+  V->>Q: useLesson, useLessons lấy từ cache
+  Q->>API: GET lesson
+  API-->>Q: LessonRead
+  opt progress NOT_STARTED
+    V->>API: POST start
+    API->>DB: LearningProgress IN_PROGRESS
+  end
+  V->>V: useMarkdown lex, dựng mục lục
+  opt confidence LOW hoặc người học mở Nguồn
+    V->>API: GET sources
+    API->>DB: DocumentChunk theo sourceChunkIds
+    API-->>V: excerpt, trang, headingPath
+  end
+  opt sửa bài
+    U->>V: lưu
+    V->>API: PATCH lesson title, summary, contentMd
+    API->>DB: cập nhật, đặt editedByUserAt
+    API-->>Q: LessonRead, setQueryData và invalidate
+  end
+</pre></div><figcaption><b>Hình 5.7b</b> Biểu đồ tuần tự đọc và sửa bài học. <span class="tag">Mobile</span></figcaption></figure>
+
+  <!-- 5.8 -->
+  <h3 id="f8"><span class="num">5.8</span>Làm bài tập và chấm điểm</h3>
+  <div class="prose"><p>Đề bài không kèm đáp án. Khi người học chạm "Nộp bài" mà còn câu chưa trả lời, màn hình cuộn tới câu thiếu, đánh dấu tại chỗ, rung cảnh báo và không gửi. Máy chủ chấm điểm từ dữ liệu trong CSDL, ghi kết quả trong một transaction và trả đáp án đúng kèm giải thích. Bước tiếp theo được chọn tự động: bài tập chưa đạt kế tiếp, hoặc bài học kế tiếp khi cả bài đã hoàn thành.</p>
+  <p class="files">app/course/[courseId]/lesson/[lessonId]/practice.tsx · features/learning/learning-api.ts · components/celebrate.tsx · LEARN/apps/api/src/modules/learning/exercises.service.ts</p></div>
+  <figure><div class="fig-body"><pre class="mermaid">
+%%{init: {"theme": "neutral"}}%%
+flowchart TD
+  S(("Mở bài tập")) --> G["GET exercise, không kèm đáp án"]
+  G --> E{"Kết quả"}
+  E -->|404 và có exerciseId| N1["Mở bài tập đầu tiên"]
+  E -->|404| N2["Bài học chưa có bài tập"]
+  E -->|OK| A["Trả lời 4 loại câu"]
+  A --> SB["Chạm Nộp bài"]
+  SB --> M{"Đã trả lời đủ?"}
+  M -->|Không| MS["Cuộn tới câu thiếu, đánh dấu, haptic Warning"] --> A
+  M -->|Có| P["POST submit kèm durationMs"]
+  P --> GR["Máy chủ chấm, ghi transaction"]
+  GR --> R{"passed?"}
+  R -->|Có| C1["Confetti, haptic Success"]
+  R -->|Không| C2["Mascot confused, xem lại câu sai"]
+  C1 --> NX{"Bước tiếp"}
+  NX -->|Còn bài tập chưa đạt| NE["Bài tập tiếp"]
+  NX -->|lessonCompleted và có bài sau| NL["dismiss 2 màn, push bài học tiếp"]
+  C2 --> RT["Làm lại: xoá đáp án, đặt lại đồng hồ"] --> A
+</pre></div><figcaption><b>Hình 5.8a</b> Biểu đồ hoạt động làm bài. <span class="tag">Mobile</span></figcaption></figure>
+  <figure><div class="fig-body"><pre class="mermaid">
+%%{init: {"theme": "neutral"}}%%
+sequenceDiagram
+  autonumber
+  actor U as Người học
+  participant V as PracticeScreen
+  participant Q as React Query
+  participant API as REST API
+  participant DB as PostgreSQL
+  V->>API: GET /lessons/:id/exercise?exerciseId
+  API-->>V: questions, options, bestSubmission, exercises
+  U->>V: trả lời các câu
+  U->>V: Nộp bài
+  V->>V: kiểm đủ câu, tính durationMs
+  V->>API: POST /lessons/:id/exercise/submit answers, exerciseId, durationMs
+  API->>API: mọi questionId phải thuộc bài tập
+  API->>DB: đọc Question, AnswerOption, correctAnswer
+  API->>API: gradeSubmission, quy về thang 100
+  API->>DB: transaction Submission, SubmissionAnswer, bestScore, LearningProgress
+  Note over API,DB: trùng attemptNo do nộp song song thì thử lại tối đa 3 lần
+  API-->>V: score, passed, lessonCompleted, results kèm đáp án đúng
+  V->>Q: invalidate exercise, lessons, progress, courses
+  V->>V: ResultView, haptic, Confetti
+</pre></div><figcaption><b>Hình 5.8b</b> Biểu đồ tuần tự nộp bài và chấm điểm. <span class="tag">Mobile</span> <span class="tag be">Backend</span></figcaption></figure>
+
+  <!-- 5.9 -->
+  <h3 id="f9"><span class="num">5.9</span>Theo dõi tiến trình</h3>
+  <div class="prose"><p>Tab Tổng quan trả lời câu hỏi "học tiếp cái gì": khóa đang dở được xếp trước, thẻ "Học tiếp" dẫn thẳng vào bài kế tiếp. Tab Tiến trình phân trang lịch sử làm bài bằng cursor. Khi app trở lại foreground, <code>focusManager</code> gắn với <code>AppState</code> làm mới các truy vấn đã cũ hơn 30 giây.</p>
+  <p class="files">app/(tabs)/index.tsx · app/(tabs)/progress.tsx · features/learning/learning-api.ts · lib/query-client.ts</p></div>
+  <figure><div class="fig-body"><pre class="mermaid">
+%%{init: {"theme": "neutral"}}%%
+flowchart TD
+  S(("Mở Tổng quan")) --> P["Song song: overview, progress/courses, history 5 mục"]
+  P --> Z{"courseCount = 0?"}
+  Z -->|Có| EM["EmptyState: Tạo khóa học đầu tiên"]
+  Z -->|Không| RK["Xếp khóa: đang dở, chưa bắt đầu, đã xong"]
+  RK --> RC["Thẻ Học tiếp: bài IN_PROGRESS hoặc NOT_STARTED đầu tiên"]
+  RC --> ST["4 số liệu: chuỗi ngày, bài xong, điểm TB, số khóa"]
+  S2(("Mở Tiến trình")) --> H["useInfiniteQuery history, trang 10"]
+  H --> MORE{"nextCursor khác null?"}
+  MORE -->|Có, chạm Xem thêm| H2["fetchNextPage với cursor"] --> MORE
+  MORE -->|Không| FIN(("Hết lịch sử"))
+</pre></div><figcaption><b>Hình 5.9a</b> Biểu đồ hoạt động tiến trình. <span class="tag">Mobile</span></figcaption></figure>
+  <figure><div class="fig-body"><pre class="mermaid">
+%%{init: {"theme": "neutral"}}%%
+sequenceDiagram
+  autonumber
+  participant O as Tổng quan
+  participant P as Tiến trình
+  participant API as REST API
+  par ba truy vấn độc lập
+    O->>API: GET /progress/overview
+  and
+    O->>API: GET /progress/courses
+  and
+    O->>API: GET /progress/history?limit=5
+  end
+  API-->>O: overview, courses, items
+  O->>O: sort theo rank rồi percent giảm dần
+  O->>API: GET /courses/:id/lessons cho thẻ Học tiếp
+  P->>API: GET /progress/history?limit=10
+  API-->>P: items, nextCursor
+  P->>API: GET history kèm cursor = id lượt nộp cuối trang trước
+  API-->>P: trang kế, nextCursor null khi hết
+</pre></div><figcaption><b>Hình 5.9b</b> Biểu đồ tuần tự tải tiến trình. <span class="tag">Mobile</span></figcaption></figure>
+
+  <!-- 5.10 -->
+  <h3 id="f10"><span class="num">5.10</span>Gói dịch vụ và hạn mức</h3>
+  <div class="prose"><p>Màn Cài đặt hiển thị gói hiện tại và mức sử dụng theo từng chỉ số (<code>used</code>, <code>limit</code>, <code>window</code>). Đổi gói và huỷ gói đều có bước xác nhận. Ở chế độ <code>BILLING_MODE=demo</code>, máy chủ kích hoạt gói ngay; giá luôn lấy từ CSDL. Mọi tác vụ tốn hạn mức (tạo khóa, tải tài liệu, sinh bài) có thể trả 402, được nhận diện bằng <code>isQuotaExceededError</code>.</p>
+  <p class="files">app/(tabs)/settings.tsx · features/settings/subscription-api.ts · components/ui/states.tsx (QuotaNotice)</p></div>
+  <figure><div class="fig-body"><pre class="mermaid">
+%%{init: {"theme": "neutral"}}%%
+flowchart TD
+  S(("Mở Cài đặt")) --> G["GET /plans và GET /subscription"]
+  G --> U["Hiện gói và usage theo chỉ số"]
+  U --> A{"Hành động"}
+  A -->|Đổi gói| C{"Xác nhận?"}
+  C -->|Có| CO["POST /subscription/checkout planCode"]
+  CO --> MD{"mode"}
+  MD -->|demo| DM["Kích hoạt ngay, Payment giả demo"]
+  MD -->|live| LV["URL thanh toán, webhook là nguồn sự thật"]
+  A -->|Huỷ gói| CA["POST /subscription/cancel"]
+  DM --> INV["Invalidate subscription"]
+  CA --> INV
+  A -->|Giao diện| TH["Sáng, Tối, Tự động, lưu AsyncStorage learn.theme"]
+  S2(("Tác vụ tốn hạn mức")) --> Q{"402 QUOTA_EXCEEDED?"}
+  Q -->|Có| QN["QuotaNotice từ meta.metric, limit, used"]
+</pre></div><figcaption><b>Hình 5.10a</b> Biểu đồ hoạt động gói dịch vụ, hạn mức và giao diện. <span class="tag">Mobile</span></figcaption></figure>
+  <figure><div class="fig-body"><pre class="mermaid">
+%%{init: {"theme": "neutral"}}%%
+sequenceDiagram
+  autonumber
+  actor U as Người dùng
+  participant V as Cài đặt
+  participant API as REST API
+  participant DB as PostgreSQL
+  V->>API: GET /plans
+  V->>API: GET /subscription
+  API->>DB: Subscription, UsageCounter
+  API-->>V: planCode, status, usage
+  U->>V: chọn gói, xác nhận
+  V->>API: POST /subscription/checkout planCode
+  API->>DB: tra Plan.priceCents từ CSDL
+  alt BILLING_MODE demo
+    API->>DB: kích hoạt Subscription, Payment demo
+    API-->>V: url, mode demo
+  else live
+    API-->>V: url Checkout của nhà cung cấp
+  end
+  V->>V: invalidate subscription
+</pre></div><figcaption><b>Hình 5.10b</b> Biểu đồ tuần tự đổi gói. <span class="tag">Mobile</span> <span class="tag be">Backend</span></figcaption></figure>
+
+  <!-- 5.11 -->
+  <h3 id="f11"><span class="num">5.11</span>Quản trị AI Job (bản rút gọn)</h3>
+  <div class="prose"><p>Tab Quản trị chỉ xuất hiện với <code>role = ADMIN</code> (<code>href: null</code> với người khác) và route <code>admin/*</code> nằm trong một <code>Stack.Protected</code> riêng. Quản trị viên xem số liệu tổng, chi phí LLM bảy ngày, danh sách job theo trạng thái, chi tiết từng lượt gọi LLM và nhật ký thao tác, rồi chạy lại job lỗi.</p>
+  <p class="files">app/(tabs)/admin.tsx · app/admin/ai-jobs/index.tsx · app/admin/ai-jobs/[jobId].tsx · features/admin/admin-api.ts</p></div>
+  <figure><div class="fig-body"><pre class="mermaid">
+%%{init: {"theme": "neutral"}}%%
+flowchart TD
+  S(("Đã đăng nhập")) --> R{"role = ADMIN?"}
+  R -->|Không| H["Tab ẩn, route admin không tồn tại"]
+  R -->|Có| M["GET /admin/metrics: tổng số, chi phí 7 ngày"]
+  M --> L["Danh sách AI Job, lọc theo trạng thái"]
+  L --> D["Chi tiết: runs, token vào ra, độ trễ, nhật ký"]
+  D --> F{"status = FAILED?"}
+  F -->|Không| L
+  F -->|Có| C{"Xác nhận chạy lại?"}
+  C -->|Không| D
+  C -->|Có| RT["POST retry: attempt tăng, AuditLog"]
+  RT --> L
+</pre></div><figcaption><b>Hình 5.11a</b> Biểu đồ hoạt động quản trị. <span class="tag">Mobile</span></figcaption></figure>
+  <figure><div class="fig-body"><pre class="mermaid">
+%%{init: {"theme": "neutral"}}%%
+sequenceDiagram
+  autonumber
+  actor U as Quản trị viên
+  participant V as Màn Quản trị
+  participant API as REST API
+  participant DB as PostgreSQL
+  participant RQ as Redis BullMQ
+  V->>API: GET /admin/metrics
+  API->>DB: đếm bản ghi, tổng costUsd theo ngày
+  V->>API: GET /admin/ai-jobs?status=FAILED
+  V->>API: GET /admin/ai-jobs/:id
+  V->>API: GET /admin/ai-jobs/:id/audit-log
+  U->>V: Chạy lại, xác nhận
+  V->>API: POST /admin/ai-jobs/:id/retry
+  API->>API: RolesGuard kiểm ADMIN
+  API->>DB: attempt tăng, status QUEUED, ghi AuditLog
+  API->>RQ: enqueue lại
+  API-->>V: job
+  V->>V: invalidate admin ai-jobs
+</pre></div><figcaption><b>Hình 5.11b</b> Biểu đồ tuần tự chạy lại job lỗi. <span class="tag">Mobile</span> <span class="tag be">Backend</span></figcaption></figure>
+</section>
+
+<!-- ============================================================ 6 -->
+<section class="sec" id="thuat-toan">
+  <div class="sec-head"><span class="num">06</span><h2>Thuật toán cốt lõi và mô hình hoá</h2></div>
+  <div class="prose">
+    <p>Phần này hình thức hoá các bước tính toán quyết định hành vi hệ thống. Ký hiệu $\mathbb{1}[\cdot]$ là hàm chỉ thị, $\lfloor\cdot\rceil$ là làm tròn tới số nguyên gần nhất.</p>
+  </div>
+
+  <h3 id="a1"><span class="num">6.1</span>Chấm điểm một lượt nộp <span class="tag be">Backend</span></h3>
+  <div class="prose">
+    <p>Cho bài tập $e$ gồm các câu $q_1,\dots,q_n$ với điểm $p_i \in \mathbb{N}$ (mặc định $p_i = 1$) và câu trả lời $a_i$ (có thể bỏ trống). Độ đúng của từng câu theo loại:</p>
+    <div class="eq">$$c_i=\begin{cases}\mathbb{1}\left[a_i = o_i^{\star}\right] &amp; \text{MULTIPLE_CHOICE, } o_i^{\star}\text{ là lựa chọn có isCorrect}\\[2pt] \mathbb{1}\left[a_i = v_i^{\star}\right] &amp; \text{TRUE_FALSE}\\[2pt] \mathbb{1}\left[\nu(a_i) \in \{\nu(s) : s \in \mathcal{A}_i\}\right] &amp; \text{SHORT_ANSWER, FILL_BLANK}\\[2pt] 0 &amp; a_i \text{ bỏ trống hoặc sai loại}\end{cases}$$</div>
+    <p>trong đó $\mathcal{A}_i$ là tập đáp án chấp nhận (<code>correctAnswer.acceptable</code>) và $\nu$ là hàm chuẩn hoá chuỗi tiếng Việt, hợp của sáu phép biến đổi:</p>
+    <div class="eq">$$\nu = \tau_{\text{punct}} \circ \tau_{\text{trim}} \circ \tau_{\text{space}} \circ \tau_{\text{lower}} \circ \tau_{\text{đ}\to\text{d}} \circ \tau_{\text{strip}} \circ \mathrm{NFD}$$</div>
+    <p>$\mathrm{NFD}$ tách dấu thành ký tự tổ hợp, $\tau_{\text{strip}}$ xoá khối U+0300–U+036F, $\tau_{\text{space}}$ gộp mọi khoảng trắng thành một, $\tau_{\text{punct}}$ bỏ dấu câu cuối chuỗi. Hệ quả: "Hà Nội." và "ha noi" được coi là một. Điểm lượt nộp quy về thang $100$:</p>
+    <div class="eq">$$S(e)=\left\lfloor 100\cdot\frac{\sum_{i=1}^{n} p_i\,c_i}{\max\!\left(\sum_{i=1}^{n} p_i,\;1\right)}\right\rceil,\qquad \text{passed}(e) = \mathbb{1}\left[S(e) \ge \theta_e\right],\quad \theta_e = \text{passScore} \;(\text{mặc định } 70)$$</div>
+    <p>Mẫu số $\max(\cdot,1)$ tương ứng biểu thức <code>|| 1</code> trong mã, chặn chia cho 0 khi bài tập không có câu nào có điểm. Ứng dụng nhận về <code>score = S</code>, <code>maxScore = 100</code>. Đáp án đúng của câu trắc nghiệm được suy từ <code>AnswerOption.isCorrect</code>, chính nguồn dùng để chấm, thay vì cột <code>correctAnswer</code>.</p>
+  </div>
+
+  <h3 id="a2"><span class="num">6.2</span>Hoàn thành bài học và đánh số lượt làm <span class="tag be">Backend</span></h3>
+  <div class="prose">
+    <p>Gọi $E(L)$ là tập bài tập của bài học $L$, $S_{e,k}$ là điểm lượt thứ $k$ của người học ở bài tập $e$. Bài học hoàn thành khi mọi bài tập đã đạt ít nhất một lần:</p>
+    <div class="eq">$$\text{complete}(L) \iff \forall e \in E(L):\; \beta_e \ge \theta_e,\qquad \beta_e = \max_{k} S_{e,k},\;\; \max\varnothing := -1$$</div>
+    <p>Điều kiện được tính <i>sau</i> khi ghi lượt mới và <i>trong cùng transaction</i>, nên điểm vừa nộp được tính và hai lượt nộp song song ở hai bài tập khác nhau không bỏ sót nhau. Số thứ tự lượt làm $k_{\text{new}} = 1 + \max_k k$ cũng tính trong transaction; nếu vi phạm ràng buộc duy nhất <code>(userId, exerciseId, attemptNo)</code> (lỗi Prisma P2002) thì thử lại tối đa $3$ lần. Tỉ lệ tiến độ của khóa học hiển thị trên ứng dụng:</p>
+    <div class="eq">$$\pi(C)=100\cdot\frac{\left|\{L \in C : \text{status}(L)=\text{COMPLETED}\}\right|}{\max(|C|,1)}$$</div>
+  </div>
+
+  <h3 id="a3"><span class="num">6.3</span>Làm mới phiên kiểu single-flight <span class="tag">Mobile</span></h3>
+  <div class="prose">
+    <p>Biến mô-đun <code>refreshing</code> đóng vai trò một khoá Promise dùng chung. Gọi $R$ là giá trị hiện tại của nó:</p>
+    <div class="eq">$$\text{refreshSession}() = \begin{cases} R &amp; R \ne \bot \\ R \leftarrow \text{doRefresh}();\ \text{finally } R \leftarrow \bot &amp; R = \bot\end{cases}$$</div>
+    <p>Với một loạt $m$ request cùng nhận 401 trong khoảng thời gian một lượt refresh đang chạy, số lời gọi <code>/auth/refresh</code> là $1$ thay vì $m$. Đây là điều kiện cần cho tính đúng: máy chủ xoay vòng refresh token mỗi lần dùng, và một token đã thu hồi bị trình lại sẽ kích hoạt thu hồi toàn bộ <code>familyId</code>. Chính sách xử lý lỗi của lượt refresh phân biệt hai trường hợp:</p>
+    <div class="eq">$$\text{sau lỗi refresh}:\quad \begin{cases} \text{xoá refresh token, về guest} &amp; \text{status}=401\\ \text{giữ refresh token, chỉ xoá access token} &amp; \text{lỗi mạng}\end{cases}$$</div>
+    <p>Chính sách thử lại của truy vấn đọc được cấu hình toàn cục, không thử lại lỗi 4xx vì đó là câu trả lời thật của máy chủ:</p>
+    <div class="eq">$$\text{retry}(n, \varepsilon) = \neg\left(400 \le \varepsilon.\text{status} \lt 500\right) \wedge n \lt 2$$</div>
+    <p>Vòng đời token phía máy chủ <span class="tag be">Backend</span>: access token JWT $T_a = 15$ phút, refresh token 256 bit $T_r = 30$ ngày, chỉ lưu $\mathrm{SHA256}$ trong CSDL; mật khẩu băm argon2id với $m = 19456$ KiB, $t = 2$, $p = 1$.</p>
+  </div>
+
+  <h3 id="a4"><span class="num">6.4</span>Thăm dò thích nghi theo trạng thái <span class="tag">Mobile</span></h3>
+  <div class="prose">
+    <p>Thay vì kết nối SSE, ứng dụng dùng <code>refetchInterval</code> là một hàm của dữ liệu vừa nhận, nên vòng thăm dò tự tắt khi đạt trạng thái kết thúc:</p>
+    <div class="eq">$$\Delta_{\text{job}}(s)=\begin{cases}2000\ \text{ms} &amp; s \in \{\text{QUEUED},\text{RUNNING}\}\\ \infty &amp; \text{ngược lại}\end{cases}\qquad \Delta_{\text{doc}}(D)=\begin{cases}3000\ \text{ms} &amp; \exists d \in D: d.\text{status} \in \{\text{UPLOADED},\text{EXTRACTING}\}\\ \infty &amp; \text{ngược lại}\end{cases}$$</div>
+    <p><code>PENDING</code> bị loại khỏi $\Delta_{\text{doc}}$ có chủ đích: tài liệu xin URL rồi bỏ dở nằm <code>PENDING</code> vô thời hạn và sẽ khiến vòng thăm dò không bao giờ dừng. Với job kéo dài $T$ giây, số request thăm dò xấp xỉ <span class="tag inf">Suy luận</span></p>
+    <div class="eq">$$N_{\text{poll}}(T) \approx \left\lceil \frac{T}{2} \right\rceil,\qquad \text{độ trễ phát hiện kết thúc} \in [0, 2]\ \text{s}$$</div>
+    <p>ví dụ job 90 giây sinh khoảng 45 request <code>GET /ai/jobs/:id</code>. Đổi lại, cách này chạy được trên mọi mạng kể cả khi proxy chặn SSE, và không cần thư viện streaming.</p>
+  </div>
+
+  <h3 id="a5"><span class="num">6.5</span>Toàn vẹn tệp tải lên <span class="tag">Mobile</span> <span class="tag be">Backend</span></h3>
+  <div class="prose">
+    <p>Với chuỗi byte $B$ của tệp đã chọn, ứng dụng gửi $h = \mathrm{hex}(\mathrm{SHA256}(B))$, $|h| = 64$, và kích thước $|B|$. Hợp đồng ràng buộc $0 \lt |B| \le 26\,214\,400$ byte (25 MiB). Loại tệp xác định bởi đuôi, không bởi MIME do hệ điều hành khai:</p>
+    <div class="eq">$$\text{mime}(f)=\begin{cases}\text{mime}_{\text{ext}(f)} &amp; \text{ext}(f) \in \{\texttt{.pdf},\texttt{.txt},\texttt{.md},\texttt{.docx},\texttt{.pptx}\}\\ \bot \;(\text{từ chối}) &amp; \text{ngược lại}\end{cases}$$</div>
+    <p>Phía máy chủ từ chối nếu đã có tài liệu cùng khóa với $h$ trùng, và worker kiểm magic bytes sau khi tải về, nên việc tin đuôi tệp ở client không mở lỗ hổng.</p>
+  </div>
+
+  <h3 id="a6"><span class="num">6.6</span>Pipeline sinh nội dung và kiểm tra bám nguồn <span class="tag be">Backend</span></h3>
+  <div class="prose">
+    <p><b>Phát hiện PDF scan.</b> Gọi $\chi$ là tổng ký tự trích được và $P$ số trang. Tài liệu được coi là ảnh scan và chuyển OCR khi $\chi / P \lt 100$ (tối đa 50 trang OCR).</p>
+    <p><b>Cắt đoạn.</b> Kích thước mục tiêu $\ell^{\star} = 1200$ token, chồng lấn $o = 150$, tối thiểu $\ell_{\min} = 100$ (nhỏ hơn thì gộp vào đoạn trước), ranh giới ưu tiên heading, rồi đoạn văn, rồi câu. Với văn bản $N$ token, số đoạn xấp xỉ <span class="tag inf">Suy luận</span></p>
+    <div class="eq">$$n_{\text{chunk}} \approx \left\lceil \frac{N - o}{\ell^{\star} - o} \right\rceil = \left\lceil \frac{N - 150}{1050} \right\rceil$$</div>
+    <p><b>Sinh hai giai đoạn.</b> Giai đoạn A gọi LLM một lần để lập dàn ý từ đường dẫn heading và 200 ký tự đầu mỗi đoạn; giai đoạn B gọi cho từng node với toàn văn các đoạn liên quan, song song tối đa $k = 3$. Thời gian thực thi xấp xỉ <span class="tag inf">Suy luận</span></p>
+    <div class="eq">$$T_{\text{job}} \approx t_{\text{outline}} + \left\lceil \frac{|\text{nodes}|}{3} \right\rceil \cdot \bar{t}_{\text{lesson}} + t_{\text{persist}},\qquad T_{\text{job}} \le 15\ \text{phút}$$</div>
+    <p><b>Kiểm tra bám nguồn (tầng 3 của validation).</b> Với bài học $L$ khai tập đoạn nguồn $C(L)$, chọn ngẫu nhiên hai thuật ngữ chuyên môn $\mathcal{T}_L$ trong <code>contentMd</code>:</p>
+    <div class="eq">$$\rho(L)=\frac{\left|\{t \in \mathcal{T}_L : t \text{ xuất hiện trong } \textstyle\bigcup_{c \in C(L)} c\}\right|}{|\mathcal{T}_L|},\qquad \text{confidence}(L)=\begin{cases}\text{LOW} &amp; \rho(L) \lt 0{,}5\\ \text{HIGH} &amp; \text{ngược lại}\end{cases}$$</div>
+    <p>Bài <code>LOW</code> vẫn được lưu nhưng ứng dụng bắt buộc cảnh báo ở danh sách ("Cần kiểm tra") và ở màn đọc, mở sẵn khối Nguồn. Đây là cách xử lý trung thực hiện tượng ảo giác của mô hình thay vì che giấu.</p>
+    <p><b>Thử lại và chặn chi phí.</b> Lỗi schema thử lại tối đa 2 lần, lỗi luật nghiệp vụ 1 lần, mỗi lần kèm mô tả lỗi trong prompt. Rate limit dùng backoff $\delta \in \{2, 8, 30\}$ giây, tối đa 5 lần. Mỗi lời gọi ghi một <code>GenerationRun</code>; job dừng khi tổng chi phí vượt ngưỡng:</p>
+    <div class="eq">$$\sum_{r \in \text{runs}(j)} \text{costUsd}_r \le 0{,}50\ \text{USD},\qquad \text{costUsd}_r = \text{in}_r\,\pi_{\text{in}} + \text{out}_r\,\pi_{\text{out}}$$</div>
+    <p class="small muted">Dạng tuyến tính của chi phí theo token là suy luận từ các cột <code>inputTokens</code>, <code>outputTokens</code>, <code>costUsd</code>; đơn giá $\pi$ phụ thuộc mô hình cấu hình qua biến môi trường.</p>
+  </div>
+
+  <h3 id="a7"><span class="num">6.7</span>Bìa khóa học tất định (FNV-1a) <span class="tag">Mobile</span></h3>
+  <div class="prose">
+    <p>Bìa được sinh từ chính <code>courseId</code> bằng hàm băm FNV-1a 32 bit, cùng hàm với bản web, nên một khóa có cùng bìa trên mọi client mà không cần lưu ảnh:</p>
+    <div class="eq">$$h_0 = 2166136261,\qquad h_{i+1} = \big((h_i \oplus c_i)\cdot 16777619\big) \bmod 2^{32}$$</div>
+    <div class="eq">$$\text{nền} = \text{cover}\left[h \bmod 4\right],\qquad \text{hoạ tiết} = \text{MOTIFS}\left[\left\lfloor h / 2^{5} \right\rfloor \bmod 4\right] \in \{\text{rings},\text{waves},\text{grid},\text{orbit}\}$$</div>
+    <p>Vị trí phụ của hoạ tiết dùng tiếp $h \bmod 30$, $h \bmod 20$, $h \bmod 16$ làm độ lệch. Toàn bộ là trang trí (<code>aria-hidden</code>); tên khóa luôn có ở chữ bên cạnh.</p>
+  </div>
+
+  <h3 id="a8"><span class="num">6.8</span>Mô hình chuyển động: pháo giấy và mascot <span class="tag">Mobile</span></h3>
+  <div class="prose">
+    <p><b>Pháo giấy</b> chỉ bắn khi đạt bài, tắt hẳn khi hệ thống bật giảm chuyển động. Tiến độ chung $u = s / 1800\ \text{ms}$ qua easing bậc hai $\tau = 1 - (1-u)^2$. Mảnh thứ $j$ ($j = 1..32$) có độ trễ $\delta_j \sim \mathcal{U}(0, 0{,}25)$:</p>
+    <div class="eq">$$t_j = \max\!\left(0, \frac{\tau - \delta_j}{1 - \delta_j}\right),\quad y_j = 0{,}75\,H\,t_j,\quad x_j = x_{0j} + d_j t_j,\quad \theta_j = \omega_j t_j,\quad \alpha_j = \begin{cases}1 &amp; t_j \le 0{,}8\\ 5(1 - t_j) &amp; t_j \gt 0{,}8\end{cases}$$</div>
+    <p>với $x_{0j} \sim \mathcal{U}(0, W)$, $d_j \sim \mathcal{U}(-60, 60)$ px, $|\omega_j| \in [180^\circ, 540^\circ]$, kích thước $6$–$12$ px. Phép biến đổi chạy bằng native driver nên không chặn luồng JS.</p>
+    <p><b>Mascot Circle</b> nội suy hình mắt, miệng và hướng nhìn giữa hai biểu cảm $P_a \to P_b$ theo easing bậc ba trong $380$ ms, và chớp mắt theo hàm "nhắm nhanh, mở chậm" trong $320$ ms:</p>
+    <div class="eq">$$P(t) = P_a + \left(P_b - P_a\right)\left(1 - (1 - t)^3\right),\qquad b(t) = \max\!\left(0{,}04,\; \begin{cases} 1 - t/0{,}42 &amp; t \lt 0{,}42\\ (t - 0{,}42)/0{,}58 &amp; t \ge 0{,}42\end{cases}\right)$$</div>
+  </div>
+
+  <h3 id="a9"><span class="num">6.9</span>Heuristic điều hướng "học tiếp" <span class="tag">Mobile</span></h3>
+  <div class="algo">
+    <div class="algo-h"><b>Thuật toán 1. Chọn bài, khóa và bước kế tiếp</b><span class="files">(tabs)/index.tsx · course/[courseId]/index.tsx · practice.tsx · lesson/index.tsx</span></div>
+    <ol>
+      <li>Xếp hạng khóa: $r(c)=0$ nếu $0 \lt \pi(c) \lt 100$, $r(c)=1$ nếu $\pi(c)=0$, $r(c)=2$ nếu $\pi(c)=100$; sắp theo khoá $(r(c)\uparrow,\ \pi(c)\downarrow)$, khóa "Học tiếp" là phần tử đầu có $\pi \lt 100$.</li>
+      <li>Bài kế tiếp trong khóa: bài <code>IN_PROGRESS</code> đầu tiên, nếu không có thì bài <code>NOT_STARTED</code> đầu tiên, nếu không có thì bài đầu (xem lại).</li>
+      <li>Sau khi nộp đạt: bài tập chưa đạt đầu tiên sau vị trí hiện tại, quay vòng về đầu danh sách, loại bài vừa nộp vì danh sách có thể chưa kịp làm mới.</li>
+      <li>Nếu không còn bài tập chưa đạt và <code>lessonCompleted</code>: đóng 2 màn (bài tập và bài học cũ) rồi mở bài học kế tiếp, để nút Back trở về khóa học.</li>
+    </ol>
+  </div>
+  <div class="prose">
+    <p>Mục lục của bài đọc đánh dấu heading đang đọc bằng: $a = \max\{\, i \in \mathcal{H} : y_0 + y_i \le y_{\text{scroll}} + 96 \,\}$, trong đó $\mathcal{H}$ là các heading cấp 1–3, $y_0$ là vị trí khối nội dung, $y_i$ là vị trí khối thứ $i$; sự kiện cuộn lấy mẫu mỗi 100 ms.</p>
+  </div>
+
+  <h3 id="a10"><span class="num">6.10</span>Tương thích phiên bản và hợp đồng <span class="tag">Mobile</span></h3>
+  <div class="prose">
+    <p>Phiên bản <code>x.y.z</code> so sánh theo thứ tự từ điển trên bộ ba số nguyên (thiếu thì coi là 0). Ứng dụng coi là lỗi thời khi:</p>
+    <div class="eq">$$\text{outdated} \iff \operatorname{cmp}\!\left((M,m,p)_{\text{app}},\ (M,m,p)_{\text{min}}\right) \lt 0,\qquad \text{contractsDiffer} \iff H_{\text{server}} \ne H_{\text{app}} = \texttt{f93391e681bf}$$</div>
+    <p><code>outdated</code> hiện thẻ "Có phiên bản mới" cho người dùng; <code>contractsDiffer</code> chỉ hiện trong bản dev (<code>__DEV__</code>) vì thêm trường tuỳ chọn vẫn tương thích ngược.</p>
+  </div>
+</section>
+
+<!-- ============================================================ 7 -->
+<section class="sec" id="du-lieu">
+  <div class="sec-head"><span class="num">07</span><h2>Mô hình dữ liệu tổng thể</h2></div>
+  <div class="prose">
+    <p>Ứng dụng di động không có cơ sở dữ liệu cục bộ; nó chỉ lưu hai khoá trên thiết bị (<code>learn.refreshToken</code> trong SecureStore, <code>learn.theme</code> trong AsyncStorage) và cache React Query trong bộ nhớ. Toàn bộ dữ liệu nghiệp vụ nằm ở PostgreSQL của máy chủ, được mô tả bởi Prisma schema 22 model. ERD dưới đây lược bỏ <code>PaymentEvent</code> (bảng nhật ký webhook độc lập) và <code>CourseMember</code> (bảng dành cho lộ trình, chưa dùng ở MVP). <span class="tag be">Backend</span></p>
+  </div>
+  <figure><div class="fig-body"><pre class="mermaid">
+%%{init: {"theme": "neutral"}}%%
+erDiagram
+  USER ||--o{ REFRESH_TOKEN : "có"
+  USER ||--o{ PASSWORD_RESET_TOKEN : "có"
+  USER ||--o{ COURSE : "sở hữu"
+  USER ||--o{ DOCUMENT : "tải lên"
+  USER ||--o{ AI_JOB : "yêu cầu"
+  USER ||--o{ SUBMISSION : "nộp"
+  USER ||--o{ LEARNING_PROGRESS : "có"
+  USER ||--o{ SUBSCRIPTION : "đăng ký"
+  USER ||--o{ USAGE_COUNTER : "tiêu thụ"
+  USER |o--o{ AUDIT_LOG : "thực hiện"
+  COURSE ||--o{ DOCUMENT : "chứa"
+  COURSE ||--o{ LESSON : "gồm"
+  COURSE ||--o{ AI_JOB : "kích hoạt"
+  COURSE ||--o{ LEARNING_PROGRESS : "theo dõi"
+  DOCUMENT ||--o{ DOCUMENT_CHUNK : "cắt thành"
+  DOCUMENT |o--o{ AI_JOB : "là đầu vào"
+  AI_JOB ||--o{ GENERATION_RUN : "ghi"
+  LESSON ||--o{ EXERCISE : "có"
+  EXERCISE ||--o{ QUESTION : "gồm"
+  QUESTION ||--o{ ANSWER_OPTION : "có"
+  EXERCISE ||--o{ SUBMISSION : "nhận"
+  SUBMISSION ||--o{ SUBMISSION_ANSWER : "gồm"
+  QUESTION ||--o{ SUBMISSION_ANSWER : "được trả lời"
+  PLAN ||--o{ SUBSCRIPTION : "áp dụng"
+  SUBSCRIPTION ||--o{ PAYMENT : "phát sinh"
+  USER {
+    uuid id PK
+    string email UK
+    string passwordHash "argon2id"
+    enum role "LEARNER, ADMIN"
+    string locale
+    datetime deletedAt "xoá mềm"
+  }
+  REFRESH_TOKEN {
+    uuid id PK
+    uuid userId FK
+    string tokenHash UK "SHA-256"
+    string familyId
+    datetime expiresAt
+    datetime revokedAt
+  }
+  PASSWORD_RESET_TOKEN {
+    uuid id PK
+    uuid userId FK
+    string tokenHash UK
+    datetime usedAt "dùng một lần"
+  }
+  COURSE {
+    uuid id PK
+    uuid ownerId FK
+    string title
+    string language "vi, en"
+    enum status "DRAFT, READY, ARCHIVED"
+    datetime deletedAt
+  }
+  DOCUMENT {
+    uuid id PK
+    uuid courseId FK
+    uuid uploaderId FK
+    string storageKey UK
+    string checksumSha256
+    int sizeBytes
+    int pageCount
+    enum status
+  }
+  DOCUMENT_CHUNK {
+    uuid id PK
+    uuid documentId FK
+    int index "unique theo document"
+    text content
+    int tokenCount
+    int pageFrom
+    int pageTo
+    string headingPath
+  }
+  AI_JOB {
+    uuid id PK
+    uuid courseId FK
+    uuid documentId FK
+    uuid requestedById FK
+    enum type
+    enum status
+    int progress "0 đến 100"
+    int attempt
+    string idempotencyKey UK
+    json error
+  }
+  GENERATION_RUN {
+    uuid id PK
+    uuid aiJobId FK
+    string step
+    string model
+    string promptVersion
+    int inputTokens
+    int outputTokens
+    decimal costUsd
+    int latencyMs
+    json validationReport
+  }
+  LESSON {
+    uuid id PK
+    uuid courseId FK
+    int orderIndex "unique theo course"
+    text contentMd
+    stringArray sourceChunkIds "tham chiếu logic"
+    enum confidence "UNKNOWN, HIGH, LOW"
+    enum status "DRAFT, PUBLISHED"
+    datetime editedByUserAt
+  }
+  EXERCISE {
+    uuid id PK
+    uuid lessonId FK
+    int orderIndex
+    enum difficulty "EASY, MEDIUM, HARD"
+    int passScore "mặc định 70"
+  }
+  QUESTION {
+    uuid id PK
+    uuid exerciseId FK
+    enum type
+    text prompt
+    json correctAnswer
+    int points "mặc định 1"
+    text explanation
+    string sourceChunkId
+  }
+  ANSWER_OPTION {
+    uuid id PK
+    uuid questionId FK
+    string label
+    string content
+    boolean isCorrect
+  }
+  LEARNING_PROGRESS {
+    uuid id PK
+    uuid userId FK
+    uuid courseId FK
+    string lessonId "unique cùng userId"
+    enum status
+    int bestScore
+    int attempts
+  }
+  SUBMISSION {
+    uuid id PK
+    uuid userId FK
+    uuid exerciseId FK
+    int attemptNo "unique cùng userId, exerciseId"
+    int score
+    int maxScore
+    int durationMs
+  }
+  SUBMISSION_ANSWER {
+    uuid id PK
+    uuid submissionId FK
+    uuid questionId FK
+    json rawAnswer
+    boolean isCorrect
+    int pointsEarned
+  }
+  PLAN {
+    uuid id PK
+    string code UK
+    int priceCents
+    json limits
+    stringArray features
+  }
+  SUBSCRIPTION {
+    uuid id PK
+    uuid userId FK
+    uuid planId FK
+    enum status
+    datetime currentPeriodEnd
+    boolean cancelAtPeriodEnd
+  }
+  PAYMENT {
+    uuid id PK
+    uuid subscriptionId FK
+    int amountCents
+    string providerPaymentId UK
+  }
+  USAGE_COUNTER {
+    uuid id PK
+    uuid userId FK
+    string period
+    enum metric
+    int value "unique userId, period, metric"
+  }
+  AUDIT_LOG {
+    uuid id PK
+    uuid actorId FK
+    string action
+    string entityType
+    string entityId
+    json metadata
+  }
+</pre></div><figcaption><b>Hình 7.1</b> Biểu đồ thực thể – quan hệ (ERD) của LEARN. Thuộc tính được rút gọn về khoá và các cột có ý nghĩa nghiệp vụ. <span class="tag be">Backend</span></figcaption></figure>
+
+  <h3><span class="num">7.1</span>Ràng buộc có ý nghĩa thuật toán</h3>
+  <div class="tbl"><table>
+    <thead><tr><th>Ràng buộc</th><th>Mục đích</th><th>Ảnh hưởng tới ứng dụng</th></tr></thead>
+    <tbody>
+      <tr><td><code>Lesson @@unique(courseId, orderIndex)</code></td><td>Thứ tự bài học là toàn phần, không trùng</td><td>Sắp xếp lại gửi toàn bộ danh sách <code>lessonIds</code> một lần</td></tr>
+      <tr><td><code>Submission @@unique(userId, exerciseId, attemptNo)</code></td><td>Mỗi lượt làm có số thứ tự duy nhất</td><td>Bấm "Nộp bài" hai lần không làm mất bài: lượt hai nhận <code>attemptNo</code> kế tiếp</td></tr>
+      <tr><td><code>LearningProgress @@unique(userId, lessonId)</code></td><td>Một bản ghi tiến trình mỗi người, mỗi bài</td><td>Trạng thái <code>NOT_STARTED</code>/<code>IN_PROGRESS</code>/<code>COMPLETED</code> hiển thị nhất quán</td></tr>
+      <tr><td><code>UsageCounter @@unique(userId, period, metric)</code></td><td>Tăng bộ đếm nguyên tử bằng <code>INSERT … ON CONFLICT</code></td><td>402 <code>QUOTA_EXCEEDED</code> kèm <code>metric</code>, <code>limit</code>, <code>used</code></td></tr>
+      <tr><td><code>AIJob.idempotencyKey @unique</code></td><td>Chạy lại job không tạo dữ liệu trùng</td><td>Chạy lại job lỗi từ màn Quản trị là an toàn</td></tr>
+      <tr><td><code>RefreshToken.tokenHash @unique</code>, <code>familyId</code></td><td>Xoay vòng và phát hiện tái sử dụng</td><td>Bắt buộc refresh kiểu single-flight (mục 6.3)</td></tr>
+      <tr><td><code>Document @@index(courseId, checksumSha256)</code></td><td>Chống tải trùng tệp trong một khóa</td><td>Ứng dụng phải gửi đúng SHA-256</td></tr>
+      <tr><td><code>Lesson.sourceChunkIds String[]</code></td><td>Truy vết nguồn, không phải khoá ngoại</td><td>Khối "Nguồn" gọi endpoint riêng để lấy đoạn trích</td></tr>
+      <tr><td><code>onDelete: Cascade</code> từ Course xuống Document, Lesson, Exercise…</td><td>Xoá khóa dọn toàn bộ nội dung con</td><td>Xoá bài học kéo theo bài tập (hộp thoại xác nhận nói rõ)</td></tr>
+    </tbody>
+  </table></div>
+
+  <h3><span class="num">7.2</span>Thực thể nhìn thấy từ ứng dụng qua hợp đồng</h3>
+  <div class="tbl"><table>
+    <thead><tr><th>Thực thể</th><th>Schema Zod phía app</th><th>Endpoint</th><th>Ghi chú</th></tr></thead>
+    <tbody>
+      <tr><td>User</td><td><code>userPublicSchema</code>, <code>nativeAuthResponseSchema</code></td><td><code>/auth/*</code></td><td>Không bao giờ có <code>passwordHash</code></td></tr>
+      <tr><td>Course</td><td><code>courseSummarySchema</code>, <code>courseDetailSchema</code></td><td><code>/workspace</code>, <code>/courses/:id</code></td><td>Kèm số liệu tổng hợp: progress, documentCount, lessonCount</td></tr>
+      <tr><td>Document</td><td><code>documentListSchema</code>, <code>uploadUrlSchema</code></td><td><code>/courses/:id/documents</code>, <code>/documents/:id/confirm</code></td><td>Không lộ <code>storageKey</code></td></tr>
+      <tr><td>DocumentChunk</td><td><code>lessonSourceSchema</code></td><td><code>/lessons/:id/sources</code></td><td>Chỉ đoạn trích, có cờ <code>truncated</code></td></tr>
+      <tr><td>Lesson</td><td><code>lessonSummarySchema</code>, <code>lessonReadSchema</code>, <code>patchLessonSchema</code></td><td><code>/courses/:id/lessons/*</code></td><td>Gộp tiến trình của người học vào cùng phản hồi</td></tr>
+      <tr><td>Exercise, Question, AnswerOption</td><td><code>exerciseReadSchema</code></td><td><code>/lessons/:id/exercise</code></td><td>Không có <code>isCorrect</code>, <code>correctAnswer</code>, <code>explanation</code></td></tr>
+      <tr><td>Submission, SubmissionAnswer</td><td><code>submitExerciseSchema</code>, <code>submissionSchema</code></td><td><code>/lessons/:id/exercise/submit</code></td><td>Đáp án đúng chỉ xuất hiện ở đây</td></tr>
+      <tr><td>LearningProgress</td><td><code>progressOverviewSchema</code>, <code>historyPageSchema</code></td><td><code>/progress/*</code></td><td>Lịch sử phân trang cursor</td></tr>
+      <tr><td>AIJob, GenerationRun</td><td><code>aiJobSummarySchema</code>, <code>adminAiJobDetailSchema</code></td><td><code>/ai/jobs/:id</code>, <code>/admin/ai-jobs/*</code></td><td>Người học không thấy <code>runs</code></td></tr>
+      <tr><td>Plan, Subscription, UsageCounter</td><td><code>planPublicSchema</code>, <code>subscriptionResponseSchema</code></td><td><code>/plans</code>, <code>/subscription</code></td><td><code>usage</code> là bản đồ chỉ số → used, limit, window</td></tr>
+      <tr><td>AuditLog</td><td><code>auditLogEntrySchema</code></td><td><code>/admin/ai-jobs/:id/audit-log</code></td><td>Chỉ ADMIN</td></tr>
+    </tbody>
+  </table></div>
+</section>
+
+<!-- ============================================================ 8 -->
+<section class="sec" id="cong-nghe">
+  <div class="sec-head"><span class="num">08</span><h2>Công cụ, framework và tham số tĩnh</h2></div>
+  <h3><span class="num">8.1</span>Công cụ và framework của ứng dụng di động <span class="tag">Mobile</span></h3>
+  <div class="tbl"><table>
+    <thead><tr><th>Nhóm</th><th>Thư viện</th><th>Phiên bản</th><th>Vai trò trong hệ thống</th></tr></thead>
+    <tbody>
+      <tr><td>Nền tảng</td><td><code>expo</code> · <code>react-native</code> · <code>react</code></td><td><code>~57.0.26</code> · <code>0.86.3</code> · <code>19.2.3</code></td><td>Runtime, Hermes, Continuous Native Generation</td></tr>
+      <tr><td>Điều hướng</td><td><code>expo-router</code> · <code>react-native-screens</code> · <code>react-native-safe-area-context</code></td><td><code>~57.0.24</code> · <code>~4.26.0</code> · <code>~5.7.0</code></td><td>Route theo tệp, typed routes, <code>Stack.Protected</code>, safe area</td></tr>
+      <tr><td>Dữ liệu</td><td><code>@tanstack/react-query</code> · <code>zod</code></td><td><code>^5.104.0</code> · <code>^4.6.5</code></td><td>Cache máy chủ, thăm dò, phân trang; hợp đồng dữ liệu</td></tr>
+      <tr><td>Bảo mật, lưu trữ</td><td><code>expo-secure-store</code> · <code>@react-native-async-storage/async-storage</code></td><td><code>~57.0.4</code> · <code>2.2.0</code></td><td>Refresh token trong Keychain/Keystore; lựa chọn giao diện</td></tr>
+      <tr><td>Tài liệu</td><td><code>expo-document-picker</code> · <code>expo-file-system</code> · <code>expo-crypto</code> · <code>expo/fetch</code></td><td><code>~57.0.3</code> · <code>~57.0.7</code> · <code>~57.0.3</code></td><td>Chọn tệp, đọc byte, SHA-256, PUT lên presigned URL</td></tr>
+      <tr><td>Nội dung</td><td><code>marked</code></td><td><code>^18.0.14</code></td><td>Lexer GFM, render Markdown sang component native</td></tr>
+      <tr><td>Giao diện</td><td><code>react-native-svg</code> · <code>phosphor-react-native</code> · <code>@expo-google-fonts/hanken-grotesk</code> · <code>expo-haptics</code></td><td><code>15.15.4</code> · <code>^3.0.6</code> · <code>^0.4.3</code> · <code>~57.0.3</code></td><td>Mascot, bìa khóa, icon, font, phản hồi xúc giác</td></tr>
+      <tr><td>Phát hành</td><td><code>expo-updates</code> · EAS CLI · <code>@expo/ngrok</code></td><td><code>~57.0.24</code> · <code>≥ 16.0.0</code> · <code>^4.1.3</code></td><td>OTA update theo kênh, build APK, tunnel khi LAN bị chặn</td></tr>
+      <tr><td>Kiểm thử</td><td><code>jest</code> + <code>jest-expo</code> · <code>playwright</code> · <code>@axe-core/playwright</code></td><td><code>~29.7.0</code> · <code>^1.63.0</code> · <code>^4.13.0</code></td><td>Unit test; E2E trên bản web; kiểm trợ năng</td></tr>
+      <tr><td>Ngôn ngữ</td><td><code>typescript</code></td><td><code>~6.0.3</code></td><td>Strict, <code>noUncheckedIndexedAccess</code></td></tr>
+    </tbody>
+  </table></div>
+  <p class="small muted" style="margin-top:8px">Máy chủ <span class="tag be">Backend</span>: NestJS 11, Prisma 6, PostgreSQL 16, Redis 7 + BullMQ, S3/MinIO, nhà cung cấp LLM đặt sau interface <code>LlmProvider</code>; tên mô hình cấu hình qua <code>LLM_MODEL_GENERATION</code>, <code>LLM_MODEL_FAST</code>, <code>LLM_MODEL_FALLBACK</code>.</p>
+
+  <h3><span class="num">8.2</span>Tham số thiết lập tĩnh trong mã ứng dụng <span class="tag">Mobile</span></h3>
+  <div class="tbl"><table>
+    <thead><tr><th>Tham số</th><th class="num">Giá trị</th><th>Ý nghĩa</th><th>Tệp</th></tr></thead>
+    <tbody>
+      <tr><td><code>staleTime</code> mặc định</td><td class="num">30 000 ms</td><td>Dữ liệu được coi là mới trong 30 giây</td><td><code>lib/query-client.ts</code></td></tr>
+      <tr><td>Số lần thử lại truy vấn</td><td class="num">2</td><td>Chỉ với lỗi không phải 4xx</td><td><code>lib/query-client.ts</code></td></tr>
+      <tr><td>Chu kỳ thăm dò AI Job</td><td class="num">2 000 ms</td><td>Khi <code>QUEUED</code> hoặc <code>RUNNING</code></td><td><code>features/ai/ai-api.ts</code></td></tr>
+      <tr><td>Chu kỳ thăm dò tài liệu</td><td class="num">3 000 ms</td><td>Khi có <code>UPLOADED</code> hoặc <code>EXTRACTING</code></td><td><code>features/courses/courses-api.ts</code></td></tr>
+      <tr><td><code>staleTime</code> đoạn nguồn</td><td class="num">300 000 ms</td><td>Đoạn trích nguồn ít đổi</td><td><code>features/learning/learning-api.ts</code></td></tr>
+      <tr><td><code>staleTime</code> meta</td><td class="num">600 000 ms</td><td>Kiểm tra phiên bản máy chủ</td><td><code>lib/server-meta.ts</code></td></tr>
+      <tr><td>Trễ tự đi tiếp khi job xong</td><td class="num">900 ms</td><td>Để người dùng thấy mascot ăn mừng</td><td><code>features/ai/ai-job-progress.tsx</code></td></tr>
+      <tr><td>Thanh tiến độ tối thiểu</td><td class="num">4 %</td><td><code>max(4, progress)</code> để thanh không rỗng</td><td><code>features/ai/ai-job-progress.tsx</code></td></tr>
+      <tr><td>Độ khó mặc định</td><td class="num">MEDIUM</td><td>Đưa vào prompt sinh bài</td><td><code>app/course/[courseId]/index.tsx</code></td></tr>
+      <tr><td><code>HISTORY_LIMIT</code></td><td class="num">5</td><td>Hoạt động gần đây ở Tổng quan</td><td><code>app/(tabs)/index.tsx</code></td></tr>
+      <tr><td><code>PAGE_SIZE</code></td><td class="num">10</td><td>Trang lịch sử ở Tiến trình</td><td><code>app/(tabs)/progress.tsx</code></td></tr>
+      <tr><td><code>durationMs</code></td><td class="num">[1, 3 600 000]</td><td>Thời gian làm bài gửi lên, kẹp hai đầu</td><td><code>…/practice.tsx</code></td></tr>
+      <tr><td>Pháo giấy</td><td class="num">32 · 1 800 ms</td><td>Số mảnh, thời lượng; trễ ≤ 0,25; cỡ 6–12 px</td><td><code>components/celebrate.tsx</code></td></tr>
+      <tr><td>Mascot</td><td class="num">380 · 320 ms</td><td><code>MORPH_MS</code>, <code>BLINK_MS</code>; 25 hình mắt</td><td><code>components/mascot/index.tsx</code></td></tr>
+      <tr><td>Mục lục</td><td class="num">96 px · 100 ms · h1–h3</td><td>Độ lệch đỉnh, nhịp lấy mẫu cuộn, cấp heading</td><td><code>…/lesson/[lessonId]/index.tsx</code>, <code>components/markdown.tsx</code></td></tr>
+      <tr><td>Kích thước tệp tối đa</td><td class="num">26 214 400 B</td><td>25 MiB</td><td><code>contracts/document.ts</code></td></tr>
+      <tr><td>Giới hạn trường</td><td class="num">—</td><td>Tên khóa ≤ 200, mô tả ≤ 2000; tiêu đề bài 5–200, tóm tắt ≤ 500, <code>contentMd</code> 10–12 000; mật khẩu 8–72; email ≤ 254; tự luận ≤ 2000, điền khuyết ≤ 500</td><td><code>contracts/*.ts</code></td></tr>
+      <tr><td>Phân trang chung</td><td class="num">20 · tối đa 100</td><td><code>limit</code> mặc định và trần</td><td><code>contracts/common.ts</code></td></tr>
+      <tr><td>Địa chỉ API mặc định</td><td class="num">:4000</td><td>Suy từ host Metro (<code>hostUri</code>) hoặc <code>EXPO_PUBLIC_API_URL</code></td><td><code>lib/config.ts</code></td></tr>
+      <tr><td>Khoá lưu trữ</td><td class="num">—</td><td><code>learn.refreshToken</code> (SecureStore), <code>learn.theme</code> (AsyncStorage)</td><td><code>lib/token-store.ts</code>, <code>theme/theme.tsx</code></td></tr>
+      <tr><td><code>CONTRACTS_HASH</code></td><td class="num">f93391e681bf</td><td>Dấu vân tay hợp đồng đang mang</td><td><code>contracts/version.ts</code></td></tr>
+      <tr><td>Token khoảng cách / bo góc</td><td class="num">4·8·12·16·24·32·48 / 8·14·18</td><td>Lưới khoảng cách và bán kính</td><td><code>theme/tokens.ts</code></td></tr>
+      <tr><td>Thang chữ</td><td class="num">30·24·18·16·14·12 px</td><td>display, title, heading, body, small, caption; đọc bài 17/27</td><td><code>theme/tokens.ts</code></td></tr>
+      <tr><td>Phát hành</td><td class="num">appVersion</td><td><code>runtimeVersion</code>; hồ sơ EAS development, preview (APK, kênh preview), production (autoIncrement)</td><td><code>app.json</code>, <code>eas.json</code></td></tr>
+      <tr><td>E2E</td><td class="num">390×844 @2×</td><td>Viewport; axe chỉ chặn lỗi serious/critical</td><td><code>e2e/run.mjs</code></td></tr>
+    </tbody>
+  </table></div>
+
+  <h3><span class="num">8.3</span>Tham số máy chủ mà ứng dụng phụ thuộc <span class="tag be">Backend</span></h3>
+  <div class="tbl"><table>
+    <thead><tr><th>Tham số</th><th class="num">Giá trị</th><th>Nguồn</th></tr></thead>
+    <tbody>
+      <tr><td>Thang điểm · <code>passScore</code> mặc định</td><td class="num">100 · 70</td><td><code>exercises.service.ts</code>, Prisma schema</td></tr>
+      <tr><td>Thử lại khi trùng <code>attemptNo</code></td><td class="num">3</td><td><code>exercises.service.ts</code></td></tr>
+      <tr><td>Chunk: mục tiêu · chồng lấn · tối thiểu</td><td class="num">1 200 · 150 · 100 token</td><td>HANDBOOK §8.2</td></tr>
+      <tr><td>Ngưỡng PDF scan · trang OCR tối đa · trang tối đa</td><td class="num">100 ký tự/trang · 50 · 300</td><td>HANDBOOK §8.2, §10.3</td></tr>
+      <tr><td>Song song giai đoạn B</td><td class="num">3</td><td>HANDBOOK §8.3</td></tr>
+      <tr><td>Thử lại lỗi schema · lỗi luật</td><td class="num">2 · 1</td><td>HANDBOOK §8.5</td></tr>
+      <tr><td>Backoff rate limit</td><td class="num">2 s, 8 s, 30 s · tối đa 5</td><td>HANDBOOK §8.5</td></tr>
+      <tr><td>Timeout một lời gọi · cả job</td><td class="num">120 s · 15 phút</td><td>HANDBOOK §8.5</td></tr>
+      <tr><td>Trần chi phí mỗi job</td><td class="num">0,50 USD</td><td><code>AI_JOB_MAX_COST_USD</code></td></tr>
+      <tr><td>Ngưỡng bám nguồn · số thuật ngữ mẫu</td><td class="num">0,5 · 2</td><td>HANDBOOK §8.4</td></tr>
+      <tr><td>Chạy lại job tối đa</td><td class="num">3</td><td>HANDBOOK §8.6</td></tr>
+      <tr><td>Concurrency hàng đợi document-extract · lesson-generate</td><td class="num">4 · 2</td><td>HANDBOOK §9.1</td></tr>
+      <tr><td>Access token · refresh token</td><td class="num">15 phút · 30 ngày</td><td>HANDBOOK §10.1</td></tr>
+      <tr><td>argon2id <code>memoryCost</code>, <code>timeCost</code>, <code>parallelism</code></td><td class="num">19 456 · 2 · 1</td><td>HANDBOOK §10.1</td></tr>
+      <tr><td>Rate limit: đăng nhập · tạo AIJob · API chung</td><td class="num">5/phút/IP · 10/giờ · 100/phút</td><td>HANDBOOK §10.4</td></tr>
+      <tr><td>Hạn mức gói Free (khóa · tài liệu/tháng · trang/tài liệu · AI Job/tháng)</td><td class="num">3 · 5 · 50 · 10</td><td>HANDBOOK §11.1</td></tr>
+      <tr><td>Hạn mức gói Pro</td><td class="num">50 · 100 · 300 · 200</td><td>HANDBOOK §11.1</td></tr>
+    </tbody>
+  </table></div>
+</section>
+
+<!-- ============================================================ 9 -->
+<section class="sec" id="danh-gia">
+  <div class="sec-head"><span class="num">09</span><h2>Đánh giá và hướng phát triển</h2></div>
+  <h3><span class="num">9.1</span>Điểm mạnh của thiết kế</h3>
+  <div class="prose"><ul>
+    <li><b>Ranh giới tin cậy rõ ràng.</b> Client không tính điểm, không quyết định hạn mức, không thấy đáp án trước khi nộp. Ẩn tab ADMIN chỉ là lớp trải nghiệm.</li>
+    <li><b>Xử lý phiên đúng với cơ chế xoay vòng token.</b> Single-flight ngăn tự thu hồi family; phân biệt lỗi mạng và từ chối thật nên mất mạng không đăng xuất người dùng.</li>
+    <li><b>Một hợp đồng cho ba client.</b> Schema Zod, query key và hàm băm bìa khóa trùng bản web; có cơ chế phát hiện lệch ở lúc build và lúc chạy.</li>
+    <li><b>Thăm dò tự kết thúc.</b> Khoảng thăm dò là hàm của trạng thái; trường hợp <code>PENDING</code> bỏ dở được loại để tránh vòng lặp vô hạn.</li>
+    <li><b>Minh bạch về chất lượng AI.</b> Cờ <code>LOW</code> lộ ra ở danh sách và màn đọc, kèm đoạn tài liệu gốc để người học tự kiểm.</li>
+    <li><b>Trợ năng có hệ thống.</b> Vai trò radio/tab, live region cho tiến độ job, nhãn mô tả cho thanh tiến độ, không mã hoá thông tin chỉ bằng màu, tôn trọng giảm chuyển động.</li>
+  </ul></div>
+
+  <h3><span class="num">9.2</span>Hạn chế quan sát được trong mã</h3>
+  <div class="tbl"><table>
+    <thead><tr><th>Quan sát</th><th>Hệ quả</th><th>Đề xuất</th></tr></thead>
+    <tbody>
+      <tr><td>Theo dõi job bằng thăm dò 2 s, không dùng SSE; HANDBOOK §7.4 mô tả SSE với đường lui thăm dò 3 s</td><td>Khoảng $T/2$ request mỗi job; lệch nhẹ so với đặc tả</td><td>Thử SSE qua <code>expo/fetch</code> streaming, giữ thăm dò làm đường lui; thống nhất chu kỳ với đặc tả</td></tr>
+      <tr><td>Cache React Query chỉ ở bộ nhớ</td><td>Không đọc lại bài khi mất mạng; trạng thái <code>offline</code> chỉ xét lúc khởi động</td><td>Persist cache bài học đã mở bằng AsyncStorage, gắn <code>onlineManager</code> với trạng thái mạng</td></tr>
+      <tr><td>Sắp xếp bài chờ phản hồi máy chủ rồi mới cập nhật</td><td>Có độ trễ thấy được trên mạng chậm</td><td>Cập nhật lạc quan bằng <code>setQueryData</code>, hoàn tác khi lỗi</td></tr>
+      <tr><td><code>sync-contracts --check</code> thoát 0 khi không có repo LEARN cạnh bên</td><td>CI chỉ clone repo mobile sẽ không phát hiện lệch hợp đồng</td><td>Trong CI, lấy contracts theo commit cố định hoặc so với <code>GET /meta</code> của môi trường staging</td></tr>
+      <tr><td>Checkout ở app chỉ gọi API, không mở URL thanh toán</td><td>Chỉ dùng được ở chế độ <code>demo</code></td><td>Mở URL bằng <code>expo-web-browser</code> khi <code>mode = live</code>, sau đó thăm dò <code>/subscription</code></td></tr>
+      <tr><td>Bản web của app giữ refresh token trong bộ nhớ</td><td>Tải lại trang là phải đăng nhập lại</td><td>Chấp nhận được vì bản web chỉ dùng khi phát triển</td></tr>
+      <tr><td>Checklist trên điện thoại thật chưa hoàn thành (README)</td><td>Bàn phím, safe area, Back Android, TalkBack chưa được xác nhận</td><td>Chạy checklist trên Expo Go và APK trước khi coi là xong</td></tr>
+    </tbody>
+  </table></div>
+
+  <h3><span class="num">9.3</span>Hướng phát triển</h3>
+  <div class="prose"><ul>
+    <li>Thông báo đẩy khi job sinh bài kết thúc, để người học không phải giữ màn hình mở (cần bản development build).</li>
+    <li>Cho người học duyệt dàn ý trước khi sinh toàn bộ, tận dụng việc tách hai giai đoạn outline và lesson (HANDBOOK ghi là tính năng tương lai).</li>
+    <li>Bổ sung E2E trên thiết bị thật (ví dụ Maestro) bên cạnh Playwright trên bản web.</li>
+    <li>Đo chất lượng bám nguồn bằng tập đánh giá cố định thay vì chỉ lấy mẫu hai thuật ngữ mỗi bài.</li>
+  </ul></div>
+</section>
+
+<!-- ============================================================ 10 -->
+<section class="sec" id="phu-luc">
+  <div class="sec-head"><span class="num">10</span><h2>Phụ lục cho nhóm phát triển</h2></div>
+  <h3><span class="num">10.1</span>Cấu trúc thư mục</h3>
+<pre class="code">src/
+  app/          route Expo Router — mỗi tệp là một màn; _layout.tsx định nghĩa navigator
+  components/   ui/ (Button, Card, Field, states…), markdown, mascot, course-cover, celebrate
+  contracts/    SINH TỰ ĐỘNG từ LEARN/packages/contracts — không sửa tay
+  features/     hook API + component theo nghiệp vụ: auth, courses, documents, learning, ai, settings, admin
+  lib/          api-client, token-store, query-client, config, routes, format, dialog, server-meta
+  theme/        tokens (màu, chữ, khoảng cách) + ThemeProvider
+e2e/            Playwright trên bản web: learner · create · admin, kèm axe
+scripts/        sync-contracts, gen-icons, gen-circle-data</pre>
+  <h3><span class="num">10.2</span>Lệnh thường dùng</h3>
+<pre class="code">npm start                  # dev server cho Expo Go (cần API + worker của LEARN đang chạy)
+npm run typecheck          # sync-contracts --check rồi tsc --noEmit
+npm test                   # jest-expo: format, server-meta, api-client (refresh), partial failures
+npm run e2e                # Playwright trên bản web, cần npm run web
+npm run sync:contracts     # chép lại @learn/contracts khi LEARN đổi schema
+npx expo install &lt;pkg&gt;     # luôn dùng lệnh này để thêm thư viện
+npx eas-cli@latest build -p android --profile preview      # APK nội bộ
+npx eas-cli@latest update --channel preview --message "…"  # OTA update</pre>
+  <h3><span class="num">10.3</span>Quy ước khi thêm một màn có dữ liệu</h3>
+  <div class="prose"><ol>
+    <li>Viết hook trong <code>features/&lt;nghiệp vụ&gt;/…-api.ts</code>, dùng đúng query key của web và kiểu từ <code>@/contracts</code>.</li>
+    <li>Sau mutation, vô hiệu hoá mọi key bị ảnh hưởng (xem <code>useSubmitExercise</code> làm mẫu: exercise, lessons, progress, courses).</li>
+    <li>Màn hình phải có đủ năm trạng thái; lỗi hiển thị <code>errorText</code> và <code>errorDetail</code> (requestId) kèm nút thử lại.</li>
+    <li>Params route chỉ mang ID; deep link phải mở được màn mà không cần dữ liệu trong bộ nhớ.</li>
+    <li>Không đổ enum thô ra màn hình: dùng bảng nhãn, dự phòng bằng <code>humanizeCode</code>.</li>
+    <li>Chạy <code>npm run typecheck</code>, <code>npx expo lint</code> và <code>npm test</code> trước khi coi là xong.</li>
+  </ol></div>
+
+  <footer>Báo cáo được dựng từ mã nguồn thư mục <code>LEARN_mobile</code> (nhánh master) và tài liệu, schema của repo <code>LEARN</code> cạnh bên, ngày 04/10/2026. Biểu đồ được dựng lại từ mã, không phải tài liệu gốc của dự án.</footer>
+</section>
+</main>
+</div>
+
+<script>
+window.MathJax = {
+  tex: { inlineMath: [['$', '$']], displayMath: [['$$', '$$']] },
+  svg: { fontCache: 'global' },
+  options: { skipHtmlTags: ['script', 'noscript', 'style', 'textarea', 'pre', 'code'] }
+};
+</script>
+<script src="https://cdn.jsdelivr.net/npm/mathjax@3.2.2/es5/tex-svg.js" async></script>
+
+<script>
+(function () {
+  var NS = 'http://www.w3.org/2000/svg';
+  var svg = document.getElementById('arch');
+  if (!svg) return;
+
+  var GROUPS = [
+    { x: 8, y: 16, w: 328, h: 588, label: 'ỨNG DỤNG DI ĐỘNG · EXPO SDK 57' },
+    { x: 372, y: 16, w: 256, h: 588, label: 'MÁY CHỦ LEARN' },
+    { x: 664, y: 16, w: 328, h: 588, label: 'DỮ LIỆU · DỊCH VỤ NGOÀI' }
+  ];
+
+  var NODES = {
+    ui:        { x: 52,  y: 64,  w: 260, h: 56, t: 'Màn hình · Expo Router', s: 'src/app · 17 màn', short: 'Màn hình' },
+    auth:      { x: 52,  y: 152, w: 124, h: 56, t: 'AuthProvider', s: 'status · user', short: 'AuthProvider' },
+    query:     { x: 188, y: 152, w: 124, h: 56, t: 'React Query', s: 'cache · polling', short: 'React Query' },
+    api:       { x: 52,  y: 240, w: 260, h: 56, t: 'api-client', s: 'apiFetch · refresh single-flight', short: 'api-client' },
+    secure:    { x: 52,  y: 328, w: 124, h: 56, t: 'SecureStore', s: 'refresh token', short: 'SecureStore' },
+    upload:    { x: 188, y: 328, w: 124, h: 56, t: 'Upload', s: 'Picker · SHA-256', short: 'Upload' },
+    fx:        { x: 52,  y: 424, w: 124, h: 56, t: 'Phản hồi', s: 'Haptics · Confetti', short: 'Phản hồi' },
+    contracts: { x: 188, y: 424, w: 124, h: 56, t: 'Zod contracts', s: 'chép từ LEARN', short: 'Contracts', static: true },
+    rest:      { x: 396, y: 104, w: 208, h: 64, t: 'REST API', s: 'NestJS · /api/v1 · RolesGuard', short: 'REST API' },
+    queue:     { x: 396, y: 296, w: 208, h: 56, t: 'Hàng đợi', s: 'Redis · BullMQ', short: 'Hàng đợi' },
+    worker:    { x: 396, y: 456, w: 208, h: 64, t: 'AI Worker', s: 'extract · chunk · LLM · validate', short: 'AI Worker' },
+    db:        { x: 688, y: 104, w: 272, h: 64, t: 'PostgreSQL 16', s: 'Prisma · 22 model', short: 'PostgreSQL' },
+    s3:        { x: 688, y: 296, w: 272, h: 56, t: 'Object Storage', s: 'MinIO / S3 · presigned URL', short: 'Object Storage' },
+    llm:       { x: 688, y: 456, w: 272, h: 64, t: 'LLM Provider', s: 'outline → lesson + exercise', short: 'LLM' }
+  };
+
+  var EDGES = {
+    ui_auth:      { a: 'ui', b: 'auth', p: [[114, 120], [114, 152]] },
+    ui_query:     { a: 'ui', b: 'query', p: [[250, 120], [250, 152]] },
+    auth_api:     { a: 'auth', b: 'api', p: [[114, 208], [114, 240]] },
+    query_api:    { a: 'query', b: 'api', p: [[250, 208], [250, 240]] },
+    api_secure:   { a: 'api', b: 'secure', p: [[114, 296], [114, 328]] },
+    upload_api:   { a: 'upload', b: 'api', p: [[250, 328], [250, 296]] },
+    ui_upload:    { a: 'ui', b: 'upload', p: [[52, 86], [36, 86], [36, 404], [250, 404], [250, 384]] },
+    ui_fx:        { a: 'ui', b: 'fx', p: [[52, 104], [24, 104], [24, 452], [52, 452]] },
+    api_rest:     { a: 'api', b: 'rest', p: [[312, 268], [352, 268], [352, 136], [396, 136]] },
+    upload_s3:    { a: 'upload', b: 's3', p: [[312, 356], [344, 356], [344, 580], [976, 580], [976, 324], [960, 324]] },
+    rest_db:      { a: 'rest', b: 'db', p: [[604, 136], [688, 136]] },
+    rest_queue:   { a: 'rest', b: 'queue', p: [[500, 168], [500, 296]] },
+    queue_worker: { a: 'queue', b: 'worker', p: [[500, 352], [500, 456]] },
+    worker_db:    { a: 'worker', b: 'db', p: [[604, 472], [636, 472], [636, 152], [688, 152]] },
+    worker_s3:    { a: 'worker', b: 's3', p: [[604, 488], [660, 488], [660, 324], [688, 324]] },
+    worker_llm:   { a: 'worker', b: 'llm', p: [[604, 504], [688, 504]] }
+  };
+
+  var ACTIONS = [
+    { id: 'boot', k: 'Phiên', title: 'Mở app, khôi phục phiên', steps: [
+      { e: 'ui_auth', d: 1, t: 'RootLayout nạp font Hanken Grotesk, gắn AuthProvider; status = loading.' },
+      { e: 'auth_api', d: 1, t: 'AuthProvider gọi readRefreshToken() qua api-client.' },
+      { e: 'api_secure', d: 1, t: 'Đọc khoá learn.refreshToken trong Keychain/Keystore.' },
+      { e: 'api_secure', d: -1, t: 'Có token: gọi refreshSession(). Không có: status = guest và dừng.' },
+      { e: 'api_rest', d: 1, t: 'POST /api/v1/auth/refresh, header x-learn-client: native, body chứa refreshToken.' },
+      { e: 'rest_db', d: 1, t: 'So SHA-256 của token, thu hồi token cũ, cấp token mới cùng familyId.' },
+      { e: 'rest_db', d: -1, t: 'Trả user và cặp token mới.' },
+      { e: 'api_rest', d: -1, t: '200 NativeAuthResponse: user, accessToken, refreshToken.' },
+      { e: 'api_secure', d: 1, t: 'storeSession(): access token vào bộ nhớ, refresh token mới vào SecureStore.' },
+      { e: 'auth_api', d: -1, t: 'status = authed. Nếu lỗi mạng: offline, vẫn giữ token.' },
+      { e: 'ui_auth', d: -1, t: 'Stack.Protected mở nhánh (tabs); Tổng quan gọi GET /meta để so phiên bản.' }
+    ]},
+    { id: 'login', k: 'Phiên', title: 'Đăng nhập', steps: [
+      { n: 'ui', t: 'Form kiểm email và mật khẩu bằng loginSchema; lỗi hiện ngay dưới ô sai.' },
+      { e: 'ui_auth', d: 1, t: 'Gọi useAuth().login(input).' },
+      { e: 'auth_api', d: 1, t: 'apiFetch POST /api/v1/auth/login.' },
+      { e: 'api_rest', d: 1, t: 'Gửi kèm x-learn-client: native để nhận refresh token trong body thay vì cookie.' },
+      { e: 'rest_db', d: 1, t: 'Tìm User theo email, kiểm argon2id, tạo RefreshToken (chỉ lưu hash).' },
+      { e: 'api_rest', d: -1, t: '200: user, accessToken, refreshToken.' },
+      { e: 'api_secure', d: 1, t: 'Cất refresh token vào SecureStore.' },
+      { e: 'auth_api', d: -1, t: 'setUser, status = authed.' },
+      { e: 'ui_auth', d: -1, t: 'Guard đổi: nhánh (auth) biến mất, app tự vào (tabs) mà không gọi router.replace.' }
+    ]},
+    { id: 'upload', k: 'Tài liệu', title: 'Tải tài liệu lên', steps: [
+      { e: 'ui_upload', d: 1, t: 'Chạm "Chọn tệp": expo-document-picker, copyToCacheDirectory.' },
+      { n: 'upload', t: 'Suy MIME từ đuôi tệp, đọc byte bằng expo-file-system, tính SHA-256 bằng expo-crypto.' },
+      { e: 'upload_api', d: 1, t: 'POST /courses/:id/documents/upload-url với filename, mimeType, sizeBytes, checksumSha256.' },
+      { e: 'api_rest', d: 1, t: 'Kiểm hạn mức DOCUMENTS_UPLOADED và chống trùng checksum trong khóa.' },
+      { e: 'rest_db', d: 1, t: 'Tạo Document ở trạng thái PENDING, ký presigned PUT URL.' },
+      { e: 'api_rest', d: -1, t: 'Trả documentId, uploadUrl, expiresInSec.' },
+      { e: 'upload_api', d: -1, t: 'Hook upload nhận URL đã ký.' },
+      { e: 'upload_s3', d: 1, t: 'PUT tệp thẳng lên S3/MinIO, không đi qua API.' },
+      { e: 'upload_api', d: 1, t: 'POST /documents/:id/confirm với sizeBytes.' },
+      { e: 'api_rest', d: 1, t: 'Máy chủ xác nhận, đổi trạng thái UPLOADED.' },
+      { e: 'rest_queue', d: 1, t: 'Đưa job document-extract vào hàng đợi.' },
+      { e: 'queue_worker', d: 1, t: 'Worker nhận job (concurrency 4).' },
+      { e: 'worker_s3', d: 1, t: 'Tải tệp về, kiểm magic bytes và checksum.' },
+      { n: 'worker', t: 'Trích văn bản, chuẩn hoá, cắt chunk 1 200 token, chồng lấn 150.' },
+      { e: 'worker_db', d: 1, t: 'Ghi DocumentChunk, Document.status = EXTRACTED.' },
+      { e: 'query_api', d: 1, t: 'useCourseDocuments hỏi lại mỗi 3 giây khi còn UPLOADED hoặc EXTRACTING.' },
+      { e: 'api_rest', d: 1, t: 'GET /courses/:id/documents.' },
+      { e: 'rest_db', d: 1, t: 'Đọc trạng thái tài liệu.' },
+      { e: 'query_api', d: -1, t: 'Nhận EXTRACTED: ngừng thăm dò.' },
+      { e: 'ui_query', d: -1, t: 'Nhãn "Đã trích xuất"; nút "Sinh bài học" được bật.' }
+    ]},
+    { id: 'generate', k: 'AI', title: 'Sinh bài học bằng AI', steps: [
+      { n: 'ui', t: 'Chọn độ khó Dễ/Vừa/Khó; nút chỉ bật khi có ít nhất một tài liệu EXTRACTED.' },
+      { e: 'ui_query', d: 1, t: 'useGenerateLessons.mutate với difficulty.' },
+      { e: 'query_api', d: 1, t: 'apiFetch POST.' },
+      { e: 'api_rest', d: 1, t: 'POST /api/v1/ai/courses/:id/generate-lessons.' },
+      { e: 'rest_db', d: 1, t: 'Tăng UsageCounter AI_JOBS_RUN nguyên tử (vượt hạn mức trả 402). Tạo AIJob QUEUED.' },
+      { e: 'rest_queue', d: 1, t: 'Enqueue lesson-generate kèm idempotencyKey.' },
+      { e: 'api_rest', d: -1, t: 'Trả AiJobSummary; màn hình gắn AiJobProgress(jobId).' },
+      { e: 'queue_worker', d: 1, t: 'Worker nhận job.' },
+      { e: 'worker_db', d: 1, t: 'UPDATE status = RUNNING WHERE status = QUEUED, chống hai worker cùng nhận.' },
+      { e: 'worker_llm', d: 1, t: 'Giai đoạn A: một lời gọi sinh dàn ý từ heading path và 200 ký tự đầu mỗi chunk.' },
+      { e: 'worker_llm', d: -1, t: 'Nhận danh sách node kèm chunkIds.' },
+      { e: 'worker_llm', d: 1, t: 'Giai đoạn B: mỗi node một lời gọi sinh lesson + exercise, tối đa 3 lời gọi song song.' },
+      { e: 'worker_s3', d: 1, t: 'Lưu phản hồi thô (rawResponseKey) để điều tra khi chất lượng tụt.' },
+      { n: 'worker', t: 'Validation 4 tầng: schema Zod, luật nghiệp vụ, bám nguồn (LOW nếu dưới 50%), vệ sinh Markdown.' },
+      { e: 'worker_db', d: 1, t: 'Ghi Lesson, Exercise, Question, AnswerOption, GenerationRun trong một transaction.' },
+      { e: 'query_api', d: 1, t: 'useAiJob hỏi lại mỗi 2 giây khi QUEUED hoặc RUNNING.' },
+      { e: 'api_rest', d: 1, t: 'GET /api/v1/ai/jobs/:id.' },
+      { e: 'rest_db', d: 1, t: 'Đọc status, progress, progressLabel, error.' },
+      { e: 'query_api', d: -1, t: 'SUCCEEDED (có thể kèm PARTIAL_FAILURES): ngừng thăm dò.' },
+      { e: 'ui_query', d: -1, t: 'Mascot celebrate; sau 900 ms tải lại danh sách bài học.' }
+    ]},
+    { id: 'submit', k: 'Học', title: 'Làm bài tập và nộp', steps: [
+      { e: 'ui_query', d: 1, t: 'useExercise(lessonId, exerciseId): đề bài không chứa đáp án.' },
+      { e: 'query_api', d: 1, t: 'GET /lessons/:id/exercise?exerciseId=…' },
+      { e: 'api_rest', d: 1, t: 'Máy chủ kiểm quyền sở hữu ở tầng repository.' },
+      { e: 'api_rest', d: -1, t: 'ExerciseRead: câu hỏi, lựa chọn, bestSubmission, danh sách bài tập.' },
+      { n: 'ui', t: 'Người học trả lời. Thiếu câu: cuộn tới câu thiếu, rung cảnh báo, không gửi.' },
+      { e: 'ui_query', d: 1, t: 'useSubmitExercise: answers, exerciseId, durationMs (tối đa 3 600 000).' },
+      { e: 'query_api', d: 1, t: 'apiFetch POST.' },
+      { e: 'api_rest', d: 1, t: 'POST /lessons/:id/exercise/submit.' },
+      { e: 'rest_db', d: 1, t: 'Đọc đáp án đúng từ CSDL; mọi questionId phải thuộc bài tập này.' },
+      { n: 'rest', t: 'gradeSubmission: chấm từng câu, chuẩn hoá chuỗi, quy về thang 100, so với passScore.' },
+      { e: 'rest_db', d: 1, t: 'Transaction: Submission, SubmissionAnswer, LearningProgress; tính lessonCompleted.' },
+      { e: 'api_rest', d: -1, t: 'SubmissionResult kèm đáp án đúng và giải thích.' },
+      { e: 'query_api', d: -1, t: 'Invalidate exercise, lessons, progress, courses.' },
+      { e: 'ui_query', d: -1, t: 'Hiện điểm, vòng tiến độ, xem lại từng câu.' },
+      { e: 'ui_fx', d: 1, t: 'Đạt: haptic Success và 32 mảnh pháo giấy. Chưa đạt: haptic Warning, mascot confused.' }
+    ]},
+    { id: 'refresh', k: 'Phiên', title: 'Token hết hạn giữa chừng', steps: [
+      { e: 'ui_query', d: 1, t: 'Một màn hình cần dữ liệu.' },
+      { e: 'query_api', d: 1, t: 'apiFetch gửi Bearer accessToken.' },
+      { e: 'api_rest', d: 1, t: 'GET tài nguyên.' },
+      { e: 'api_rest', d: -1, t: '401: access token (15 phút) đã hết hạn.' },
+      { n: 'api', t: 'refreshSession(): nếu đã có lượt refresh đang chạy thì dùng chung Promise (single-flight).' },
+      { e: 'api_secure', d: 1, t: 'Đọc refresh token.' },
+      { e: 'api_rest', d: 1, t: 'POST /auth/refresh với retried = true để không lặp vô hạn.' },
+      { e: 'rest_db', d: 1, t: 'Xoay vòng token. Token đã thu hồi mà bị dùng lại thì thu hồi cả family.' },
+      { e: 'api_rest', d: -1, t: 'Cặp token mới.' },
+      { e: 'api_secure', d: 1, t: 'Ghi refresh token mới.' },
+      { e: 'api_rest', d: 1, t: 'Gửi lại request gốc đúng một lần với token mới.' },
+      { e: 'api_rest', d: -1, t: '200.' },
+      { e: 'query_api', d: -1, t: 'Trả dữ liệu vào cache.' },
+      { e: 'ui_query', d: -1, t: 'Màn hình hiển thị. Nếu refresh bị từ chối 401: onSessionExpired, về guest.' }
+    ]},
+    { id: 'admin', k: 'Quản trị', title: 'Chạy lại AI Job lỗi', steps: [
+      { n: 'ui', t: 'Tab Quản trị chỉ hiện với role ADMIN (href: null với người khác).' },
+      { e: 'ui_query', d: 1, t: 'useAdminAiJobs với status = FAILED.' },
+      { e: 'query_api', d: 1, t: 'apiFetch GET.' },
+      { e: 'api_rest', d: 1, t: 'GET /admin/ai-jobs?status=FAILED. RolesGuard chặn thật ở máy chủ.' },
+      { e: 'rest_db', d: 1, t: 'Đọc AIJob và GenerationRun: token vào ra, độ trễ, chi phí.' },
+      { e: 'api_rest', d: -1, t: 'Danh sách job lỗi.' },
+      { n: 'ui', t: 'Mở chi tiết, xác nhận "Chạy lại" trong hộp thoại.' },
+      { e: 'api_rest', d: 1, t: 'POST /admin/ai-jobs/:id/retry.' },
+      { e: 'rest_db', d: 1, t: 'attempt + 1, status = QUEUED, ghi AuditLog.' },
+      { e: 'rest_queue', d: 1, t: 'Đưa lại vào hàng đợi lesson-generate.' },
+      { e: 'queue_worker', d: 1, t: 'Worker chạy lại pipeline (tối đa 3 lần cho mỗi job).' },
+      { e: 'query_api', d: -1, t: 'Invalidate admin ai-jobs.' },
+      { e: 'ui_query', d: -1, t: 'Danh sách cập nhật trạng thái mới.' }
+    ]},
+    { id: 'logout', k: 'Phiên', title: 'Đăng xuất mọi thiết bị', steps: [
+      { n: 'ui', t: 'Cài đặt: xác nhận "Đăng xuất mọi thiết bị".' },
+      { e: 'ui_auth', d: 1, t: 'logoutAll().' },
+      { e: 'auth_api', d: 1, t: 'endSession("/api/v1/auth/logout-all").' },
+      { e: 'api_secure', d: 1, t: 'Đọc refresh token hiện tại.' },
+      { e: 'api_rest', d: 1, t: 'POST /auth/logout-all kèm refreshToken.' },
+      { e: 'rest_db', d: 1, t: 'Thu hồi mọi RefreshToken của người dùng.' },
+      { e: 'api_secure', d: 1, t: 'clearSession(): xoá khoá trong SecureStore, access token = null, kể cả khi API lỗi.' },
+      { e: 'auth_api', d: -1, t: 'status = guest; queryClient.clear() xoá toàn bộ cache.' },
+      { e: 'ui_auth', d: -1, t: 'Nhánh (auth) xuất hiện lại: màn Đăng nhập.' }
+    ]}
+  ];
+
+  function el(tag, attrs, parent) {
+    var n = document.createElementNS(NS, tag);
+    for (var k in attrs) n.setAttribute(k, attrs[k]);
+    if (parent) parent.appendChild(n);
+    return n;
+  }
+
+  // ---- dựng sơ đồ
+  GROUPS.forEach(function (g) {
+    el('rect', { x: g.x, y: g.y, width: g.w, height: g.h, rx: 14, 'class': 'g-box' }, svg);
+    var t = el('text', { x: g.x + 16, y: g.y + 26, 'class': 'g-label' }, svg);
+    t.textContent = g.label;
+  });
+  var edgeLayer = el('g', {}, svg);
+  var nodeLayer = el('g', {}, svg);
+  var edgeEls = {}, nodeEls = {};
+  Object.keys(EDGES).forEach(function (id) {
+    var p = EDGES[id].p;
+    var d = 'M' + p.map(function (q) { return q[0] + ' ' + q[1]; }).join(' L');
+    edgeEls[id] = el('path', { d: d, 'class': 'edge' }, edgeLayer);
+  });
+  Object.keys(NODES).forEach(function (id) {
+    var n = NODES[id];
+    var g = el('g', { 'class': 'node' + (n.static ? ' static' : '') }, nodeLayer);
+    el('rect', { x: n.x, y: n.y, width: n.w, height: n.h, rx: 9 }, g);
+    var cx = n.x + n.w / 2;
+    var t1 = el('text', { x: cx, y: n.y + n.h / 2 - 3, 'text-anchor': 'middle', 'class': 'nt' }, g);
+    t1.textContent = n.t;
+    var t2 = el('text', { x: cx, y: n.y + n.h / 2 + 14, 'text-anchor': 'middle', 'class': 'ns' }, g);
+    t2.textContent = n.s;
+    nodeEls[id] = g;
+  });
+  var halo = el('circle', { r: 11, 'class': 'halo', visibility: 'hidden' }, svg);
+  var packet = el('circle', { r: 5.5, 'class': 'packet', visibility: 'hidden' }, svg);
+
+  // ---- trạng thái trình phát
+  var reduced = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  var cur = null, idx = -1, playing = false, raf = 0, timer = 0, speed = 1;
+  var actionsBox = document.getElementById('arch-actions');
+  var stepsBox = document.getElementById('arch-steps');
+  var capMeta = document.getElementById('cap-meta');
+  var capText = document.getElementById('cap-text');
+  var btnPlay = document.getElementById('btn-play');
+  var count = document.getElementById('arch-count');
+  count.textContent = ACTIONS.length + ' hành động · ' + ACTIONS.reduce(function (s, a) { return s + a.steps.length; }, 0) + ' bước';
+
+  ACTIONS.forEach(function (a) {
+    var b = document.createElement('button');
+    b.type = 'button';
+    b.className = 'act';
+    b.setAttribute('aria-pressed', 'false');
+    b.dataset.id = a.id;
+    b.innerHTML = '<span class="k">' + a.k + ' · ' + a.steps.length + ' bước</span><span class="t">' + a.title + '</span>';
+    b.addEventListener('click', function () { select(a.id); });
+    actionsBox.appendChild(b);
+  });
+
+  function routeOf(s) {
+    if (s.n) return NODES[s.n].short;
+    var E = EDGES[s.e];
+    var from = s.d > 0 ? E.a : E.b, to = s.d > 0 ? E.b : E.a;
+    return NODES[from].short + ' → ' + NODES[to].short;
+  }
+
+  function clearActive() {
+    Object.keys(nodeEls).forEach(function (k) { nodeEls[k].classList.remove('on', 'busy'); });
+    Object.keys(edgeEls).forEach(function (k) { edgeEls[k].classList.remove('active'); });
+    packet.setAttribute('visibility', 'hidden');
+    halo.setAttribute('visibility', 'hidden');
+  }
+
+  function stop() {
+    playing = false;
+    cancelAnimationFrame(raf);
+    clearTimeout(timer);
+    btnPlay.querySelector('span').textContent = 'Chạy';
+    btnPlay.querySelector('path').setAttribute('d', 'M4 2.5v11l9-5.5z');
+  }
+
+  function select(id) {
+    stop();
+    cur = ACTIONS.filter(function (a) { return a.id === id; })[0];
+    idx = -1;
+    actionsBox.querySelectorAll('.act').forEach(function (b) { b.setAttribute('aria-pressed', String(b.dataset.id === id)); });
+    clearActive();
+    Object.keys(edgeEls).forEach(function (k) { edgeEls[k].classList.remove('route'); });
+    cur.steps.forEach(function (s) { if (s.e) edgeEls[s.e].classList.add('route'); });
+    stepsBox.innerHTML = '';
+    cur.steps.forEach(function (s, i) {
+      var li = document.createElement('li');
+      var b = document.createElement('button');
+      b.type = 'button';
+      b.className = 'step';
+      b.innerHTML = '<span class="sn">' + String(i + 1).padStart(2, '0') + '</span><span class="st"></span><span class="sp"></span>';
+      b.querySelector('.st').textContent = s.t;
+      b.querySelector('.sp').textContent = routeOf(s);
+      b.addEventListener('click', function () { stop(); show(i, false); });
+      li.appendChild(b);
+      stepsBox.appendChild(li);
+    });
+    capMeta.innerHTML = '<b>' + cur.title + '</b> · ' + cur.steps.length + ' bước';
+    capText.textContent = 'Tuyến nét đứt là đường đi của hành động này. Bấm Chạy để xem từng bước, hoặc chạm một bước bên dưới.';
+  }
+
+  function markList() {
+    stepsBox.querySelectorAll('.step').forEach(function (b, i) {
+      b.classList.toggle('cur', i === idx);
+      b.classList.toggle('done', i < idx);
+    });
+  }
+
+  function show(i, animate) {
+    clearTimeout(timer);
+    cancelAnimationFrame(raf);
+    clearActive();
+    idx = i;
+    var s = cur.steps[i];
+    markList();
+    capMeta.innerHTML = '<b>Bước ' + (i + 1) + '/' + cur.steps.length + '</b> · ' + routeOf(s);
+    capText.textContent = s.t;
+    if (s.e) {
+      var E = EDGES[s.e];
+      nodeEls[E.a].classList.add('on');
+      nodeEls[E.b].classList.add('on');
+      var path = edgeEls[s.e];
+      path.classList.add('active');
+      if (animate && !reduced) travel(path, s.d, after);
+      else { place(path, s.d, 1); timer = setTimeout(after, (playing ? 1100 : 0) / speed); }
+    } else {
+      nodeEls[s.n].classList.add('on', 'busy');
+      timer = setTimeout(after, 1200 / speed);
+    }
+  }
+
+  function place(path, dir, e) {
+    var L = path.getTotalLength();
+    var pt = path.getPointAtLength(dir > 0 ? L * e : L * (1 - e));
+    packet.setAttribute('cx', pt.x); packet.setAttribute('cy', pt.y);
+    halo.setAttribute('cx', pt.x); halo.setAttribute('cy', pt.y);
+    packet.setAttribute('visibility', 'visible');
+    halo.setAttribute('visibility', 'visible');
+  }
+
+  function travel(path, dir, done) {
+    var L = path.getTotalLength();
+    var dur = Math.min(1500, Math.max(650, L * 2.4)) / speed;
+    var start = performance.now();
+    function frame(now) {
+      var u = Math.min(1, (now - start) / dur);
+      var e = u < 0.5 ? 2 * u * u : 1 - Math.pow(-2 * u + 2, 2) / 2;
+      place(path, dir, e);
+      if (u < 1) raf = requestAnimationFrame(frame);
+      else done();
+    }
+    raf = requestAnimationFrame(frame);
+  }
+
+  function after() {
+    if (!playing) return;
+    if (idx < cur.steps.length - 1) timer = setTimeout(function () { show(idx + 1, true); }, 420 / speed);
+    else {
+      stop();
+      capText.textContent = cur.steps[idx].t + ' — Hoàn tất.';
+    }
+  }
+
+  btnPlay.addEventListener('click', function () {
+    if (playing) { stop(); return; }
+    playing = true;
+    btnPlay.querySelector('span').textContent = 'Tạm dừng';
+    btnPlay.querySelector('path').setAttribute('d', 'M3.5 2.5h3v11h-3zM9.5 2.5h3v11h-3z');
+    show(idx >= cur.steps.length - 1 ? 0 : idx + 1, true);
+  });
+  document.getElementById('btn-step').addEventListener('click', function () {
+    stop();
+    show(idx >= cur.steps.length - 1 ? 0 : idx + 1, true);
+  });
+  document.getElementById('btn-reset').addEventListener('click', function () { select(cur.id); });
+  document.getElementById('speed').addEventListener('change', function (e) { speed = parseFloat(e.target.value) || 1; });
+
+  select('boot');
+
+  // ---- mục lục: đánh dấu mục đang đọc
+  var links = Array.prototype.slice.call(document.querySelectorAll('.toc a'));
+  var secs = links.map(function (a) { return document.querySelector(a.getAttribute('href')); });
+  if ('IntersectionObserver' in window) {
+    var io = new IntersectionObserver(function (entries) {
+      entries.forEach(function (en) {
+        if (!en.isIntersecting) return;
+        var i = secs.indexOf(en.target);
+        links.forEach(function (l, j) { l.classList.toggle('here', j === i); });
+      });
+    }, { rootMargin: '-20% 0px -70% 0px' });
+    secs.forEach(function (s) { if (s) io.observe(s); });
+  }
+})();
+</script>
+
+<script type="module">
+import mermaid from "https://cdn.jsdelivr.net/npm/mermaid@11.4.1/dist/mermaid.esm.min.mjs";
+mermaid.initialize({ startOnLoad: false, securityLevel: "strict" });
+await mermaid.run({ querySelector: "pre.mermaid" });
+</script>
+</body>
+</html>

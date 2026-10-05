@@ -30,7 +30,8 @@ yarn-error.*
 .DS_Store
 *.pem
 
-# local env files
+# local env files — chỉ commit .env.example
+.env
 .env*.local
 
 # typescript
@@ -39,3 +40,9 @@ yarn-error.*
 # generated native folders
 /ios
 /android
+
+# e2e
+e2e/out/
+
+# Claude Code local settings
+.claude/settings.local.json
