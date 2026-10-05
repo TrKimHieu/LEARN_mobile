@@ -1,19 +1,18 @@
 <div align="center">
 
-# 📱 LEARN Mobile
-
-**Biến tài liệu của bạn thành bài học và bài tập tương tác bằng AI — ngay trên điện thoại.**
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="docs/assets/banner-dark.svg">
+  <img src="docs/assets/banner-light.svg" alt="LEARN Mobile" width="720">
+</picture>
 
 ![Expo SDK](https://img.shields.io/badge/Expo_SDK-57-000020?logo=expo&logoColor=white)
 ![React Native](https://img.shields.io/badge/React_Native-0.86-61DAFB?logo=react&logoColor=black)
 ![TypeScript](https://img.shields.io/badge/TypeScript-strict-3178C6?logo=typescript&logoColor=white)
 ![Node](https://img.shields.io/badge/Node-%E2%89%A5_20-339933?logo=node.js&logoColor=white)
-![Tests](https://img.shields.io/badge/tests-Jest_·_Playwright-2EA44F)
-![Status](https://img.shields.io/badge/trạng_thái-nền_móng-F59E0B)
 
-[Bắt đầu nhanh](#-bắt-đầu-nhanh) ·
-[Tính năng](#-tính-năng-hiện-có) ·
-[Tài liệu](#-tài-liệu) ·
+[Bắt đầu nhanh](#bắt-đầu-nhanh) ·
+[Tính năng](#tính-năng-hiện-có) ·
+[Tài liệu](#tài-liệu) ·
 [API mock](mock-api/README.md) ·
 [Đặc tả tính năng mới](docs/requirements/SRS.md)
 
@@ -27,17 +26,17 @@
 
 ---
 
-## 🎯 Dự án này là gì
+## Dự án này là gì
 
 LEARN Mobile là **nền móng** của ứng dụng di động LEARN. Luồng cơ bản nhất đã chạy được:
 
 ```mermaid
 flowchart LR
-    A["🔐 Đăng nhập"] --> B["📄 Tải tài liệu<br/>PDF · DOCX · PPTX · TXT · MD"]
-    B --> C["🤖 AI sinh bài học<br/>và bài tập"]
-    C --> D["📖 Đọc bài"]
-    D --> E["✏️ Làm bài tập<br/>chấm điểm ở máy chủ"]
-    E --> F["📈 Theo dõi tiến trình"]
+    A["Đăng nhập"] --> B["Tải tài liệu<br/>PDF · DOCX · PPTX · TXT · MD"]
+    B --> C["AI sinh bài học<br/>và bài tập"]
+    C --> D["Đọc bài"]
+    D --> E["Làm bài tập<br/>chấm điểm ở máy chủ"]
+    E --> F["Theo dõi tiến trình"]
 ```
 
 Repo này được bàn giao để team **làm lại giao diện** và **xây tiếp các tính năng mới** (flashcard
@@ -45,11 +44,11 @@ Repo này được bàn giao để team **làm lại giao diện** và **xây ti
 
 > [!IMPORTANT]
 > **Trạng thái: nền móng, đang phát triển.**
-> - ✅ Đã kiểm bằng unit test và e2e trên **bản web** (chạy được cả trên API mock).
-> - ⚠️ **Chưa** chạy đạt checklist trên điện thoại thật → [testing.md](docs/testing.md#4-checklist-trên-điện-thoại-thật).
-> - 🎨 Giao diện hiện tại là bản tạm, đơn sắc dịu ([ADR 001](docs/adr/001-don-sac-diu.md)); team sẽ thiết kế lại.
+> - Đã kiểm bằng unit test và e2e trên **bản web** (chạy được cả trên API mock).
+> - **Chưa** chạy đạt checklist trên điện thoại thật → [testing.md](docs/testing.md#4-checklist-trên-điện-thoại-thật).
+> - Giao diện hiện tại là bản tạm, đơn sắc dịu ([ADR 001](docs/adr/001-don-sac-diu.md)); team sẽ thiết kế lại.
 
-## 🚀 Bắt đầu nhanh
+## Bắt đầu nhanh
 
 Không cần Docker, không cần backend, không cần API key.
 
@@ -77,31 +76,31 @@ Quét mã QR (Android: trong Expo Go · iPhone: bằng app Camera), rồi đăng
 App không có backend riêng, mọi dữ liệu đi qua một API. Cả hai lựa chọn đều ở cổng 4000 nên đổi qua
 lại không cần cấu hình lại.
 
-| | 🧪 **API mock** *(có sẵn trong repo)* | 🏗️ **Backend thật** |
+| | **API mock** *(có sẵn trong repo)* | **Backend thật** |
 | --- | --- | --- |
 | Dùng khi | Làm giao diện, thử luồng, demo | Kiểm tra tích hợp, AI thật |
 | Cần | Chỉ Node | Docker + [LEARN_website](https://github.com/TrKimHieu/LEARN_website) |
 | Dữ liệu | Có sẵn, mất khi tắt | Lưu trong Postgres |
 | Khởi chạy | `npm run mock` | [getting-started §3B](docs/getting-started.md#3b-cách-b--dựng-backend-thật-repo-learn_website) |
 
-## ✨ Tính năng hiện có
+## Tính năng hiện có
 
 <table>
 <tr><th>Nhóm</th><th>Việc làm được</th></tr>
-<tr><td><b>🔐 Tài khoản</b></td><td>Đăng nhập · đăng ký · quên / đặt lại mật khẩu (mở từ web bằng <code>learn://</code>). Báo lỗi ngay dưới ô sai; giữ phiên giữa các lần mở app.</td></tr>
-<tr><td><b>🏠 Tổng quan</b></td><td>Thẻ "Học tiếp" mở thẳng bài kế tiếp, 4 số liệu, chuỗi ngày học, khóa học, hoạt động gần đây.</td></tr>
-<tr><td><b>📚 Khóa học</b></td><td>Danh sách có bìa theo khóa · tạo khóa mới · lộ trình bài học (sắp xếp lên/xuống) · tải tài liệu (PDF/DOCX/PPTX/TXT/MD) với trạng thái trích xuất tự cập nhật · <b>sinh bài bằng AI</b> có chọn độ khó và theo dõi tiến độ trực tiếp.</td></tr>
-<tr><td><b>📖 Đọc bài</b></td><td>Nội dung Markdown, mục lục, cảnh báo bài lệch nguồn, đoạn tài liệu gốc, bài trước/sau, sửa và xoá bài.</td></tr>
-<tr><td><b>✏️ Bài tập</b></td><td>4 loại câu hỏi · nhiều bài tập mỗi bài · chấm điểm ở máy chủ · xem lại từng câu · làm lại.</td></tr>
-<tr><td><b>📈 Tiến trình</b></td><td>Tiến độ theo khóa · lịch sử làm bài phân trang.</td></tr>
-<tr><td><b>⚙️ Cài đặt</b></td><td>Hồ sơ · giao diện Sáng/Tối/Tự động · gói đăng ký và hạn mức (demo) · đăng xuất / đăng xuất mọi thiết bị.</td></tr>
-<tr><td><b>🛡️ Quản trị</b> <i>(chỉ ADMIN)</i></td><td>Số liệu tổng · chi phí LLM 7 ngày · danh sách AI Job (lọc) · chi tiết · chạy lại job lỗi · nhật ký thao tác.</td></tr>
+<tr><td><b>Tài khoản</b></td><td>Đăng nhập · đăng ký · quên / đặt lại mật khẩu (mở từ web bằng <code>learn://</code>). Báo lỗi ngay dưới ô sai; giữ phiên giữa các lần mở app.</td></tr>
+<tr><td><b>Tổng quan</b></td><td>Thẻ "Học tiếp" mở thẳng bài kế tiếp, 4 số liệu, chuỗi ngày học, khóa học, hoạt động gần đây.</td></tr>
+<tr><td><b>Khóa học</b></td><td>Danh sách có bìa theo khóa · tạo khóa mới · lộ trình bài học (sắp xếp lên/xuống) · tải tài liệu (PDF/DOCX/PPTX/TXT/MD) với trạng thái trích xuất tự cập nhật · <b>sinh bài bằng AI</b> có chọn độ khó và theo dõi tiến độ trực tiếp.</td></tr>
+<tr><td><b>Đọc bài</b></td><td>Nội dung Markdown, mục lục, cảnh báo bài lệch nguồn, đoạn tài liệu gốc, bài trước/sau, sửa và xoá bài.</td></tr>
+<tr><td><b>Bài tập</b></td><td>4 loại câu hỏi · nhiều bài tập mỗi bài · chấm điểm ở máy chủ · xem lại từng câu · làm lại.</td></tr>
+<tr><td><b>Tiến trình</b></td><td>Tiến độ theo khóa · lịch sử làm bài phân trang.</td></tr>
+<tr><td><b>Cài đặt</b></td><td>Hồ sơ · giao diện Sáng/Tối/Tự động · gói đăng ký và hạn mức (demo) · đăng xuất / đăng xuất mọi thiết bị.</td></tr>
+<tr><td><b>Quản trị</b> <i>(chỉ ADMIN)</i></td><td>Số liệu tổng · chi phí LLM 7 ngày · danh sách AI Job (lọc) · chi tiết · chạy lại job lỗi · nhật ký thao tác.</td></tr>
 </table>
 
 Mọi màn có dữ liệu đều xử lý đủ **5 trạng thái**: Đang tải · Trống · Lỗi (kèm mã yêu cầu và nút thử
 lại) · Một phần · Thành công.
 
-## 🧰 Công nghệ
+## Công nghệ
 
 | Lớp | Chọn |
 | --- | --- |
@@ -116,7 +115,7 @@ lại) · Một phần · Thành công.
 Mọi thư viện đều có sẵn trong **Expo Go**, không cần bản build riêng. Chi tiết:
 [docs/architecture.md](docs/architecture.md).
 
-## 🧭 Lệnh thường dùng
+## Lệnh thường dùng
 
 | Lệnh | Việc làm |
 | --- | --- |
@@ -131,7 +130,7 @@ Mọi thư viện đều có sẵn trong **Expo Go**, không cần bản build r
 Trước khi commit: `npm run typecheck && npm run lint && npm test`. Danh sách đầy đủ và quy trình:
 [docs/development.md](docs/development.md).
 
-## 📚 Tài liệu
+## Tài liệu
 
 Mục lục đầy đủ: **[docs/README.md](docs/README.md)**.
 
@@ -146,7 +145,7 @@ Mục lục đầy đủ: **[docs/README.md](docs/README.md)**.
 | Xây tính năng mới | [requirements/SRS.md](docs/requirements/SRS.md) |
 | Biết vì sao chọn giao diện đơn sắc dịu | [adr/001-don-sac-diu.md](docs/adr/001-don-sac-diu.md) |
 
-## 🗂️ Cấu trúc thư mục
+## Cấu trúc thư mục
 
 ```text
 LEARN_mobile/

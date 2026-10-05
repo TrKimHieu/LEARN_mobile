@@ -26,7 +26,7 @@ async function readPicked(asset: DocumentPickerAsset): Promise<{ bytes: Uint8Arr
  * Xin URL upload → PUT thẳng lên S3/MinIO → xác nhận — cùng luồng với web (HANDBOOK §7.2).
  *
  * Presigned URL mang host do API ký (`S3_PUBLIC_ENDPOINT`), nên điện thoại chỉ PUT được khi host
- * đó tới được từ mạng của nó — xem README phần "Tải tài liệu lên từ điện thoại".
+ * đó tới được từ mạng của nó — xem docs/getting-started.md, mục "Tải tài liệu lên từ điện thoại".
  */
 export function useUploadDocument(courseId: string) {
   const queryClient = useQueryClient();

@@ -44,5 +44,5 @@ yarn-error.*
 # e2e
 e2e/out/
 
-# Claude Code local settings
-.claude/settings.local.json
+# công cụ AI cục bộ
+.claude/

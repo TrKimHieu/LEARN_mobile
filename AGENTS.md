@@ -1,5 +1,7 @@
 This is an Expo/React Native mobile application. Prioritize mobile-first patterns, performance, and cross-platform compatibility.
 
+Project docs (Vietnamese) live in `docs/` — start at `docs/README.md`. The app has no backend of its own: it talks to the API of the `LEARN_website` repo, or to the in-repo mock (`npm run mock`, see `mock-api/README.md`) — keep the mock in sync when adding endpoints. `src/contracts/` is generated (`npm run sync:contracts`) — never edit it by hand.
+
 ## Expo has changed — do not trust your training data
 
 Expo ships breaking changes every SDK release. APIs you remember are likely renamed, moved, or removed. Before writing any code that touches an Expo, EAS, or React Native API:
@@ -15,8 +17,9 @@ Use `bunx` instead of `npx` if the project uses bun (`bun.lock` present).
 ```bash
 npx expo install <package>  # ALWAYS use instead of npm/yarn/pnpm/bun add — resolves SDK-compatible versions
 npx expo start              # start the dev server
-npx expo lint               # lint
-npx tsc --noEmit            # typecheck
+npm run lint                # lint
+npm run typecheck           # contracts check + tsc --noEmit
+npm test                    # unit tests
 npx expo-doctor             # diagnose dependency and config issues
 npx expo install --fix      # fix incompatible package versions
 ```

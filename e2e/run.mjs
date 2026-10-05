@@ -4,11 +4,12 @@
  *   npm run e2e                    # mọi luồng
  *   npm run e2e -- learner admin   # chọn luồng: learner | create | admin
  *
- * Cần: Docker (Postgres/Redis/MinIO) + `npm run dev:api` + worker `LLM_MODE=mock` bên LEARN (luồng
- * `create` sinh bài bằng AI), và `npm run web` ở repo này. Tài khoản demo/admin là dữ liệu seed dev
+ * Cần một API đang chạy ở :4000 — đơn giản nhất là `npm run mock` (API mock của repo này); hoặc backend
+ * LEARN thật: Docker + `npm run dev:api` + worker `LLM_MODE=mock` (luồng `create` sinh bài bằng AI) —
+ * và `npm run web` ở repo này. Tài khoản demo/admin là dữ liệu seed dev
  * của LEARN. Ảnh chụp + báo cáo axe ghi vào `e2e/out/` (không commit).
  *
- * Không thay kiểm thử trên điện thoại thật — xem checklist trong README.
+ * Không thay kiểm thử trên điện thoại thật — xem checklist trong docs/testing.md.
  */
 import AxeBuilder from '@axe-core/playwright';
 import { mkdirSync } from 'node:fs';

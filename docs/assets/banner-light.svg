@@ -1,0 +1,15 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="880" height="200" viewBox="0 0 880 200" role="img" aria-labelledby="t d">
+  <title id="t">LEARN Mobile</title>
+  <desc id="d">Biểu tượng các vòng tròn đồng tâm và tên LEARN Mobile</desc>
+  <rect width="880" height="200" rx="16" fill="#f1f1f1"/>
+  <rect x="0.5" y="0.5" width="879" height="199" rx="15.5" fill="none" stroke="#d4d4d4"/>
+  <g transform="translate(100 100)" fill="none" stroke="#3d3d3d">
+    <circle r="62" stroke-width="3" opacity="0.30"/>
+    <circle r="46" stroke-width="3" opacity="0.50"/>
+    <circle r="30" stroke-width="3" opacity="0.75"/>
+    <circle cx="14" cy="-10" r="18" fill="#3d3d3d" stroke="none"/>
+    <circle cx="14" cy="-10" r="7" fill="#f1f1f1" stroke="none"/>
+  </g>
+  <text x="200" y="98" font-family="Helvetica Neue, Helvetica, Arial, sans-serif" font-size="56" font-weight="700" letter-spacing="-1" fill="#2b2b2b">LEARN Mobile</text>
+  <text x="202" y="136" font-family="Helvetica Neue, Helvetica, Arial, sans-serif" font-size="22" fill="#5c5c5c">Tài liệu của bạn thành bài học và bài tập, bằng AI.</text>
+</svg>
