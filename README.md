@@ -1,202 +1,164 @@
-# LEARN Mobile
+<div align="center">
 
-Ứng dụng di động của **LEARN**: biến tài liệu của bạn thành bài học và bài tập tương tác. App dùng
-chung API với bản web (repo [LEARN_website](https://github.com/TrKimHieu/LEARN_website), `apps/api`). Có đủ các màn người học như web và **Quản trị
-bản rút gọn** cho tài khoản ADMIN. Bảng đối chiếu từng tính năng: `docs/PARITY.md` trong repo LEARN_website.
+# 📱 LEARN Mobile
 
-**Trạng thái: Đang phát triển** — đã kiểm bằng unit test và e2e trên bản web, **chưa** chạy đạt
-checklist trên điện thoại thật (mục cuối README).
+**Biến tài liệu của bạn thành bài học và bài tập tương tác bằng AI — ngay trên điện thoại.**
+
+![Expo SDK](https://img.shields.io/badge/Expo_SDK-57-000020?logo=expo&logoColor=white)
+![React Native](https://img.shields.io/badge/React_Native-0.86-61DAFB?logo=react&logoColor=black)
+![TypeScript](https://img.shields.io/badge/TypeScript-strict-3178C6?logo=typescript&logoColor=white)
+![Node](https://img.shields.io/badge/Node-%E2%89%A5_20-339933?logo=node.js&logoColor=white)
+![Tests](https://img.shields.io/badge/tests-Jest_·_Playwright-2EA44F)
+![Status](https://img.shields.io/badge/trạng_thái-nền_móng-F59E0B)
+
+[Bắt đầu nhanh](#-bắt-đầu-nhanh) ·
+[Tính năng](#-tính-năng-hiện-có) ·
+[Tài liệu](#-tài-liệu) ·
+[API mock](mock-api/README.md) ·
+[Đặc tả tính năng mới](docs/requirements/SRS.md)
+
+<br />
 
 | Sáng | Tối | Bài học | Kết quả |
-| --- | --- | --- | --- |
-| ![Tổng quan](docs/screenshots/light-02-overview.png) | ![Tổng quan tối](docs/screenshots/dark-02-overview.png) | ![Đọc bài](docs/screenshots/light-06-lesson.png) | ![Kết quả](docs/screenshots/light-09-result.png) |
+| :---: | :---: | :---: | :---: |
+| <img src="docs/screenshots/light-02-overview.png" width="190" alt="Tổng quan (sáng)" /> | <img src="docs/screenshots/dark-02-overview.png" width="190" alt="Tổng quan (tối)" /> | <img src="docs/screenshots/light-06-lesson.png" width="190" alt="Đọc bài" /> | <img src="docs/screenshots/light-09-result.png" width="190" alt="Kết quả bài tập" /> |
 
-## Bắt đầu nhanh
+</div>
 
-App này **chỉ là phần giao diện di động**. Mọi dữ liệu (đăng nhập, khóa học, sinh bài bằng AI) đến từ
-API của repo **[LEARN_website](https://github.com/TrKimHieu/LEARN_website)**, nên phải dựng backend
-đó trước, nếu không app sẽ dừng ở màn đăng nhập.
+---
 
-**Cần có:** Node ≥ 20, Docker Desktop, Git, app **Expo Go** trên điện thoại (hoặc trình giả lập
-Android/iOS). Điện thoại và máy tính phải **cùng mạng Wi‑Fi**.
+## 🎯 Dự án này là gì
 
-**Bước 1 — Dựng backend** (đặt `LEARN_website` cạnh thư mục này, tên thư mục `LEARN`):
+LEARN Mobile là **nền móng** của ứng dụng di động LEARN. Luồng cơ bản nhất đã chạy được:
+
+```mermaid
+flowchart LR
+    A["🔐 Đăng nhập"] --> B["📄 Tải tài liệu<br/>PDF · DOCX · PPTX · TXT · MD"]
+    B --> C["🤖 AI sinh bài học<br/>và bài tập"]
+    C --> D["📖 Đọc bài"]
+    D --> E["✏️ Làm bài tập<br/>chấm điểm ở máy chủ"]
+    E --> F["📈 Theo dõi tiến trình"]
+```
+
+Repo này được bàn giao để team **làm lại giao diện** và **xây tiếp các tính năng mới** (flashcard
+ôn tập ngắt quãng, Pomodoro, streak/XP, xếp hạng… — xem [SRS](docs/requirements/SRS.md)).
+
+> [!IMPORTANT]
+> **Trạng thái: nền móng, đang phát triển.**
+> - ✅ Đã kiểm bằng unit test và e2e trên **bản web** (chạy được cả trên API mock).
+> - ⚠️ **Chưa** chạy đạt checklist trên điện thoại thật → [testing.md](docs/testing.md#4-checklist-trên-điện-thoại-thật).
+> - 🎨 Giao diện hiện tại là bản tạm, đơn sắc dịu ([ADR 001](docs/adr/001-don-sac-diu.md)); team sẽ thiết kế lại.
+
+## 🚀 Bắt đầu nhanh
+
+Không cần Docker, không cần backend, không cần API key.
+
+**Cần:** Node ≥ 20 · Git · [Expo Go](https://expo.dev/go) trên điện thoại (cùng Wi‑Fi với máy tính).
 
 ```bash
-git clone https://github.com/TrKimHieu/LEARN_website.git ../LEARN
-cd ../LEARN
-cp .env.example .env            # Windows PowerShell: Copy-Item .env.example .env
 npm install
-docker compose -f infra/docker-compose.yml up -d
-npm run db:migrate
-npm run db:seed                 # tạo tài khoản demo
-npm run dev:api                 # terminal 1: API :4000
-npm run dev:worker              # terminal 2: worker sinh bài bằng AI
+npm run mock      # terminal 1 — API giả, cổng 4000
+npm start         # terminal 2 — mở app: quét mã QR bằng Expo Go
 ```
 
-Muốn sinh bài bằng AI thật thì điền `LLM_API_KEY` trong `.env` của LEARN. Chỉ xem giao diện thì
-không cần.
+Quét mã QR (Android: trong Expo Go · iPhone: bằng app Camera), rồi đăng nhập:
 
-**Bước 2 — Chạy app mobile** (terminal mới, trong thư mục này):
-
-```bash
-npm install
-npm start
-```
-
-Quét mã QR bằng Expo Go (Android) hoặc app Camera (iPhone). Đăng nhập bằng tài khoản demo
-`demo@learn.ai` / `Demo@12345` (quản trị: `admin@learn.ai` / `Admin@12345`).
-
-**Gặp lỗi?**
-
-| Triệu chứng | Cách xử lý |
-| --- | --- |
-| App báo không kết nối được | Kiểm tra API đang chạy ở `:4000`; điện thoại cùng Wi‑Fi; tường lửa cho phép cổng 4000 và 8081 |
-| Mạng chặn kết nối LAN | `npx expo start --tunnel` và đặt `EXPO_PUBLIC_API_URL` (xem mục Chạy) |
-| Tải tài liệu lên bị lỗi | Đặt `S3_PUBLIC_ENDPOINT=http://<IP LAN>:9000` trong `.env` của LEARN rồi khởi động lại API |
-| Muốn xem nhanh trên trình duyệt | `npm run web` (phiên đăng nhập mất khi tải lại trang) |
-
-Lệnh kiểm tra trước khi commit: `npm run typecheck`, `npm run lint`, `npm test`.
-
-## Có gì
-
-| Màn | Việc làm được |
-| --- | --- |
-| Đăng nhập · Đăng ký · Quên / đặt lại mật khẩu | Báo lỗi ngay dưới ô sai, giữ phiên đăng nhập giữa các lần mở app; đặt lại mật khẩu mở từ trang web bằng `learn://` |
-| **Tổng quan** (tab) | Thẻ "Học tiếp" mở thẳng bài kế tiếp, 4 số liệu, khóa học, hoạt động gần đây |
-| **Khóa học** (tab) | Danh sách có bìa theo khóa, tạo khóa mới (modal) |
-| Chi tiết khóa học | Lộ trình bài học (sắp xếp lên/xuống), sinh bài bằng AI có chọn độ khó và theo dõi tiến độ trực tiếp, tải tài liệu lên (PDF/DOCX/PPTX/TXT/MD), trạng thái trích xuất tự cập nhật |
-| Đọc bài | Nội dung Markdown, mục lục, cảnh báo bài lệch nguồn, đoạn tài liệu gốc, bài trước/sau, sửa và xoá bài |
-| Bài tập | 4 loại câu hỏi, nhiều bài tập mỗi bài học, báo câu còn thiếu, chấm điểm ở server, xem lại từng câu, làm lại, đi tiếp |
-| **Tiến trình** (tab) | Tiến độ theo khóa, lịch sử làm bài phân trang |
-| **Cài đặt** (tab) | Hồ sơ, chọn giao diện Sáng/Tối/Tự động, gói đăng ký và hạn mức (demo), đăng xuất, đăng xuất mọi thiết bị |
-| **Quản trị** (tab, chỉ ADMIN) | Số liệu tổng, chi phí LLM 7 ngày, danh sách AI Job (lọc trạng thái), chi tiết + chạy lại job lỗi + nhật ký thao tác. Bảng người dùng/khóa học/gói: chỉ trên web |
-
-Màn nào có dữ liệu cũng có đủ 5 trạng thái: Đang tải · Trống · Lỗi (kèm mã yêu cầu và nút thử
-lại) · Một phần · Thành công. Kéo xuống để tải lại.
-
-## Công nghệ
-
-| Thành phần | Chọn |
-| --- | --- |
-| Nền tảng | Expo SDK 57 (`expo ~57.0.26`), React Native 0.86, React 19.2, TypeScript strict + `noUncheckedIndexedAccess` |
-| Điều hướng | Expo Router: route theo file trong `src/app/`, typed routes, `Stack.Protected` |
-| Dữ liệu | TanStack Query (cùng query key với web), Zod schema chép từ `@learn/contracts` |
-| Phiên đăng nhập | Refresh token trong `expo-secure-store` (Keychain/Keystore), access token chỉ ở bộ nhớ — ADR 016 của LEARN |
-| Giao diện | Hanken Grotesk, icon Phosphor, SVG (`react-native-svg`) cho bìa khóa học và mascot Circle (dữ liệu 25 biểu cảm sinh từ bản web) |
-| Tài liệu | `expo-document-picker` + `expo-file-system` + `expo-crypto` (SHA-256), PUT thẳng lên S3/MinIO bằng presigned URL |
-
-Mọi thư viện đều có sẵn trong **Expo Go**, không cần bản build riêng.
-
-### Điều hướng
-
-Cây điều hướng theo bài giảng *Chương 4 — Navigation* (`DocsTest` trong repo LEARN_website):
-
-```
-Root Stack
-├─ (auth)   Stack.Protected guard = chưa đăng nhập
-│   └─ login · register · forgot-password
-└─          Stack.Protected guard = đã đăng nhập
-    ├─ (tabs)  Tổng quan · Khóa học · Tiến trình · Cài đặt   backBehavior="history"
-    ├─ course/new                                       modal
-    ├─ course/[courseId]                                che tab bar
-    ├─ course/[courseId]/lesson/[lessonId]              che tab bar
-    ├─ course/[courseId]/lesson/[lessonId]/practice     ?exercise=<id>
-    └─ course/[courseId]/lesson/[lessonId]/edit         modal
-```
-
-- Chưa đăng nhập thì các route trong app **không tồn tại**. Đăng nhập xong app tự chuyển vào,
-  không cần gọi `router.replace` bằng tay.
-- Params chỉ mang ID. Màn đích tự đọc dữ liệu mới nhất từ query cache hoặc API.
-- Deep link: scheme `learn://`, ví dụ `learn://course/<id>`.
-
-### Màu sắc
-
-Giao diện vẫn đơn sắc như web: chỉ dùng xám trung tính, không có màu. Khác web ở một điểm: **không
-dùng cặp gần-trắng/gần-đen**. Chữ màu xám than trên nền xám rất nhạt, nút chính màu xám đậm. Độ
-tương phản vẫn đạt WCAG. Chi tiết và số đo ở [ADR 001](docs/adr/001-don-sac-diu.md).
-
-## Chạy
-
-Các bước dựng backend và chạy app nằm ở [Bắt đầu nhanh](#bắt-đầu-nhanh). Phần dưới là tuỳ chọn thêm.
-
-- **Địa chỉ API** tự suy từ máy đang chạy Metro (`http://<IP LAN>:4000`). Muốn đặt khác thì tạo
-  `.env` từ `.env.example` và điền `EXPO_PUBLIC_API_URL`.
-- **Tải tài liệu lên từ điện thoại:** đặt `S3_PUBLIC_ENDPOINT=http://<IP LAN>:9000` trong `.env`
-  của LEARN rồi khởi động lại API. Presigned URL được ký kèm tên máy, nên phải ký bằng địa chỉ mà
-  điện thoại tới được, không phải `localhost`.
-- Mạng chặn kết nối LAN: `npx expo start --tunnel`. Khi đó API cũng phải tới được qua mạng
-  (ví dụ đặt `EXPO_PUBLIC_API_URL` bằng địa chỉ public).
-- `npm run web` chạy bản web của app, chỉ để xem nhanh lúc dev. Trên bản web, phiên đăng nhập chỉ
-  giữ trong bộ nhớ, tải lại trang là phải đăng nhập lại.
-
-Tài khoản demo (dữ liệu seed của LEARN): `demo@learn.ai` / `Demo@12345`.
-
-## Phát hành cho người ở mọi nơi (không cần chung mạng)
-
-Cần máy chủ LEARN chạy công khai (`docs/DEPLOY.md` trong repo LEARN_website, ví dụ `https://3-1-2-4.sslip.io`)
-và một tài khoản Expo miễn phí. Các bước đăng nhập bạn tự làm, mình không làm thay:
-
-```bash
-npx eas-cli@latest login
-npx eas-cli@latest init                     # gắn projectId vào app.json
-npx eas-cli@latest update:configure         # thêm updates.url
-npx eas-cli@latest env:create --environment preview --name EXPO_PUBLIC_API_URL --value https://<DOMAIN> --visibility plaintext
-```
-
-| Cách | Lệnh | Ai mở được |
+| Vai trò | Email | Mật khẩu |
 | --- | --- | --- |
-| **Expo Go + QR** | `npx eas-cli@latest update --channel preview --environment preview --message "..."` → trang update trên expo.dev có mã QR | Android: ai có Expo Go (bản hỗ trợ SDK 57). iPhone: **chỉ** tài khoản Expo chủ project — giới hạn của Expo Go trên iOS |
-| **File APK** | `npx eas-cli@latest build -p android --profile preview` → link tải APK | Mọi máy Android (cho phép cài từ nguồn ngoài) |
+| Người học | `demo@learn.ai` | `Demo@12345` |
+| Quản trị | `admin@learn.ai` | `Admin@12345` |
 
-Sau khi có APK, mỗi lần sửa giao diện chỉ cần chạy lại `update` (kênh `preview`): app đã cài tự
-nhận bản mới khi mở lại, không phải cài lại. Đổi thư viện native hoặc tăng `version` trong
-`app.json` thì phải build APK mới (`runtimeVersion` theo `appVersion`).
+> [!TIP]
+> App tự tìm API ở `<IP máy tính>:4000` nên **không cần cấu hình gì**. Gặp lỗi kết nối? Xem
+> [bảng xử lý sự cố](docs/getting-started.md#8-xử-lý-sự-cố).
 
-Khi API đổi contract mà app cũ không còn chạy đúng: tăng `MIN_MOBILE_VERSION` ở máy chủ → app cũ hiện
-thông báo "Có phiên bản mới" ở Tổng quan (`GET /api/v1/meta`).
+### Chọn backend: mock hay thật?
 
-## Kiểm tra trên điện thoại thật (bắt buộc trước khi coi là xong)
+App không có backend riêng, mọi dữ liệu đi qua một API. Cả hai lựa chọn đều ở cổng 4000 nên đổi qua
+lại không cần cấu hình lại.
 
-Android qua Expo Go **và** APK, iPhone qua Expo Go (tài khoản chủ project):
+| | 🧪 **API mock** *(có sẵn trong repo)* | 🏗️ **Backend thật** |
+| --- | --- | --- |
+| Dùng khi | Làm giao diện, thử luồng, demo | Kiểm tra tích hợp, AI thật |
+| Cần | Chỉ Node | Docker + [LEARN_website](https://github.com/TrKimHieu/LEARN_website) |
+| Dữ liệu | Có sẵn, mất khi tắt | Lưu trong Postgres |
+| Khởi chạy | `npm run mock` | [getting-started §3B](docs/getting-started.md#3b-cách-b--dựng-backend-thật-repo-learn_website) |
 
-- [ ] Bàn phím không che ô nhập (đăng nhập, tạo khóa học, sửa bài, câu tự luận)
-- [ ] Safe area: tai thỏ / thanh home không che header, tab bar, thanh "Nộp bài"
-- [ ] Nút Back Android: chi tiết → danh sách → tab trước; không thoát app ngoài ý muốn
-- [ ] Chọn tệp + tải lên (PDF, DOCX, MD) → trạng thái tự đổi sang "Đã trích xuất"
-- [ ] Chế độ tối của hệ thống + chọn tay Sáng/Tối trong Cài đặt
-- [ ] TalkBack / VoiceOver đọc được nút chính, lựa chọn đáp án, thanh tiến độ
-- [ ] Mở lại app sau khi tắt hẳn: vẫn đăng nhập (SecureStore); mất mạng lúc mở: màn "Không kết nối"
-- [ ] Web và app cùng tài khoản: làm bài trên điện thoại → web thấy lịch sử mới
+## ✨ Tính năng hiện có
 
-## Lệnh
+<table>
+<tr><th>Nhóm</th><th>Việc làm được</th></tr>
+<tr><td><b>🔐 Tài khoản</b></td><td>Đăng nhập · đăng ký · quên / đặt lại mật khẩu (mở từ web bằng <code>learn://</code>). Báo lỗi ngay dưới ô sai; giữ phiên giữa các lần mở app.</td></tr>
+<tr><td><b>🏠 Tổng quan</b></td><td>Thẻ "Học tiếp" mở thẳng bài kế tiếp, 4 số liệu, chuỗi ngày học, khóa học, hoạt động gần đây.</td></tr>
+<tr><td><b>📚 Khóa học</b></td><td>Danh sách có bìa theo khóa · tạo khóa mới · lộ trình bài học (sắp xếp lên/xuống) · tải tài liệu (PDF/DOCX/PPTX/TXT/MD) với trạng thái trích xuất tự cập nhật · <b>sinh bài bằng AI</b> có chọn độ khó và theo dõi tiến độ trực tiếp.</td></tr>
+<tr><td><b>📖 Đọc bài</b></td><td>Nội dung Markdown, mục lục, cảnh báo bài lệch nguồn, đoạn tài liệu gốc, bài trước/sau, sửa và xoá bài.</td></tr>
+<tr><td><b>✏️ Bài tập</b></td><td>4 loại câu hỏi · nhiều bài tập mỗi bài · chấm điểm ở máy chủ · xem lại từng câu · làm lại.</td></tr>
+<tr><td><b>📈 Tiến trình</b></td><td>Tiến độ theo khóa · lịch sử làm bài phân trang.</td></tr>
+<tr><td><b>⚙️ Cài đặt</b></td><td>Hồ sơ · giao diện Sáng/Tối/Tự động · gói đăng ký và hạn mức (demo) · đăng xuất / đăng xuất mọi thiết bị.</td></tr>
+<tr><td><b>🛡️ Quản trị</b> <i>(chỉ ADMIN)</i></td><td>Số liệu tổng · chi phí LLM 7 ngày · danh sách AI Job (lọc) · chi tiết · chạy lại job lỗi · nhật ký thao tác.</td></tr>
+</table>
 
-```bash
-npm start                 # dev server cho Expo Go
-npm run typecheck         # so contracts với LEARN + tsc --noEmit
-npm test                  # unit test (jest-expo): format, phiên đăng nhập/refresh, AI Job một phần
-npm run e2e               # Playwright trên bản web (cần API + worker mock + `npm run web`), kèm axe
-npm run sync:contracts    # chép lại @learn/contracts khi LEARN đổi schema
-npm run icons             # sinh lại icon app từ logo Circle
-npm run doctor            # expo-doctor: thư viện khớp SDK 57
-npx expo install <pkg>    # LUÔN dùng lệnh này để thêm thư viện
+Mọi màn có dữ liệu đều xử lý đủ **5 trạng thái**: Đang tải · Trống · Lỗi (kèm mã yêu cầu và nút thử
+lại) · Một phần · Thành công.
+
+## 🧰 Công nghệ
+
+| Lớp | Chọn |
+| --- | --- |
+| Nền tảng | Expo SDK 57 · React Native 0.86 · React 19.2 |
+| Ngôn ngữ | TypeScript `strict` + `noUncheckedIndexedAccess` |
+| Điều hướng | Expo Router (route theo file, typed routes) |
+| Dữ liệu | TanStack Query · Zod (schema chép từ `@learn/contracts`) |
+| Bảo mật phiên | `expo-secure-store` (Keychain / Keystore) |
+| Giao diện | Hanken Grotesk · Phosphor icons · `react-native-svg` |
+| Kiểm thử | Jest (`jest-expo`) · Playwright + axe |
+
+Mọi thư viện đều có sẵn trong **Expo Go**, không cần bản build riêng. Chi tiết:
+[docs/architecture.md](docs/architecture.md).
+
+## 🧭 Lệnh thường dùng
+
+| Lệnh | Việc làm |
+| --- | --- |
+| `npm run mock` | Chạy API mock (cổng 4000) |
+| `npm start` | Chạy dev server cho Expo Go |
+| `npm run typecheck` | So contracts với LEARN + `tsc --noEmit` |
+| `npm run lint` | ESLint |
+| `npm test` | Unit test + kiểm API mock khớp contracts |
+| `npm run e2e` | E2E Playwright trên bản web *(cần API đang chạy)* |
+| `npx expo install <gói>` | Thêm thư viện — **luôn** dùng lệnh này |
+
+Trước khi commit: `npm run typecheck && npm run lint && npm test`. Danh sách đầy đủ và quy trình:
+[docs/development.md](docs/development.md).
+
+## 📚 Tài liệu
+
+Mục lục đầy đủ: **[docs/README.md](docs/README.md)**.
+
+| Bạn muốn… | Đọc |
+| --- | --- |
+| Cài đặt, chạy, xử lý sự cố | [getting-started.md](docs/getting-started.md) |
+| Làm giao diện không cần backend | [mock-api/README.md](mock-api/README.md) |
+| Hiểu cấu trúc, điều hướng, dữ liệu, phiên | [architecture.md](docs/architecture.md) |
+| Viết code đúng quy ước, thêm màn / API | [development.md](docs/development.md) |
+| Chạy kiểm thử, test trên điện thoại thật | [testing.md](docs/testing.md) |
+| Build APK, phát hành qua EAS | [deployment.md](docs/deployment.md) |
+| Xây tính năng mới | [requirements/SRS.md](docs/requirements/SRS.md) |
+| Biết vì sao chọn giao diện đơn sắc dịu | [adr/001-don-sac-diu.md](docs/adr/001-don-sac-diu.md) |
+
+## 🗂️ Cấu trúc thư mục
+
+```text
+LEARN_mobile/
+├─ src/
+│  ├─ app/          Route (Expo Router) — mỗi file là một màn
+│  ├─ components/   Thành phần dùng chung (ui/, mascot/…)
+│  ├─ features/     Hook API + component theo nghiệp vụ
+│  ├─ lib/          api-client, token-store, query-client, config…
+│  ├─ contracts/    Sinh tự động từ LEARN — không sửa tay
+│  └─ theme/        Token màu / chữ / khoảng cách
+├─ mock-api/        API giả để làm giao diện không cần backend
+├─ docs/            Tài liệu (xem docs/README.md)
+├─ e2e/             E2E Playwright + tệp mẫu
+└─ scripts/         sync-contracts · gen-icons · gen-circle-data
 ```
-
-E2E tạo tài khoản `e2e-mobile-…`; dọn bằng `npm run db:cleanup:e2e` bên LEARN.
-
-## Cấu trúc
-
-```
-src/
-  app/                 route (Expo Router) — mỗi file là một màn
-  components/          mascot, bìa khóa học, Markdown, ui/ (nút, thẻ, ô nhập, trạng thái…)
-  contracts/           SINH TỰ ĐỘNG từ LEARN/packages/contracts — không sửa tay
-  features/            hook API + component theo nghiệp vụ (auth, courses, documents, learning, ai, settings, admin)
-  lib/                 api-client, token-store, query-client, routes, format, dialog, server-meta
-  theme/               token màu/chữ/khoảng cách + ThemeProvider
-e2e/                   Playwright trên bản web (learner · create · admin) + fixture tài liệu
-scripts/               sync-contracts, gen-icons, gen-circle-data
-docs/adr/              quyết định riêng của app
-```
-#   L E A R N _ m o b i l e  
- 
