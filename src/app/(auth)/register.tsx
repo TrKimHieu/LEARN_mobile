@@ -3,7 +3,7 @@ import { useRef, useState } from 'react';
 import { TextInput, View } from 'react-native';
 import { registerSchema } from '@/contracts';
 import { Button, Field, InlineError, PasswordField } from '@/components/ui';
-import { AuthLink, AuthShell } from '@/features/auth/auth-shell';
+import { AuthLink, AuthShell } from '@/features/auth/components/auth-shell';
 import { useAuth } from '@/features/auth/auth-context';
 import { errorText } from '@/lib/api-client';
 import { authMessage, fieldErrorsFrom } from '@/lib/form-errors';

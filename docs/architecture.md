@@ -55,8 +55,11 @@ src/
 │  └─ _layout.tsx        Root Stack, providers, chặn route theo trạng thái đăng nhập
 ├─ components/           Thành phần dùng chung
 │  ├─ ui/                button, field, surface, text, ring, icon, states…
-│  └─ mascot/            Mascot Circle (dữ liệu SVG sinh bởi scripts/gen-circle-data.mjs)
-├─ features/             auth · courses · documents · learning · ai · settings · admin
+│  ├─ mascot/            Mascot Circle (dữ liệu SVG sinh bởi scripts/gen-circle-data.mjs)
+│  └─ update-notice.tsx  Báo app cũ hơn bản máy chủ còn hỗ trợ
+├─ features/             auth · courses · documents · learning · exercises · ai · settings · admin
+│  └─ <nghiệp vụ>/       <nghiệp vụ>-api.ts (hook) · components/ · __tests__/
+│     exercises/question-types/   một file mỗi dạng câu hỏi + registry.ts
 ├─ lib/                  api-client · token-store · query-client · config · routes · format …
 ├─ contracts/            SINH TỰ ĐỘNG từ LEARN — không sửa tay
 └─ theme/                tokens.ts (màu, chữ, khoảng cách) + ThemeProvider
@@ -126,7 +129,26 @@ Cấu hình ở `src/lib/query-client.ts`:
 - Theo dõi AI Job: hỏi lại mỗi 2 giây khi `QUEUED`/`RUNNING`, dừng khi xong (`useAiJob`).
 
 Mỗi nghiệp vụ có một file `*-api.ts` trong `src/features/<nghiệp vụ>/` chứa các hook `useQuery` và
-`useMutation`. Thêm endpoint mới thì thêm hook vào đó.
+`useMutation`. Thêm endpoint mới thì thêm hook vào đó. Tên file và query key giữ khớp với bản web để
+dễ đối chiếu; riêng hook bài tập nằm ở `exercises/exercises-api.ts` (web để trong `learning-api.ts`)
+nhưng query key không đổi.
+
+Mỗi thư mục nghiệp vụ có cùng hình dạng: `<nghiệp vụ>-api.ts` ở gốc, component riêng trong
+`components/`, test trong `__tests__/`. Các nghiệp vụ **không import lẫn nhau**; khi một màn cần dữ
+liệu của hai nghiệp vụ (ví dụ màn bài tập cần bài học kế tiếp), màn gọi cả hai hook rồi truyền xuống
+qua props.
+
+Màn trong `src/app/` chỉ lấy params, gọi hook cho dữ liệu dùng chung giữa các khối, xử lý trạng thái
+tải/lỗi của cả màn, rồi ghép component của các nghiệp vụ. Ví dụ màn chi tiết khóa học ghép
+`CourseHeader` (courses), `GenerateLessonsCard` + `AiJobProgress` (ai), `CourseLessons` (learning),
+`DocumentUpload` + `DocumentList` (documents). Logic thuần (sắp xếp khóa, chọn bài học tiếp, mô tả
+đáp án) đặt trong file `.ts` của nghiệp vụ để viết test được, ví dụ `learning/progress.ts`.
+
+### Dạng câu hỏi
+
+`src/features/exercises/question-types/registry.ts` ánh xạ `question.type` → `{ Input, Review? }`.
+Registry có kiểu `Record<QuestionType, …>`, nên khi contract thêm dạng câu hỏi mới mà chưa đăng ký,
+`npm run typecheck` báo lỗi. Cách thêm dạng mới: xem [development.md](development.md#4b-thêm-một-dạng-câu-hỏi).
 
 ## 6. Phiên đăng nhập
 

@@ -6,7 +6,7 @@ Hướng dẫn từ máy trống đến lúc đăng nhập được vào app. L�
 **Mục lục:** [1. Cần hiểu trước](#1-cần-hiểu-trước) ·
 [2. Yêu cầu](#2-yêu-cầu-môi-trường) ·
 [3A. API mock](#3a-cách-a--chạy-api-mock-nhanh-nhất) ·
-[3B. Backend thật](#3b-cách-b--dựng-backend-thật-repo-learn_website) ·
+[3B. Backend thật](#3b-cách-b--dựng-backend-thật-branch-worker) ·
 [4. Chạy app](#4-chạy-app-mobile-repo-này) ·
 [5. Dùng thử](#5-dùng-thử-luồng-cơ-bản) ·
 [6. Tài khoản](#6-tài-khoản-thử-nghiệm) ·
@@ -23,7 +23,7 @@ LEARN Mobile **không có backend riêng**. Mọi dữ liệu (đăng nhập, kh
 | Cách | Khi nào dùng | Cần gì |
 | --- | --- | --- |
 | **A. API mock** *(có sẵn trong repo)* | Làm giao diện, thử luồng, demo. **Khuyến nghị cho người mới.** | Chỉ Node |
-| **B. Backend thật** ([LEARN_website](https://github.com/TrKimHieu/LEARN_website)) | Kiểm tra tích hợp thật, sinh bài bằng AI thật | Docker + clone repo LEARN_website |
+| **B. Backend thật** (branch `worker` của repo này) | Kiểm tra tích hợp thật, sinh bài bằng AI thật | Docker + mở branch `worker` |
 
 ```mermaid
 flowchart LR
@@ -37,7 +37,7 @@ flowchart LR
     GO -- "tải JavaScript" --> METRO
     GO -- "gọi API" --> API
     MOCK["A · npm run mock"] -.-> API
-    REAL["B · LEARN_website + Docker"] -.-> API
+    REAL["B · branch worker + Docker"] -.-> API
 ```
 
 > [!NOTE]
@@ -72,16 +72,31 @@ cách thử trạng thái lỗi và các biến cấu hình: [mock-api/README.md
 
 Xong thì chuyển sang [mục 4](#4-chạy-app-mobile-repo-này), bỏ qua 3B.
 
-## 3B. Cách B — dựng backend thật (repo LEARN_website)
+## 3B. Cách B — dựng backend thật (branch worker)
 
-> [!IMPORTANT]
-> Đặt repo này **cạnh** thư mục LEARN_mobile, tên thư mục là `LEARN`. Script đồng bộ contracts của
-> app mobile tìm backend ở `../LEARN`.
+Mã nguồn backend LEARN (API + AI worker) nằm ở branch **`worker`** của chính repo LEARN_mobile, đúng
+phiên bản khớp với app. Không cần quyền vào repo LEARN_website.
+
+Trong thư mục LEARN_mobile, mở branch đó thành thư mục `../LEARN` **cạnh** LEARN_mobile (script đồng
+bộ contracts của app tìm backend ở đây):
 
 ```bash
-git clone https://github.com/TrKimHieu/LEARN_website.git ../LEARN
-cd ../LEARN
-cp .env.example .env              # PowerShell: Copy-Item .env.example .env
+git fetch origin worker
+git worktree add ../LEARN worker
+```
+
+Tạo ba file cấu hình trong `../LEARN`. Chúng bị gitignore, **mỗi người tự tạo**. API, worker và
+Prisma chỉ đọc `.env` trong thư mục của chính chúng, **không** đọc `.env` ở gốc repo:
+
+| Copy | Thành | Sửa gì |
+| --- | --- | --- |
+| `.env.example` (gốc) | `packages/db/.env` | Không cần sửa: Prisma lấy `DATABASE_URL` ở đây |
+| `apps/api/.env.example` | `apps/api/.env` | `S3_PUBLIC_ENDPOINT` = IP Wi‑Fi máy bạn, cổng 9000 ([mục 7](#7-các-tình-huống-cần-cấu-hình-thêm)) |
+| `apps/worker/.env.example` | `apps/worker/.env` | Giữ `LLM_MODE=mock`, hoặc AI thật (xem dưới) |
+
+Rồi, trong `../LEARN`:
+
+```bash
 npm install
 docker compose -f infra/docker-compose.yml up -d
 npm run db:migrate
@@ -90,7 +105,7 @@ npm run db:seed
 
 | Lệnh | Việc làm |
 | --- | --- |
-| `docker compose … up -d` | Chạy ngầm 3 container: **Postgres 16** (dữ liệu), **Redis 7** (hàng đợi job AI), **MinIO** (kho lưu tài liệu, giống S3). `minio-init` chạy một lần để tạo bucket. |
+| `docker compose … up -d` | Chạy ngầm 3 container: **Postgres 16** (dữ liệu), **Redis 7** (hàng đợi job AI), **MinIO** (kho lưu tài liệu, giống S3). `minio-init` chạy một lần để tạo bucket. Docker chỉ chạy hạ tầng; API và worker chạy bằng Node ở bước sau. |
 | `npm run db:migrate` | Tạo các bảng trong Postgres. |
 | `npm run db:seed` | Tạo dữ liệu mẫu, gồm tài khoản demo và admin ([mục 6](#6-tài-khoản-thử-nghiệm)). |
 
@@ -104,9 +119,11 @@ npm run dev:worker    # terminal 2 — worker sinh bài học bằng AI
 > [!WARNING]
 > Thiếu worker thì khi bấm "Sinh bài học", job treo mãi ở trạng thái chờ.
 
-**AI giả hay AI thật?** File `.env` của LEARN mặc định `LLM_MODE=mock`: worker trả nội dung mẫu,
+**AI giả hay AI thật?** `apps/worker/.env` mặc định `LLM_MODE=mock`: worker trả nội dung mẫu,
 không gọi mạng và **không cần API key**. Chỉ khi muốn sinh bài bằng mô hình thật mới đặt
-`LLM_MODE=live` và điền `LLM_API_KEY`.
+`LLM_MODE=live` và điền `LLM_API_KEY` **của chính bạn** (mỗi lượt sinh bài tính tiền vào key đó).
+
+Cập nhật backend khi branch `worker` có bản mới: `git pull` trong `../LEARN`.
 
  **Kiểm tra:** mở `http://localhost:4000/api/v1/health` trên trình duyệt máy tính; API phải trả về
 trạng thái hoạt động.
@@ -179,7 +196,7 @@ Khởi động lại Metro sau khi đổi.
 
 API mock tự xử lý việc này, không cần cấu hình. Với backend thật, tệp được tải thẳng lên MinIO bằng
 presigned URL. URL này được ký kèm tên máy, nên phải ký bằng địa chỉ mà điện thoại tới được. Trong
-`.env` của **LEARN**:
+`../LEARN/apps/api/.env` (không phải `.env` ở gốc LEARN):
 
 ```ini
 S3_PUBLIC_ENDPOINT=http://<IP LAN máy tính>:9000
@@ -206,7 +223,9 @@ Khi đó điện thoại không còn cùng LAN với API, nên API cũng phải 
 | "Không kết nối được máy chủ" | API chưa chạy, hoặc khác mạng | Kiểm tra `npm run mock` (hoặc `npm run dev:api`); điện thoại cùng Wi‑Fi; tường lửa Windows cho phép cổng 4000 và 8081 |
 | Quét QR nhưng không mở | Expo Go khác SDK | Cập nhật Expo Go lên bản hỗ trợ SDK 57 |
 | Job AI đứng ở "Đang chờ" | Chưa chạy worker, hoặc Redis chưa lên | Chạy `npm run dev:worker`; `docker ps` phải thấy Redis |
-| Tải tài liệu lỗi *(backend thật)* | `S3_PUBLIC_ENDPOINT` còn là `localhost` | Xem [mục 7](#7-các-tình-huống-cần-cấu-hình-thêm). Dùng API mock thì không gặp lỗi này |
+| Tải tài liệu lỗi *(backend thật)* | `S3_PUBLIC_ENDPOINT` chưa đặt trong `apps/api/.env`, hoặc sai IP | Xem [mục 7](#7-các-tình-huống-cần-cấu-hình-thêm). Dùng API mock thì không gặp lỗi này |
+| Sinh bài chỉ ra nội dung mẫu *(backend thật)* | `apps/worker/.env` đang `LLM_MODE=mock` | Đặt `LLM_MODE=live` và `LLM_API_KEY`, khởi động lại worker |
+| `db:migrate` báo thiếu `DATABASE_URL` | Chưa có `packages/db/.env` | Copy `.env.example` (gốc LEARN) thành `packages/db/.env` |
 | `docker compose` báo không kết nối được daemon | Docker Desktop chưa mở | Mở Docker Desktop, đợi nó khởi động xong |
 | Cổng 4000 hoặc 8081 đã bị dùng | Tiến trình cũ còn chạy | Tắt tiến trình cũ, hoặc đổi cổng (`npx expo start --port 8082`) |
 | Màn "Có phiên bản mới" ở Tổng quan | App cũ hơn `MIN_MOBILE_VERSION` của máy chủ | Cập nhật app, hoặc hạ `MIN_MOBILE_VERSION` ở máy chủ khi dev |

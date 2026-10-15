@@ -1,11 +1,10 @@
-import { useState } from 'react';
 import { StyleSheet, View } from 'react-native';
 import type { LessonSource } from '@/contracts';
 import { Button, Card, Icon, InlineError, LoadingState, Notice, Txt } from '@/components/ui';
 import { errorText } from '@/lib/api-client';
 import { usePalette } from '@/theme/theme';
 import { space } from '@/theme/tokens';
-import { useLessonSources } from './learning-api';
+import { useLessonSources } from '../learning-api';
 
 /**
  * Cảnh báo bài bám nguồn kém (NFR-AI-02, FR-LESSON-07): không được im lặng, và phải chỉ cách tự

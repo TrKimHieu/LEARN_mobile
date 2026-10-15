@@ -1,6 +1,6 @@
 This is an Expo/React Native mobile application. Prioritize mobile-first patterns, performance, and cross-platform compatibility.
 
-Project docs (Vietnamese) live in `docs/` — start at `docs/README.md`. The app has no backend of its own: it talks to the API of the `LEARN_website` repo, or to the in-repo mock (`npm run mock`, see `mock-api/README.md`) — keep the mock in sync when adding endpoints. `src/contracts/` is generated (`npm run sync:contracts`) — never edit it by hand.
+Project docs (Vietnamese) live in `docs/` — start at `docs/README.md`. The app has no backend of its own: it talks to the API of the `LEARN_website` repo (a matching copy lives on this repo's `worker` branch, checked out as `../LEARN` via `git worktree add ../LEARN worker`), or to the in-repo mock (`npm run mock`, see `mock-api/README.md`) — keep the mock in sync when adding endpoints. `src/contracts/` is generated (`npm run sync:contracts`) — never edit it by hand.
 
 ## Expo has changed — do not trust your training data
 

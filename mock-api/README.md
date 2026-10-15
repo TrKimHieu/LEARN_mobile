@@ -71,7 +71,7 @@ Ví dụ (bash): `MOCK_LATENCY_MS=1500 npm run mock`. PowerShell: `$env:MOCK_LAT
 
 ## Endpoint hỗ trợ
 
-Mọi endpoint mà app đang dùng (xem các file `src/features/*/*-api.ts` và `src/app/(auth)/`):
+Mọi endpoint mà app đang dùng (xem các file `src/features/*/*-api.ts` và `src/features/auth/auth-context.tsx`):
 
 | Nhóm | Đường dẫn |
 | --- | --- |

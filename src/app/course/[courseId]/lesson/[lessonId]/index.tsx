@@ -14,7 +14,7 @@ import {
   Skeleton,
   Txt,
 } from '@/components/ui';
-import { LessonSources, LowConfidenceNotice } from '@/features/learning/lesson-sources';
+import { LessonSources, LowConfidenceNotice } from '@/features/learning/components/lesson-sources';
 import { useDeleteLesson, useLesson, useLessons, useStartLesson } from '@/features/learning/learning-api';
 import { errorDetail, errorText } from '@/lib/api-client';
 import { confirmAction } from '@/lib/dialog';

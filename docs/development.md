@@ -75,6 +75,18 @@ export function useCourse(courseId: string) {
 5. Mutation thì `invalidateQueries` các key bị ảnh hưởng trong `onSuccess`.
 6. Xử lý lỗi theo `error.code`, không theo chữ. Hạn mức: `isQuotaExceededError(err)`.
 
+## 4b. Thêm một dạng câu hỏi
+
+1. Dạng mới phải có trong `questionTypeSchema` của contracts trước (sửa bên LEARN, rồi
+   `npm run sync:contracts`). Lúc này `npm run typecheck` sẽ báo registry thiếu mục.
+2. Tạo `src/features/exercises/question-types/<dang-moi>.tsx`, export một `QuestionTypeModule`:
+   - `Input`: phần trả lời trong thẻ câu hỏi, gọi `onChange` với `Answer` đúng dạng.
+   - `Review` (không bắt buộc): phần xem lại sau khi nộp. Bỏ trống thì dùng dạng chữ
+     "Bạn trả lời / Đáp án đúng" — khi đó bổ sung nhánh tương ứng trong `answers.ts`.
+3. Đăng ký trong `question-types/registry.ts`.
+4. Thêm câu hỏi dạng mới vào dữ liệu mẫu của mock (`mock-api/content.js`) để chạy thử được.
+5. Thêm ca test trong `src/features/exercises/__tests__/answers.test.ts` nếu có logic mô tả đáp án.
+
 ## 5. Đồng bộ contracts
 
 Khi LEARN đổi schema:

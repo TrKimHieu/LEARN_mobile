@@ -5,10 +5,10 @@ import { Button, Card, Icon, Notice, ProgressBar, Txt } from '@/components/ui';
 import { errorText } from '@/lib/api-client';
 import { usePalette } from '@/theme/theme';
 import { radius, space } from '@/theme/tokens';
-import { partialFailuresOf, useAiJob, useCancelAiJob } from './ai-api';
+import { partialFailuresOf, useAiJob, useCancelAiJob } from '../ai-api';
 
 /**
- * Tiến độ AI Job — port của `apps/web/src/features/ai/ai-job-progress.tsx`: % + nhãn bước + mascot
+ * Tiến độ AI Job — port của `apps/web/src/features/ai/components/ai-job-progress.tsx`: % + nhãn bước + mascot
  * theo trạng thái (một trong bốn vị trí `[SPEC]` §13.1 cho phép mascot), hỏi lại mỗi 2 giây.
  */
 function Panel({ children }: { children: React.ReactNode }) {

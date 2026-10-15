@@ -29,6 +29,8 @@ Các bộ test hiện có:
 | `src/lib/__tests__/format.test.ts` | Hàm định dạng (ngày, thời gian tương đối, dung lượng tệp, nhãn từ mã) |
 | `src/lib/__tests__/server-meta.test.ts` | So sánh phiên bản app với máy chủ |
 | `src/features/ai/__tests__/partial-failures.test.ts` | AI Job thành công kèm lỗi một phần |
+| `src/features/learning/__tests__/progress.test.ts` | Thứ tự khóa trên Tổng quan, chọn bài học tiếp theo |
+| `src/features/exercises/__tests__/answers.test.ts` | Mô tả đáp án đúng / câu đã trả lời theo từng dạng câu hỏi, chọn bài tập kế tiếp |
 | `mock-api/__tests__/mock-api.test.ts` | Chạy API mock thật và kiểm mọi response bằng Zod schema trong `src/contracts/` (xem [mock-api/README.md](../mock-api/README.md)) |
 
 Viết test cho **logic**, không cho giao diện thuần. Đặt file trong thư mục `__tests__` cạnh code

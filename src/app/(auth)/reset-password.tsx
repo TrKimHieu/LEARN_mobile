@@ -4,8 +4,9 @@ import { TextInput, View } from 'react-native';
 import { resetPasswordSchema } from '@/contracts';
 import { Mascot } from '@/components/mascot';
 import { Button, InlineError, PasswordField, Txt } from '@/components/ui';
-import { AuthLink, AuthShell } from '@/features/auth/auth-shell';
-import { apiFetch, errorText } from '@/lib/api-client';
+import { useResetPassword } from '@/features/auth/auth-api';
+import { AuthLink, AuthShell } from '@/features/auth/components/auth-shell';
+import { errorText } from '@/lib/api-client';
 import { space } from '@/theme/tokens';
 
 /**
@@ -19,15 +20,15 @@ export default function ResetPasswordScreen() {
   const [password, setPassword] = useState('');
   const [confirm, setConfirm] = useState('');
   const [fieldError, setFieldError] = useState<{ password?: string; confirm?: string }>({});
-  const [error, setError] = useState<unknown>(null);
-  const [submitting, setSubmitting] = useState(false);
   const [done, setDone] = useState(false);
   const confirmRef = useRef<TextInput>(null);
+  const reset = useResetPassword();
+  const { error, isPending: submitting } = reset;
 
   const valid = resetPasswordSchema.shape.token.safeParse(token ?? '').success;
 
   async function onSubmit() {
-    setError(null);
+    reset.reset();
     const errors: { password?: string; confirm?: string } = {};
     if (password.length < 8) errors.password = 'Mật khẩu cần ít nhất 8 ký tự.';
     else if (password.length > 72) errors.password = 'Mật khẩu tối đa 72 ký tự.';
@@ -37,14 +38,11 @@ export default function ResetPasswordScreen() {
 
     const parsed = resetPasswordSchema.safeParse({ token, newPassword: password });
     if (!parsed.success) return;
-    setSubmitting(true);
     try {
-      await apiFetch('/api/v1/auth/reset-password', { method: 'POST', body: parsed.data });
+      await reset.mutateAsync(parsed.data);
       setDone(true);
-    } catch (err) {
-      setError(err);
-    } finally {
-      setSubmitting(false);
+    } catch {
+      // Lỗi hiển thị qua `reset.error`.
     }
   }
 

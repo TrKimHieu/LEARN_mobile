@@ -4,8 +4,9 @@ import { View } from 'react-native';
 import { forgotPasswordSchema } from '@/contracts';
 import { Mascot } from '@/components/mascot';
 import { Button, Field, InlineError, Txt } from '@/components/ui';
-import { AuthLink, AuthShell } from '@/features/auth/auth-shell';
-import { apiFetch, errorText } from '@/lib/api-client';
+import { useForgotPassword } from '@/features/auth/auth-api';
+import { AuthLink, AuthShell } from '@/features/auth/components/auth-shell';
+import { errorText } from '@/lib/api-client';
 import { space } from '@/theme/tokens';
 
 /**
@@ -15,26 +16,23 @@ import { space } from '@/theme/tokens';
 export default function ForgotPasswordScreen() {
   const [email, setEmail] = useState('');
   const [fieldError, setFieldError] = useState<string | null>(null);
-  const [error, setError] = useState<unknown>(null);
-  const [submitting, setSubmitting] = useState(false);
   const [submitted, setSubmitted] = useState(false);
+  const forgot = useForgotPassword();
+  const { error, isPending: submitting } = forgot;
 
   async function onSubmit() {
-    setError(null);
+    forgot.reset();
     const parsed = forgotPasswordSchema.safeParse({ email: email.trim() });
     if (!parsed.success) {
       setFieldError('Email không hợp lệ.');
       return;
     }
     setFieldError(null);
-    setSubmitting(true);
     try {
-      await apiFetch('/api/v1/auth/forgot-password', { method: 'POST', body: parsed.data });
+      await forgot.mutateAsync(parsed.data);
       setSubmitted(true);
-    } catch (err) {
-      setError(err);
-    } finally {
-      setSubmitting(false);
+    } catch {
+      // Lỗi hiển thị qua `forgot.error`.
     }
   }
 

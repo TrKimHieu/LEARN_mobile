@@ -79,9 +79,9 @@ lại không cần cấu hình lại.
 | | **API mock** *(có sẵn trong repo)* | **Backend thật** |
 | --- | --- | --- |
 | Dùng khi | Làm giao diện, thử luồng, demo | Kiểm tra tích hợp, AI thật |
-| Cần | Chỉ Node | Docker + [LEARN_website](https://github.com/TrKimHieu/LEARN_website) |
+| Cần | Chỉ Node | Docker + branch `worker` của repo này |
 | Dữ liệu | Có sẵn, mất khi tắt | Lưu trong Postgres |
-| Khởi chạy | `npm run mock` | [getting-started §3B](docs/getting-started.md#3b-cách-b--dựng-backend-thật-repo-learn_website) |
+| Khởi chạy | `npm run mock` | [getting-started §3B](docs/getting-started.md#3b-cách-b--dựng-backend-thật-branch-worker) |
 
 ## Tính năng hiện có
 
@@ -152,7 +152,7 @@ LEARN_mobile/
 ├─ src/
 │  ├─ app/          Route (Expo Router) — mỗi file là một màn
 │  ├─ components/   Thành phần dùng chung (ui/, mascot/…)
-│  ├─ features/     Hook API + component theo nghiệp vụ
+│  ├─ features/     Hook API + component theo nghiệp vụ (mỗi dạng câu hỏi một module)
 │  ├─ lib/          api-client, token-store, query-client, config…
 │  ├─ contracts/    Sinh tự động từ LEARN — không sửa tay
 │  └─ theme/        Token màu / chữ / khoảng cách
