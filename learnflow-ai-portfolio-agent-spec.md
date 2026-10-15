@@ -622,7 +622,7 @@ The AI agent implementing this website must:
 
 ### Suggested Visual Language
 
-- Monochrome only: tones from white to black with neutral grays in between (no hue). The Circle mascot (`CircleMascot/`) is black and white only. Do not introduce any hue, including purple. *(Changed 2026-09-28 by product-owner decision; previously dark navy + neutral gray + sky `#5EC8F5`. See `docs/adr/015-don-sac-trang-den.md`.)*
+- Academic blue: a near-white field with soft, grainy periwinkle-to-cobalt wave gradients; deep navy ink (`#0E1745`) for text and the primary button; cobalt (`#3A5FD0`) for accents, four-point sparkles and thin orbit lines. Feedback states may use one muted green, red and amber, always paired with an icon and a text label. Display headings use an editorial serif (Playfair Display, bold upright for titles, italic for the lead-in line); interface and body text stay sans. The Circle mascot (`CircleMascot/`) is navy with a white face (inverted on dark). Do not introduce purple or neon gradients. *(Changed 2026-10-12 by product-owner decision, from a reference image; previously monochrome white-to-black, ADR 015. See `docs/adr/018-xanh-lam-hoc-thuat-serif.md`.)*
 - Rounded cards.
 - Subtle gradients.
 - Product dashboard mockups.

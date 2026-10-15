@@ -16,6 +16,9 @@ import {
   changePasswordSchema,
   forgotPasswordSchema,
   resetPasswordSchema,
+  nativeRefreshSchema,
+  CLIENT_HEADER,
+  NATIVE_CLIENT,
   type ForgotPasswordInput,
   type ResetPasswordInput,
   type RegisterInput,
@@ -41,10 +44,7 @@ export class AuthController {
     @Res() res: Response,
   ) {
     const result = await this.auth.register(body, req.ip);
-    attachRefreshCookie(res, result.refreshToken);
-    return res
-      .status(HttpStatus.CREATED)
-      .json({ user: result.user, accessToken: result.accessToken });
+    return sendSession(req, res.status(HttpStatus.CREATED), result);
   }
 
   @Post('login')
@@ -56,8 +56,7 @@ export class AuthController {
     @Req() req: Request,
   ) {
     const result = await this.auth.login(body, req.headers['user-agent'] ?? undefined, req.ip);
-    attachRefreshCookie(res, result.refreshToken);
-    return res.json({ user: result.user, accessToken: result.accessToken });
+    return sendSession(req, res, result);
   }
 
   /** FR-AUTH-07. Công khai (NFR-SEC-11). Cùng một câu trả lời cho mọi email. */
@@ -90,19 +89,18 @@ export class AuthController {
 
   @Post('refresh')
   async refresh(@Req() req: Request, @Res() res: Response) {
-    const token = (req.cookies?.[REFRESH_COOKIE] as string | undefined) ?? '';
+    const token = refreshTokenOf(req);
     if (!token) throw ApiError.unauthenticated();
     const result = await this.auth.refresh(token, req.headers['user-agent'] ?? undefined, req.ip);
-    attachRefreshCookie(res, result.refreshToken);
-    return res.json({ user: result.user, accessToken: result.accessToken });
+    return sendSession(req, res, result);
   }
 
   @Post('logout')
   @Auth()
   async logout(@Req() req: Request, @Res() res: Response) {
-    const token = (req.cookies?.[REFRESH_COOKIE] as string | undefined) ?? '';
+    const token = refreshTokenOf(req);
     if (token) await this.auth.revokeToken(token);
-    res.clearCookie(REFRESH_COOKIE, cookieOptions());
+    if (!isNativeClient(req)) res.clearCookie(REFRESH_COOKIE, cookieOptions());
     return res.json({ ok: true });
   }
 
@@ -158,4 +156,38 @@ function cookieOptions(): {
 
 function attachRefreshCookie(res: Response, token: string): void {
   res.cookie(REFRESH_COOKIE, token, cookieOptions());
+}
+
+/** ADR 016 — app mobile gửi `x-learn-client: native`: refresh token đi qua body, không cookie. */
+function isNativeClient(req: Request): boolean {
+  return req.headers[CLIENT_HEADER] === NATIVE_CLIENT;
+}
+
+/**
+ * Refresh token của request. Native: **chỉ** body — không bao giờ đọc cookie, nên script trên web
+ * tự đặt header native cũng không đổi được cookie httpOnly thành token đọc được. Web: chỉ cookie.
+ */
+function refreshTokenOf(req: Request): string | null {
+  if (isNativeClient(req)) {
+    const parsed = nativeRefreshSchema.safeParse(req.body);
+    return parsed.success ? parsed.data.refreshToken : null;
+  }
+  return (req.cookies?.[REFRESH_COOKIE] as string | undefined) || null;
+}
+
+/** Trả phiên mới — web: refresh token vào cookie httpOnly; native: vào body, không set cookie. */
+function sendSession(
+  req: Request,
+  res: Response,
+  result: { user: unknown; accessToken: string; refreshToken: string },
+) {
+  if (isNativeClient(req)) {
+    return res.json({
+      user: result.user,
+      accessToken: result.accessToken,
+      refreshToken: result.refreshToken,
+    });
+  }
+  attachRefreshCookie(res, result.refreshToken);
+  return res.json({ user: result.user, accessToken: result.accessToken });
 }

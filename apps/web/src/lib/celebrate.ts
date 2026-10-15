@@ -13,8 +13,8 @@ import confetti from 'canvas-confetti';
  * tại sẵn trong sản phẩm (AGENTS.md cấm bịa hệ thống gamification).
  */
 
-/** Đơn sắc (ADR 015): chỉ các mức xám từ đen tới trắng, để pháo giấy không lạc khỏi bảng màu. */
-const COLORS = ['#111111', '#404040', '#808080', '#bfbfbf', '#e5e5e5'];
+/** Thang lam (ADR 018): navy → coban → periwinkle, để pháo giấy không lạc khỏi bảng màu. */
+const COLORS = ['#18286a', '#2c49b0', '#3a5fd0', '#8aa4e6', '#d6e0f7'];
 
 /**
  * `canvas-confetti` vẽ thẳng lên canvas nên `MotionConfig` không với tới được;

@@ -38,7 +38,10 @@ const SIZES: Record<Size, string> = {
 const BASE =
   'relative inline-flex items-center justify-center rounded-control font-medium select-none ' +
   'whitespace-nowrap cursor-pointer transition-[background-color,border-color,color,transform] ' +
-  'duration-150 ease-out active:scale-[0.98] disabled:pointer-events-none disabled:opacity-45';
+  'duration-150 ease-out active:scale-[0.98] disabled:pointer-events-none disabled:opacity-45 ' +
+  // Mũi tên "đi tiếp" nhích 2px theo hướng của nó khi hover — nói "bấm là sang bước sau".
+  '[&_[data-icon=arrow-right]]:transition-transform [&_[data-icon=arrow-right]]:duration-200 ' +
+  'hover:[&_[data-icon=arrow-right]]:translate-x-0.5';
 
 export function buttonClasses({
   variant = 'primary',

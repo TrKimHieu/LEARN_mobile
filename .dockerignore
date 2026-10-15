@@ -13,3 +13,6 @@
 test-results
 playwright-report
 docs/screenshots
+# Prisma client sinh trên máy dev (engine Windows + đường dẫn C:\...) — image phải dùng bản sinh
+# trong container lúc `npm ci` (postinstall), nếu không API/worker không tìm thấy query engine Linux.
+packages/db/generated

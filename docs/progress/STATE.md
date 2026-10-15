@@ -1733,3 +1733,160 @@ các màn mới sáng/tối 0 vi phạm.
 nguyên văn với `acceptable` — model thật sinh đáp án mẫu là cả câu dài, nên người học gần như luôn
 bị chấm sai (8/48 câu ở lượt chạy thật). Cần quyết định (đụng HANDBOOK §7.4): chấm theo từ khoá /
 độ trùng, yêu cầu model sinh `acceptable` ngắn nhiều biến thể, hoặc chuyển SHORT_ANSWER sang tự đánh giá.
+
+### Phiên 24 (2026-09-30) — Khung app di động `LEARN_mobile`
+
+- Thư mục **`C:\Projects\LEARN_mobile`** (ngang hàng repo này, git riêng): Expo SDK 57 + Expo Router,
+  một màn Home demo dữ liệu mẫu — xem `LEARN_mobile/README.md`. Không đụng code repo LEARN.
+- Đã kiểm: typecheck, expo-doctor, bundle Android, bản web sáng/tối. **Chưa** chạy trên điện thoại
+  thật qua Expo Go.
+
+**Next-action (mobile):** quét QR bằng Expo Go để xác nhận trên máy thật → nối API (base URL theo IP
+LAN) → cơ chế token cho mobile (web đang dùng cookie httpOnly) → tab bar.
+
+### Phiên 24c (2026-09-30) — App mobile đủ tính năng người học + refresh token native (ADR 016)
+
+**Repo LEARN (chưa commit):**
+- ADR 016: client native gửi `x-learn-client: native` → `register/login/refresh` trả refresh token
+  trong body, không set cookie; `refresh/logout` chỉ đọc token từ body (`nativeRefreshSchema` Zod
+  strict), **không bao giờ đọc cookie** ở chế độ này (XSS trên web tự đặt header cũng không đổi được
+  cookie httpOnly thành token đọc được). Web không đổi. HANDBOOK §7.1 + §10.1 đã ghi.
+  Code: `auth.controller.ts` (`isNativeClient`/`refreshTokenOf`/`sendSession`), contracts `auth.ts`.
+- `S3_PUBLIC_ENDPOINT` (tuỳ chọn, rỗng = `S3_ENDPOINT`): ký presigned URL bằng host client tới được —
+  điện thoại thật cần `http://<IP LAN>:9000`. CORS dev thêm `http://localhost:8081` (bản web của app).
+- Kiểm: typecheck toàn workspace ✓ · 262/262 unit ✓ · eslint phần sửa ✓ · integration auth 13/13
+  (native 5 mới + web 8 cũ) trên Docker thật ✓.
+- Docker Desktop lại kẹt socket mồ côi (`docker-secrets-engine/engine.sock`, rồi
+  `Docker/run/sailor-ingest.sock`) — xử lý như mục Docker ở trên: **đổi tên thư mục cha**
+  (`*.stale-<thời gian>` trong `%LOCALAPPDATA%`), Docker tự tạo lại. Có thể xoá các thư mục `.stale-*`.
+- ⚠️ `apps/worker/.env` đang `LLM_MODE=live` (gpt-6-luna, tính tiền). Phiên này chạy worker bằng
+  `LLM_MODE=mock` để test — nhớ kiểm biến này trước khi chạy worker.
+
+**Repo `C:\Projects\LEARN_mobile` (git riêng, chưa commit ngoài commit khởi tạo):** đủ các màn người
+học của web (auth, 4 tab, chi tiết khóa + sinh AI + tải tài liệu, đọc bài, sửa/xoá bài, bài tập +
+kết quả), bỏ Quản trị. Expo Router theo bài giảng Navigation (Root Stack + `Stack.Protected` + Tabs,
+chi tiết che tab bar, modal cho tạo/sửa). Màu đơn sắc dịu, không cặp gần-trắng/gần-đen (ADR 001 của
+app). Contracts chép bằng `npm run sync:contracts`, `npm run typecheck` báo lệch. README có hướng dẫn.
+- Kiểm: tsc ✓ · expo-doctor 21/21 ✓ · bundle Android ✓ · Playwright qua bản web với API + worker mock
+  thật: 11 màn sáng + 11 màn tối, 0 lỗi console; luồng đăng ký → tạo khóa → tải `05-git-co-ban.md` →
+  trích xuất → sinh 6 bài → đăng xuất chạy trọn. Tài khoản thử đã xoá khỏi DB (object MinIO của tài
+  liệu thử còn lại).
+- **Chưa làm:** chạy trên điện thoại thật qua Expo Go; mascot mobile là bản vẽ tay đơn giản (không
+  port bản động 40 state).
+
+**Next-action (mobile):** quét QR bằng Expo Go trên máy thật (đặt `S3_PUBLIC_ENDPOINT` trước khi thử
+tải tài liệu) → commit hai repo khi người dùng yêu cầu.
+
+### Phiên 24d (2026-09-30) — Mobile đồng bộ web + một server chung (kế hoạch đã duyệt)
+
+Quyết định của người dùng: Quản trị **bản rút gọn** trên mobile · server **AWS EC2, chưa có domain**
+(sslip.io) · phân phối **Expo Go + APK**. Chi tiết từng mục: CHECKLIST §20.23, `docs/PARITY.md`.
+
+**LEARN (chưa commit):**
+- `GET /api/v1/meta` + `CONTRACTS_HASH` (`npm run contracts:hash`, test `version.test.ts`),
+  `MIN_MOBILE_VERSION`; `adminMetricsSchema` vào contracts; link "Mở trong ứng dụng" ở trang đặt lại
+  mật khẩu khi mở bằng điện thoại; `TRUST_PROXY` (rate limit theo IP thật sau Caddy); seed production
+  lấy mật khẩu admin từ `SEED_ADMIN_PASSWORD`, không tạo demo; `npm run db:cleanup:e2e`.
+- Hạ tầng: `infra/docker-compose.prod.yml` + `Caddyfile` (một origin: `/api` · `/learn-documents` ·
+  web) + `.env.prod.example` + `docs/DEPLOY.md` + ADR 017. Web build với API tương đối → một image
+  cho mọi domain.
+- **Build thật lần đầu 3 Dockerfile** lộ 2 lỗi, đã sửa: (1) lockfile tạo trên Windows thiếu
+  `@node-rs/argon2` bản Linux (npm/cli#4828) → `optionalDependencies` ở `packages/db`; (2) Prisma
+  client Windows trong `packages/db/generated` bị `COPY . .` đè lên bản Linux → `.dockerignore` +
+  runtime chép client từ builder. Thêm cache npm BuildKit + retry (mạng hotspot từng ECONNRESET).
+- `scripts/fix-docker-sockets.ps1`: Docker Desktop crash lần 3 vì socket mồ côi — phải **tắt hết
+  tiến trình Docker trước** rồi mới đổi tên thư mục (bản crash còn sống tạo lại socket).
+- Kiểm: typecheck ✓ · 264/264 unit ✓ · eslint phần sửa ✓ · integration auth 13/13 (phiên trước) ·
+  stack production local chạy trọn (xem CHECKLIST §20.23).
+
+**LEARN_mobile (chưa commit):** đặt lại mật khẩu, tab Quản trị (chỉ ADMIN), +not-found/ErrorBoundary,
+pháo giấy, mục lục đánh dấu mục đang đọc, mascot dựng từ dữ liệu vendor web (`npm run mascot:data`),
+thông báo cập nhật theo `/meta`, icon app từ logo (`npm run icons`), `eas.json` + `expo-updates`,
+jest 15/15, e2e Playwright 22 màn + axe 0 vi phạm (đã sửa 3 lỗi aria).
+
+**Next-action:**
+1. Người dùng: tạo EC2 theo `docs/DEPLOY.md` (t3.medium, Elastic IP, SG 22/80/443) → mình deploy + kiểm.
+2. Người dùng: `npx eas-cli login` → mình chạy `init`/`update:configure`/`env:create`/`update`/`build`.
+3. Chạy checklist điện thoại thật (README mobile) → đổi nhãn PARITY sang `Có trong MVP`.
+4. Commit hai repo khi người dùng yêu cầu. Image local `learn-*` (~6 GB) xoá được: `docker image rm learn-web learn-api learn-worker learn-migrate`.
+
+## Phiên 25 (2026-10-12) — Lam học thuật theo ảnh tham chiếu (ADR 018) — CHƯA commit
+
+Chủ sản phẩm gửi ảnh slide seminar (nền sóng lam hạt nhiễu, tiêu đề serif navy, sao bốn cánh,
+quỹ đạo) và yêu cầu redesign web theo phong cách đó. Đây là đổi nhận diện ⇒ sửa spec §14 +
+HANDBOOK §14.2/§13.4 trước, viết ADR 018 (thay ADR 015 đơn sắc), rồi mới sửa code.
+
+- **Token** (`packages/config/tailwind/theme.css`, bản sao `packages/ui`): thang `lam-50…950`,
+  ok/bad/warn trầm, `--wave-1…4`, `--spark`, `--grain`. `--color-*: initial` vẫn giữ.
+- **Chữ**: thêm `@fontsource-variable/playfair-display` (đứng + nghiêng); `font-display` cho mọi `h1`
+  trang, auth heading, 404, `EmptyState`, `.lesson-content h1/h2`.
+- **Hoạ tiết**: `apps/web/src/components/shared/decor.tsx`. Hero ở `(auth)/layout.tsx` + `not-found.tsx`;
+  ambient ở `AppShell`. Thanh tiến độ đổi `bg-chart-1` (coban).
+- **Đã kiểm**: typecheck, eslint, `next build`, 264/264 unit, axe WCAG 2.2 AA 0 serious/critical trên
+  login/register/forgot-password/dashboard/courses/progress/dev-ui/404 × sáng/tối (API mock qua
+  Playwright `page.route` vì Docker Desktop không chạy), ảnh 390px rộng đúng 780px.
+- **Chưa làm / next-action**:
+  1. Chạy `node scripts/audit-a11y.mjs` + soát màn bài học/bài tập/admin trên backend thật (Docker).
+  2. Chụp lại ảnh portfolio `docs/screenshots/`.
+  3. Quyết định có mang phong cách này sang `LEARN_mobile` không (PARITY.md ghi "chưa đồng bộ").
+  4. Commit tách riêng khỏi các thay đổi chưa commit của phiên 20–24 trong working tree.
+- **Phiên 25b**: thêm chuyển động nền bằng CSS (UI-GUIDE §4 "Chuyển động nền"). Sóng/hạt giờ là ảnh
+  `data:` — màu ở `WAVE_PALETTE` trong `decor.tsx`, phải sync tay với `theme.css` nếu đổi `--wave-*`.
+
+## Phiên 26 (2026-10-13) — Deploy production cục bộ + định hướng AWS/worktree
+
+- **Deploy cục bộ theo DEPLOY.md §0 — CHẠY ĐƯỢC**: `.env.prod` (gitignore) cho `https://localhost:8443`,
+  `LLM_MODE=mock`, secret ngẫu nhiên (mật khẩu admin ở `SEED_ADMIN_PASSWORD`). Stack `learn` đang chạy.
+  Đã kiểm qua Caddy: health/ready, đăng nhập admin, refresh cookie, upload presigned → trích xuất →
+  sinh bài (mock) SUCCEEDED. Lần build đầu có thể dính `ECONNRESET` khi `npm ci` trong Docker — chạy lại.
+  Dừng: `docker compose -f infra/docker-compose.prod.yml --env-file .env.prod down` (thêm `-v` để xoá dữ liệu).
+  **Đã chuyển sang `LLM_MODE=live`** (key chép từ `apps/worker/.env`, gpt-6-luna + fallback gpt-5-nano, trần
+  0,05 USD/job; job thật đo ở dev 0,004–0,028 USD). Bài sinh lúc còn mock (khoá "Quant-UX Documentation")
+  vẫn là câu hỏi mẫu — phải sinh lại.
+- **AI live loại ~23% bài (22/96 lượt `lesson@3`)**: (1) luật "đáp án đúng dài gấp đôi" có ở validator
+  nhưng không có trong prompt; (2) model chép sai UUID chunk 36 ký tự. Đề xuất: thêm luật vào prompt +
+  mã chunk ngắn C1..Cn rồi map ngược (cả outline), bump `lesson@4`. Chưa làm.
+- **Định hướng AWS (chưa có ADR)**: khi cần giảm tải, tách worker sang EC2 thứ hai cùng VPC/AZ (mức 1),
+  sau đó RDS → S3 → ElastiCache (mức 2). Đổi điểm 3 của ADR 017 ⇒ phải viết ADR mới trước khi làm.
+- **Worktree**: quy ước branch `<loại>/<phạm-vi>-<mô-tả>`, thư mục cạnh repo `C:\Projects\LEARN-wt\`.
+  Worktree thử `feat/worker-ai-retry` còn tồn tại (chưa có `.env`, chưa có việc thật) — xoá bằng
+  `git worktree remove --force` nếu không dùng.
+- **Next-action**:
+  1. Gỡ `packages/db/generated/` khỏi Git (gitignore + `git rm -r --cached`) — client sinh ra chứa
+     đường dẫn tuyệt đối nên worktree nào cũng bẩn sau `npm install`.
+  2. Commit dọn 84 thay đổi trên `main` trước khi tạo worktree thật.
+  3. (Hoãn theo yêu cầu) giới hạn CPU/RAM + concurrency cho worker.
+- **Đã sửa (web)**: nút "Sinh bài học" xám tới khi F5 sau khi upload — `useCourseDocuments` chỉ tải lại
+  một lần lúc tài liệu còn UPLOADED, worker trích xuất xong không ai hỏi lại. Thêm `refetchInterval`
+  (`features/courses/document-polling.ts` + test). Kiểm trên trình duyệt: upload → 2,8 s nút bật, không F5;
+  xong thì ngừng hỏi API. Mobile đã có sẵn cơ chế này. Bản deploy local (Docker) CHƯA build lại web.
+
+## Phiên 27 (2026-10-13) — Nâng cấp nền: hạt chủ đạo + parallax (ADR 018 bổ sung)
+
+- **Đã làm**: `GrainWaves` tách sang `apps/web/src/components/shared/grain-waves.tsx` (client, re-export
+  qua `decor.tsx`). Theo yêu cầu giữa phiên "noise hơn là blur": mỗi dải = quầng mờ nhạt + bản
+  *dissolve* (mép vỡ thành hạt, SVG filter nướng sẵn trong ảnh); nếp tối dưới dải lớn, lớp vệt sáng
+  dọc đỉnh sóng, hạt overlay `feComponentTransfer`. Parallax chuột chỉ ở hero: sóng ngược chuột 6/12px, vệt sáng cùng chuột 14px (`.wave-parallax` trong `globals.css`, tắt
+  khi giảm chuyển động / không có chuột thật). `/dev/ui` thêm mục "Lớp nền" (hero + ambient).
+- **Đã kiểm**: typecheck · eslint · prettier · 269/269 unit · Playwright: transform 3 lớp đúng độ sâu,
+  reduced-motion → `none`, 0 lỗi trang · ảnh login/register/404/dev-ui sáng+tối, 390px · fps CPU 31/25,
+  GPU 61/60. **Chưa** soát ambient trên app thật (Docker tắt) — chỉ soát qua `/dev/ui`; chưa chạy axe.
+- **Next-action**: chạy `scripts/audit-a11y.mjs` khi có Docker (chữ "01/02/03" ở hero nằm trên dải
+  lam có hạt — kiểm tương phản); cân nhắc sinh `WAVE_PALETTE` từ `theme.css` lúc build. CHƯA commit.
+- **Phiên 27c — nền toàn site, mỗi màn một cảnh**: `components/shared/wave-scenes.ts` sinh cảnh từ
+  tham số (dãy Weyl), `SCREENS` liệt kê 21 màn — **thêm page mới ⇒ thêm dòng vào CUỐI `SCREENS`**,
+  `wave-scenes.test.ts` đỏ nếu quên. AppShell dùng `GrainWaves variant="app"` (`fixed`, mặt nạ chừa
+  cột nội dung, đứng yên — trôi làm CPU cuộn tụt 13 fps). Hoà cảnh 650ms khi đổi màn. `/dev/ui` mục
+  "Lớp nền" hiện cả 21 cảnh. Kiểm: 277/277 unit, typecheck, eslint, axe 11 màn 0 vi phạm, ảnh
+  1440/390 sáng+tối. **Next**: sửa `scripts/audit-a11y.mjs` chọn khóa học có bài (hiện dừng ở
+  `a[href*="/lessons/"]`) rồi chạy axe cho bài học/luyện tập/admin. Hạ tầng dev + API đang chạy
+  (docker compose dev, preview `api`, `web`). CHƯA commit.
+- **Phiên 28 (2026-10-14) — audit a11y đủ màn + đo tương phản trên nền thật**: sửa
+  `scripts/audit-a11y.mjs` (chọn khóa học CÓ bài, `load` + chờ mạng ≤10s thay `networkidle` — màn bài
+  học không bao giờ idle, thêm `/khong-ton-tai` + chi tiết AI Job) → **21 màn 0 vi phạm**. Phát hiện
+  axe bỏ qua chữ trên ảnh nền (`bgOverlap` → incomplete) nên viết `scripts/audit-contrast.mjs`: ẩn
+  chữ, chụp nền thật, đo tương phản phân vị 10% mỗi hộp chữ. Tìm 9 lỗi, đã sửa: mặt nạ `app` dải trên
+  chỉ sau header (40→140px); số bước + nhãn hero `accent` → `fg`; vệt sáng tông tối `#93a8ee` quầng
+  0.25. Sau sửa **0 dưới chuẩn / 20 màn × 2 tông** (1.615 đoạn chữ); tự kiểm cài lại lỗi cũ → bắt
+  đúng. 277/277 unit, typecheck, eslint. **Next**: chạy `audit-contrast.mjs` mỗi khi đổi nền/màu chữ;
+  commit (CHƯA). Dev server Next hay tự restart vì ngưỡng bộ nhớ khi audit dài — script đã thử lại.

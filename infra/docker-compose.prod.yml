@@ -1,0 +1,161 @@
+# LEARN — một server chạy song song web + API + worker (+ Postgres/Redis/MinIO), ADR 017.
+#
+#   cp .env.prod.example .env.prod   # điền secret thật
+#   docker compose -f infra/docker-compose.prod.yml --env-file .env.prod up -d --build
+#   docker compose -f infra/docker-compose.prod.yml --env-file .env.prod run --rm migrate npm run db:seed -w packages/db
+#
+# Chỉ Caddy mở cổng ra ngoài (80/443). Web, API, app mobile đều đi qua https://$DOMAIN.
+# Hướng dẫn đầy đủ: docs/DEPLOY.md.
+
+name: learn
+
+x-app-env: &app-env
+  env_file: ../.env.prod
+  restart: unless-stopped
+  networks: [internal]
+
+services:
+  caddy:
+    image: caddy:2-alpine
+    restart: unless-stopped
+    depends_on: [web, api, minio]
+    # Server: 80/443. Máy dev Windows hay bị dịch vụ hệ thống chiếm cổng 80 → đặt HTTP_PORT/HTTPS_PORT.
+    ports:
+      - '${HTTP_PORT:-80}:80'
+      - '${HTTPS_PORT:-443}:443'
+      - '${HTTPS_PORT:-443}:443/udp'
+    environment:
+      DOMAIN: ${DOMAIN:?Đặt DOMAIN trong .env.prod}
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy-data:/data
+      - caddy-config:/config
+    networks: [internal]
+
+  web:
+    <<: *app-env
+    build:
+      context: ..
+      dockerfile: infra/Dockerfile.web
+    depends_on: [api]
+
+  api:
+    <<: *app-env
+    build:
+      context: ..
+      dockerfile: infra/Dockerfile.api
+    environment:
+      NODE_ENV: production
+      HOST: 0.0.0.0
+      PORT: '4000'
+      TRUST_PROXY: '1'
+    depends_on:
+      migrate:
+        condition: service_completed_successfully
+      redis:
+        condition: service_healthy
+      minio-init:
+        condition: service_completed_successfully
+
+  worker:
+    <<: *app-env
+    build:
+      context: ..
+      dockerfile: infra/Dockerfile.worker
+    environment:
+      NODE_ENV: production
+    depends_on:
+      migrate:
+        condition: service_completed_successfully
+      redis:
+        condition: service_healthy
+
+  # Chạy một lần mỗi lần `up`: áp migration Prisma. Dùng stage `builder` (có Prisma CLI + tsx),
+  # cũng là nơi chạy seed: `run --rm migrate npm run db:seed -w packages/db`.
+  migrate:
+    env_file: ../.env.prod
+    build:
+      context: ..
+      dockerfile: infra/Dockerfile.api
+      target: builder
+    command: ['npm', 'run', 'db:deploy', '-w', 'packages/db']
+    environment:
+      NODE_ENV: production
+    depends_on:
+      postgres:
+        condition: service_healthy
+    restart: 'no'
+    networks: [internal]
+
+  postgres:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-learn}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?Đặt POSTGRES_PASSWORD trong .env.prod}
+      POSTGRES_DB: ${POSTGRES_DB:-learn}
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -U ${POSTGRES_USER:-learn}']
+      interval: 5s
+      timeout: 5s
+      retries: 20
+    networks: [internal]
+
+  redis:
+    image: redis:7-alpine
+    restart: unless-stopped
+    command: ['redis-server', '--appendonly', 'yes']
+    volumes:
+      - redis-data:/data
+    healthcheck:
+      test: ['CMD', 'redis-cli', 'ping']
+      interval: 5s
+      timeout: 3s
+      retries: 20
+    networks: [internal]
+
+  minio:
+    image: quay.io/minio/minio:latest
+    restart: unless-stopped
+    command: server /data
+    environment:
+      MINIO_ROOT_USER: ${S3_ACCESS_KEY_ID:?Đặt S3_ACCESS_KEY_ID trong .env.prod}
+      MINIO_ROOT_PASSWORD: ${S3_SECRET_ACCESS_KEY:?Đặt S3_SECRET_ACCESS_KEY trong .env.prod}
+    volumes:
+      - minio-data:/data
+    healthcheck:
+      test: ['CMD', 'mc', 'ready', 'local']
+      interval: 5s
+      timeout: 5s
+      retries: 20
+    networks: [internal]
+
+  minio-init:
+    image: quay.io/minio/mc:latest
+    depends_on:
+      minio:
+        condition: service_healthy
+    environment:
+      S3_ACCESS_KEY_ID: ${S3_ACCESS_KEY_ID}
+      S3_SECRET_ACCESS_KEY: ${S3_SECRET_ACCESS_KEY}
+      S3_BUCKET: ${S3_BUCKET:-learn-documents}
+    entrypoint: >
+      /bin/sh -c "
+      mc alias set local http://minio:9000 $$S3_ACCESS_KEY_ID $$S3_SECRET_ACCESS_KEY &&
+      mc mb --ignore-existing local/$$S3_BUCKET &&
+      mc anonymous set none local/$$S3_BUCKET
+      "
+    restart: 'no'
+    networks: [internal]
+
+networks:
+  internal:
+
+volumes:
+  postgres-data:
+  redis-data:
+  minio-data:
+  caddy-data:
+  caddy-config:

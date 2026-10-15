@@ -93,21 +93,28 @@ export class RedisService {
   }
 }
 
+function s3Client(endpoint: string): S3Client {
+  return new S3Client({
+    region: env.S3_REGION,
+    endpoint,
+    forcePathStyle: true, // MinIO
+    credentials: { accessKeyId: env.S3_ACCESS_KEY_ID, secretAccessKey: env.S3_SECRET_ACCESS_KEY },
+    // SDK v3 mặc định tự thêm x-amz-checksum-* vào presigned URL (flexible checksums),
+    // nhưng không có body lúc ký nên chỉ chèn giá trị rỗng → PUT thật luôn bị SignatureDoesNotMatch.
+    requestChecksumCalculation: 'WHEN_REQUIRED',
+  });
+}
+
 @Injectable()
 export class S3Service {
   private readonly client: S3Client;
+  /** Chỉ để ký presigned URL — host là host client gọi tới (`S3_PUBLIC_ENDPOINT`). */
+  private readonly presigner: S3Client;
   private readonly bucket = env.S3_BUCKET;
 
   constructor() {
-    this.client = new S3Client({
-      region: env.S3_REGION,
-      endpoint: env.S3_ENDPOINT,
-      forcePathStyle: true, // MinIO
-      credentials: { accessKeyId: env.S3_ACCESS_KEY_ID, secretAccessKey: env.S3_SECRET_ACCESS_KEY },
-      // SDK v3 mặc định tự thêm x-amz-checksum-* vào presigned URL (flexible checksums),
-      // nhưng không có body lúc ký nên chỉ chèn giá trị rỗng → PUT thật luôn bị SignatureDoesNotMatch.
-      requestChecksumCalculation: 'WHEN_REQUIRED',
-    });
+    this.client = s3Client(env.S3_ENDPOINT);
+    this.presigner = env.S3_PUBLIC_ENDPOINT ? s3Client(env.S3_PUBLIC_ENDPOINT) : this.client;
   }
 
   /** URL upload (PUT) hạn ngắn — HANDBOOK §4.3 Luồng 1. */
@@ -123,13 +130,13 @@ export class S3Service {
       ContentType: contentType,
       ContentLength: sizeBytes,
     });
-    return getSignedUrl(this.client, cmd, { expiresIn });
+    return getSignedUrl(this.presigner, cmd, { expiresIn });
   }
 
   /** URL tải về (GET) hạn ngắn — endpoint download. */
   async getDownloadUrl(key: string, expiresIn = 300): Promise<string> {
     const cmd = new GetObjectCommand({ Bucket: this.bucket, Key: key });
-    return getSignedUrl(this.client, cmd, { expiresIn });
+    return getSignedUrl(this.presigner, cmd, { expiresIn });
   }
 
   async getObject(key: string): Promise<Buffer> {

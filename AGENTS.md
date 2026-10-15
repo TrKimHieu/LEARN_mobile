@@ -29,6 +29,8 @@
 - Mọi input ngoài hệ thống đi qua Zod. TypeScript `strict: true`, không dùng `any`.
 - Truy vấn dữ liệu phải lọc quyền sở hữu ở **tầng repository** (chống IDOR).
 - Một màn hình có dữ liệu phải xử lý đủ 5 trạng thái: Loading · Empty · Error · Partial · Success.
+- Đổi `packages/contracts` ⇒ chạy `npm run contracts:hash`. Thêm/đổi một màn người dùng hoặc contract ⇒
+  cập nhật `docs/PARITY.md` và báo bên app mobile (`LEARN_mobile`: `npm run sync:contracts`).
 
 ## Kết thúc mỗi phiên (BẮT BUỘC — để session sau tiếp tục được)
 

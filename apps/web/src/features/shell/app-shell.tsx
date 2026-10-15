@@ -7,6 +7,7 @@ import { Icon } from '@/components/ui/icon';
 import { buttonClasses } from '@/components/ui/button';
 import { cn } from '@/components/ui/cn';
 import { Reveal } from '@/lib/motion';
+import { GrainWaves, Sparkle } from '@/components/shared/decor';
 import { Brand } from './brand';
 import { isActive, navItemsFor, NAV_ITEMS, ADMIN_ITEM } from './nav';
 import { UserMenu } from './user-menu';
@@ -21,6 +22,11 @@ import { UserMenu } from './user-menu';
  *
  * Dưới `md`: thanh tab đáy (vùng ngón cái), có `safe-area-inset-bottom`.
  * "Cài đặt" nằm trong menu tài khoản ở desktop, và là một tab ở mobile.
+ *
+ * ADR 018: nền sóng lam hạt nhiễu mức `app` phủ cả khung nhìn (`fixed` — đứng yên khi cuộn, thẻ
+ * trượt qua trên nó), mỗi màn một cảnh riêng, hoà cảnh khi đổi màn. Mặt nạ của `GrainWaves` để
+ * sạch cột nội dung (`clear` = nửa `max-w`), nên sóng chỉ hiện ở hai lề và dải trên cùng — chữ
+ * đặt thẳng trên nền luôn đứng trên màu `app`. Header trong suốt để sóng chạy liền.
  */
 export function AppShell({ children }: { children: React.ReactNode }) {
   const { user } = useAuth();
@@ -35,7 +41,18 @@ export function AppShell({ children }: { children: React.ReactNode }) {
   const container = cn('mx-auto w-full px-5 sm:px-8', wide ? 'max-w-6xl' : 'max-w-5xl');
 
   return (
-    <div className="min-h-dvh bg-app">
+    <div className="relative isolate min-h-dvh bg-app">
+      <GrainWaves variant="app" clear={wide ? 576 : 512} className="fixed -z-10" />
+      <div aria-hidden className="pointer-events-none absolute inset-x-0 top-0 -z-10 h-[520px]">
+        <div className={cn(container, 'relative h-full')}>
+          <Sparkle size={22} twinkle={0} className="absolute right-[14%] top-[96px] opacity-80" />
+          <Sparkle
+            size={12}
+            twinkle={2600}
+            className="absolute right-[22%] top-[150px] opacity-60"
+          />
+        </div>
+      </div>
       <a
         href="#main"
         className="sr-only rounded-control bg-panel px-4 py-2.5 text-sm font-medium text-accent shadow-raised focus:not-sr-only focus:fixed focus:left-4 focus:top-3 focus:z-[60] focus-ring"
@@ -43,7 +60,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
         Bỏ qua tới nội dung chính
       </a>
 
-      <header className="sticky top-0 z-30 border-b border-line bg-app/85 backdrop-blur-md">
+      <header className="sticky top-0 z-30 border-b border-line/70 bg-app/70 backdrop-blur-md">
         <div className={cn(container, 'flex h-14 items-center gap-6')}>
           <Link href="/dashboard" className="shrink-0 rounded-control focus-ring">
             <Brand />
@@ -67,7 +84,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
                       {active && (
                         <span
                           aria-hidden
-                          className="absolute inset-x-3 -bottom-px h-0.5 rounded-full bg-fg"
+                          className="absolute inset-x-3 -bottom-px h-0.5 rounded-full bg-accent"
                         />
                       )}
                     </Link>

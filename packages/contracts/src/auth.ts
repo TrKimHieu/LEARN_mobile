@@ -74,6 +74,28 @@ export const meResponseSchema = z.object({
   usage: z.record(z.string(), z.unknown()),
 });
 
+/**
+ * Client native (app mobile — ADR 016). Không có cookie httpOnly, nên refresh token đi qua body
+ * và client tự cất vào kho khoá của hệ điều hành (Keychain/Keystore). Chỉ bật khi request mang
+ * header này; ở chế độ native server **không bao giờ đọc cookie**, nên một script trên trang web
+ * đặt header này cũng không đổi được cookie của trình duyệt thành refresh token đọc được.
+ */
+export const CLIENT_HEADER = 'x-learn-client';
+export const NATIVE_CLIENT = 'native';
+
+/** Body của `/auth/refresh` và `/auth/logout` ở chế độ native. */
+export const nativeRefreshSchema = z
+  .object({
+    refreshToken: z.string().min(20).max(200),
+  })
+  .strict();
+
+export const nativeAuthResponseSchema = authResponseSchema.extend({
+  refreshToken: z.string(),
+});
+
+export type NativeRefreshInput = z.infer<typeof nativeRefreshSchema>;
+export type NativeAuthResponse = z.infer<typeof nativeAuthResponseSchema>;
 export type RegisterInput = z.infer<typeof registerSchema>;
 export type LoginInput = z.infer<typeof loginSchema>;
 export type PatchMeInput = z.infer<typeof patchMeSchema>;

@@ -1,4 +1,5 @@
 import { Injectable } from '@nestjs/common';
+import type { AdminMetrics } from '@learn/contracts';
 import { ApiError } from '../../common/errors';
 import { QueueService } from '../../common/services';
 import { AdminRepository } from './admin.repository';
@@ -11,7 +12,7 @@ export class AdminService {
     private readonly queue: QueueService,
   ) {}
 
-  async metrics() {
+  async metrics(): Promise<AdminMetrics> {
     const today = new Date();
     today.setUTCHours(0, 0, 0, 0);
     const weekAgo = new Date(today.getTime() - 7 * 86400_000);

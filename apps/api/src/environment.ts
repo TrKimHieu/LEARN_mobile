@@ -29,8 +29,19 @@ function isValidTimeZone(tz: string): boolean {
 const envSchema = z.object({
   NODE_ENV: z.enum(['development', 'test', 'production']).default('development'),
   HOST: z.string().default('0.0.0.0'),
+  /**
+   * Số tầng reverse proxy đứng trước API (Caddy trên server = 1). Bật thì Express đọc IP thật từ
+   * `X-Forwarded-For`; không bật khi có proxy thì mọi request mang IP của proxy và rate limit theo
+   * IP (đăng nhập 5 lần/phút) thành giới hạn CHUNG cho mọi người dùng. Dev chạy thẳng: 0.
+   */
+  TRUST_PROXY: z.coerce.number().int().min(0).max(5).default(0),
   PORT: z.coerce.number().int().default(4000),
   APP_URL: z.string().url().default('http://localhost:3000'),
+  /** Phiên bản app mobile thấp nhất còn hỗ trợ — trả ở `GET /meta`, app cũ hơn sẽ nhắc cập nhật. */
+  MIN_MOBILE_VERSION: z
+    .string()
+    .regex(/^\d+\.\d+\.\d+$/, 'MIN_MOBILE_VERSION phải dạng x.y.z')
+    .default('1.0.0'),
   /**
    * Múi giờ dùng để cắt "ngày" trong các chỉ số theo ngày — hiện là chuỗi ngày học liên tiếp
    * (`ProgressService.activeStreak`). Mặc định giờ Việt Nam vì toàn bộ nội dung và người dùng
@@ -52,6 +63,14 @@ const envSchema = z.object({
   JWT_ACCESS_TTL: z.string().default('15m'),
   REFRESH_TOKEN_TTL_DAYS: z.coerce.number().int().default(30),
   S3_ENDPOINT: z.string().url().default('http://localhost:9000'),
+  /**
+   * Host mà CLIENT dùng để PUT/GET presigned URL, nếu khác `S3_ENDPOINT` (host API dùng nội bộ).
+   * Chữ ký SigV4 gồm cả host, nên không thể đổi host sau khi ký — phải ký bằng đúng host client
+   * sẽ gọi. Dev với app mobile: `http://<IP LAN của máy dev>:9000` (điện thoại không tới được
+   * `localhost` của máy tính). Bỏ trống = dùng `S3_ENDPOINT`.
+   */
+  // `.env.example` để trống dòng này — dotenv đọc thành '', coi như không đặt.
+  S3_PUBLIC_ENDPOINT: z.preprocess((v) => (v === '' ? undefined : v), z.string().url().optional()),
   S3_BUCKET: z.string().default('learn-documents'),
   S3_ACCESS_KEY_ID: z.string().default(DEV_ONLY_DEFAULTS.S3_ACCESS_KEY_ID),
   S3_SECRET_ACCESS_KEY: z.string().default(DEV_ONLY_DEFAULTS.S3_SECRET_ACCESS_KEY),

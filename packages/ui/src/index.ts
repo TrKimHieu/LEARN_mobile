@@ -1,29 +1,33 @@
 /**
- * Design token LEARN — spec §14.2 (sửa 2026-09-28, ADR 015): **đơn sắc**, chỉ các tông từ
- * trắng tới đen, xám trung tính không hue ở giữa.
+ * Design token LEARN — spec §14.2 (sửa 2026-10-12, ADR 018): **lam học thuật** — navy sâu →
+ * coban → periwinkle, cộng ba sắc phản hồi trầm.
  *
  * **Nguồn sự thật là `packages/config/tailwind/theme.css`.** Khối này là bản sao cho mã
  * TypeScript nào cần giá trị màu ngoài Tailwind. Sửa một bên thì phải sửa bên kia.
- *
- * Không còn `feedbackColors` (xanh/đỏ/vàng): từ ADR 015 trạng thái đúng/sai/cảnh báo được
- * phân biệt bằng icon, chữ và độ đậm của viền, không bằng màu.
  */
 export const colors = {
   white: '#ffffff',
   black: '#000000',
-  mono: {
-    50: '#fafafa',
-    100: '#f2f2f2',
-    200: '#e5e5e5',
-    300: '#d4d4d4',
-    400: '#a3a3a3',
-    500: '#808080',
-    600: '#666666',
-    700: '#404040',
-    800: '#262626',
-    900: '#161616',
-    950: '#0e0e0e',
+  lam: {
+    50: '#f6f8fd',
+    100: '#eef2fb',
+    200: '#d6e0f7',
+    300: '#b5c6f0',
+    400: '#8aa4e6',
+    500: '#5b7fdb',
+    600: '#3a5fd0',
+    700: '#2c49b0',
+    800: '#213887',
+    900: '#18286a',
+    950: '#0e1745',
   },
+} as const;
+
+/** Phản hồi — luôn đi kèm icon + chữ, màu chỉ là tín hiệu thứ hai (ADR 018). */
+export const feedbackColors = {
+  ok: '#16704f',
+  bad: '#b0202d',
+  warn: '#855600',
 } as const;
 
 export const BRAND = {

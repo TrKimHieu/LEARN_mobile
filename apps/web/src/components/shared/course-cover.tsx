@@ -26,15 +26,15 @@ function hash(input: string): number {
 }
 
 /**
- * Nền bìa — [nền, màu hình khối nhấn], đơn sắc từ ADR 015: nền là 4 mức xám nhạt (token
- * `--pastel-*`, tự đổi theo `data-theme`), hình khối nhấn là 4 mức xám trung — khác nhau đủ để
- * các bìa không giống hệt nhau, không hue nào.
+ * Nền bìa — [nền, màu hình khối nhấn], lam học thuật từ ADR 018: nền là 4 sắc lam nhạt (token
+ * `--pastel-*`, tự đổi theo `data-theme`), hình khối nhấn là 4 bậc periwinkle → coban của thang
+ * `lam` — khác nhau đủ để các bìa không giống hệt nhau, không ra ngoài bảng màu.
  */
 const PASTELS = [
-  ['var(--pastel-sky)', '#bfbfbf'],
-  ['var(--pastel-mint)', '#a3a3a3'],
-  ['var(--pastel-lemon)', '#d4d4d4'],
-  ['var(--pastel-peach)', '#8c8c8c'],
+  ['var(--pastel-sky)', '#b5c6f0'],
+  ['var(--pastel-mint)', '#8aa4e6'],
+  ['var(--pastel-lemon)', '#d6e0f7'],
+  ['var(--pastel-peach)', '#5b7fdb'],
 ] as const;
 
 type Motif = 'rings' | 'waves' | 'grid' | 'orbit';
@@ -52,7 +52,7 @@ function MotifSvg({ motif, seed, accent }: { motif: Motif; seed: number; accent:
     'aria-hidden': true,
     fill: 'none',
   } as const;
-  const ink = 'stroke-fg/25 dark:stroke-white/25';
+  const ink = 'stroke-lam-900/25 dark:stroke-lam-200/30';
 
   if (motif === 'rings') {
     const cx = 140 + (seed % 30);
@@ -159,7 +159,7 @@ export function CourseCover({
     >
       <MotifSvg motif={motif} seed={h} accent={accent} />
       {showInitial && (
-        <span className="font-semibold absolute bottom-3 left-4 select-none text-5xl leading-none tracking-[-0.025em] text-fg dark:text-white/90">
+        <span className="absolute bottom-3 left-4 select-none font-display text-5xl font-bold leading-none text-fg">
           {initial}
         </span>
       )}

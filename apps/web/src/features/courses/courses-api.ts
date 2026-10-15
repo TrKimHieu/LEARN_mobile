@@ -6,6 +6,7 @@ import type {
   DocumentList,
 } from '@learn/contracts';
 import { apiFetch } from '@/lib/api-client';
+import { documentsRefetchInterval } from './document-polling';
 
 export function useCourses() {
   return useQuery({
@@ -27,6 +28,9 @@ export function useCourseDocuments(courseId: string) {
     queryKey: ['courses', courseId, 'documents'],
     queryFn: () => apiFetch<{ documents: DocumentList[] }>(`/api/v1/courses/${courseId}/documents`),
     enabled: Boolean(courseId),
+    // Upload xong tài liệu mới chỉ UPLOADED; worker trích xuất bất đồng bộ. Không hỏi lại thì
+    // nút "Sinh bài học" (cần EXTRACTED) xám tới khi F5.
+    refetchInterval: (query) => documentsRefetchInterval(query.state.data),
   });
 }
 

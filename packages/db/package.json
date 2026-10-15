@@ -13,7 +13,8 @@
     "db:seed": "tsx prisma/seed.ts",
     "db:reset": "prisma migrate reset --force",
     "db:studio": "prisma studio",
-    "postinstall": "prisma generate"
+    "postinstall": "prisma generate",
+    "db:cleanup:e2e": "tsx prisma/cleanup-e2e.ts"
   },
   "dependencies": {
     "@learn/contracts": "*",
@@ -26,5 +27,11 @@
     "prisma": "^6.2.0",
     "tsx": "^4.19.0",
     "typescript": "^5.7.0"
+  },
+  "optionalDependencies": {
+    "@node-rs/argon2-linux-arm64-gnu": "^2.2.1",
+    "@node-rs/argon2-linux-arm64-musl": "^2.2.1",
+    "@node-rs/argon2-linux-x64-gnu": "^2.2.1",
+    "@node-rs/argon2-linux-x64-musl": "^2.2.1"
   }
 }

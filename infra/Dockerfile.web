@@ -24,9 +24,18 @@ COPY packages/db/package.json packages/db/package.json
 COPY packages/ui/package.json packages/ui/package.json
 COPY packages/db/prisma packages/db/prisma
 
-RUN npm ci
+# Cache npm của BuildKit + thử lại khi mạng chập chờn: build lại không tải lại ~1.500 gói từ đầu.
+RUN --mount=type=cache,target=/root/.npm \
+    npm ci --fetch-retries=5 --fetch-retry-mintimeout=20000 --fetch-retry-maxtimeout=120000
 
 COPY . .
+
+# Next nhúng biến NEXT_PUBLIC_* LÚC BUILD. Mặc định rỗng = gọi API bằng đường dẫn tương đối
+# (`/api/v1/...`) — đúng với server chung một origin (Caddy chuyển /api/* sang API, ADR 017), nên
+# một image dùng được cho mọi domain. Chỉ đặt khi API nằm ở origin khác.
+ARG NEXT_PUBLIC_API_URL=""
+ENV NEXT_PUBLIC_API_URL=${NEXT_PUBLIC_API_URL}
+ENV NEXT_TELEMETRY_DISABLED=1
 
 RUN npm run build -w apps/web
 

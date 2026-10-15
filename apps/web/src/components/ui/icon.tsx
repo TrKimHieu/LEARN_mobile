@@ -155,6 +155,14 @@ export function Icon({
   const Glyph = ICONS[name];
   const weight = filled ? 'fill' : strokeWidth < 2 ? 'regular' : 'bold';
   return (
-    <Glyph size={size} weight={weight} className={className} aria-hidden="true" focusable="false" />
+    <Glyph
+      size={size}
+      weight={weight}
+      className={className}
+      // Móc cho CSS (vd. mũi tên trong nút nhích theo hướng đi khi hover — button.tsx).
+      data-icon={name}
+      aria-hidden="true"
+      focusable="false"
+    />
   );
 }

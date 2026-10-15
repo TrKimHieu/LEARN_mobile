@@ -1,7 +1,7 @@
 # ADR 014 — Hanken Grotesk tự host, icon đứng độc lập, gỡ các dấu hiệu "AI"
 
 - **Ngày:** 2026-09-28
-- **Trạng thái:** Đã chấp nhận (màu mascot của ADR này bị thay bởi ADR 015)
+- **Trạng thái:** Đã chấp nhận (màu mascot bị thay bởi ADR 015 rồi ADR 018; luật "không serif" và "không gradient" cho lớp nền bị ADR 018 nới)
 - **Thay thế:** phần chữ của ADR 012 (Mona Sans + Newsreader serif)
 - **Liên quan:** `docs/UI-GUIDE.md` §2, §5, §7
 

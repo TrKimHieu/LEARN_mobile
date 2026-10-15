@@ -8,8 +8,8 @@ import { MotionProvider } from '@/lib/motion';
 import './globals.css';
 
 /**
- * Chữ — ADR 014. Một họ sans duy nhất, Hanken Grotesk (variable, có subset tiếng Việt), cho
- * cả tiêu đề lẫn giao diện; JetBrains Mono cho code. Bỏ serif cho tiêu đề.
+ * Chữ — ADR 014 + 018. Hanken Grotesk (variable, có subset tiếng Việt) cho giao diện và bài đọc;
+ * Playfair Display (serif, đứng + nghiêng) cho tiêu đề lớn; JetBrains Mono cho code.
  *
  * Tự host qua Fontsource (npm), KHÔNG dùng `next/font/google`: bản Google tải font lúc
  * dev/build, nên máy/CI không có mạng ra ngoài sẽ lặng lẽ rơi về font dự phòng (đã dính ở
@@ -18,6 +18,8 @@ import './globals.css';
  */
 import '@fontsource-variable/hanken-grotesk';
 import '@fontsource-variable/jetbrains-mono';
+import '@fontsource-variable/playfair-display';
+import '@fontsource-variable/playfair-display/wght-italic.css';
 
 export const metadata: Metadata = {
   metadataBase: new URL(env.siteUrl),
@@ -41,8 +43,8 @@ export const viewport: Viewport = {
   initialScale: 1,
   viewportFit: 'cover',
   themeColor: [
-    { media: '(prefers-color-scheme: light)', color: '#fafafa' },
-    { media: '(prefers-color-scheme: dark)', color: '#0e0e0e' },
+    { media: '(prefers-color-scheme: light)', color: '#f6f8fd' },
+    { media: '(prefers-color-scheme: dark)', color: '#080c24' },
   ],
 };
 

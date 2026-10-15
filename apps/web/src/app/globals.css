@@ -1,6 +1,104 @@
 @import '../../../../packages/config/tailwind/theme.css';
 @import 'tailwindcss';
 
+/* Chuyển động nền — ADR 018 (bổ sung 2026-10-12). CSS thuần, không qua `motion`: chạy trên
+   compositor (chỉ `transform` / `opacity` / `stroke-dashoffset`), không cần JS, không kẹt khi tab
+   nền (bẫy `whileInView`, UI-GUIDE §4). Mọi keyframe lặp đều QUAY VỀ trạng thái nghỉ ở 100%, và
+   khối `prefers-reduced-motion` cuối file tắt hẳn chúng.
+
+   - wave-drift-a/b: hai lớp sóng trôi lệch nhịp (28s / 36s) — dải sóng "thở", không chạy.
+   - twinkle: sao co lại + mờ đi một nhịp ngắn rồi nghỉ phần lớn chu kỳ.
+   - orbit-flow: chấm của vành quỹ đạo chảy theo vành (dịch đúng bội số chu kỳ nét đứt 1+6).
+   - halo: vòng sáng toả ra từ "hành tinh" của quỹ đạo.
+   - rise / draw-x: vào cảnh một lần khi trang mở (chữ nhích lên, gạch của eyebrow kéo ra).
+   - scene-in / scene-out: hoà cảnh nền khi đổi màn (mỗi màn một cảnh, 650ms — khớp
+     `SCENE_FADE_MS` trong `grain-waves.tsx`). */
+@theme {
+  --animate-wave-drift-a: wave-drift-a 28s ease-in-out infinite;
+  --animate-wave-drift-b: wave-drift-b 36s ease-in-out infinite;
+  --animate-twinkle: twinkle 6s ease-in-out infinite;
+  --animate-orbit-flow: orbit-flow 8s linear infinite;
+  --animate-halo: halo 3.6s ease-out infinite;
+  --animate-rise: rise 700ms cubic-bezier(0.22, 1, 0.36, 1) both;
+  --animate-draw-x: draw-x 900ms cubic-bezier(0.22, 1, 0.36, 1) both;
+  --animate-scene-in: scene-in 650ms ease-out both;
+  --animate-scene-out: scene-out 650ms ease-in both;
+
+  @keyframes wave-drift-a {
+    0%,
+    100% {
+      transform: translate3d(0, 0, 0) scale(1);
+    }
+    50% {
+      transform: translate3d(-2.5%, 1.5%, 0) scale(1.04);
+    }
+  }
+  @keyframes wave-drift-b {
+    0%,
+    100% {
+      transform: translate3d(0, 0, 0) scale(1) rotate(0deg);
+    }
+    50% {
+      transform: translate3d(3%, -2%, 0) scale(1.05) rotate(-1deg);
+    }
+  }
+  @keyframes twinkle {
+    0%,
+    66%,
+    100% {
+      opacity: 1;
+      transform: scale(1) rotate(0deg);
+    }
+    80% {
+      opacity: 0.35;
+      transform: scale(0.62) rotate(14deg);
+    }
+  }
+  @keyframes orbit-flow {
+    to {
+      stroke-dashoffset: -70;
+    }
+  }
+  @keyframes halo {
+    0% {
+      opacity: 0.45;
+      transform: scale(0.6);
+    }
+    100% {
+      opacity: 0;
+      transform: scale(2.4);
+    }
+  }
+  @keyframes rise {
+    from {
+      opacity: 0;
+      transform: translateY(14px);
+    }
+    to {
+      opacity: 1;
+      transform: none;
+    }
+  }
+  @keyframes scene-in {
+    from {
+      opacity: 0;
+    }
+  }
+  @keyframes scene-out {
+    to {
+      opacity: 0;
+    }
+  }
+  @keyframes draw-x {
+    from {
+      transform: scaleX(0);
+    }
+    to {
+      transform: scaleX(1);
+    }
+  }
+}
+
 /* `dark:` bám theo `data-theme`, không theo media query: người dùng chọn được
    Sáng/Tối/Hệ thống ở Cài đặt, và một cây con (sidebar) có thể ép tông riêng. */
 @custom-variant dark (&:where([data-theme='dark'], [data-theme='dark'] *));
@@ -38,6 +136,13 @@
     letter-spacing: -0.012em;
   }
 
+  /* Serif hiển thị (ADR 018): Playfair có độ tương phản nét cao, giãn âm nhẹ là đủ — kéo chặt
+     như sans thì chân chữ chạm nhau. Chỉ dùng ở cỡ ≥ 24px. */
+  .font-display {
+    letter-spacing: -0.008em;
+    font-optical-sizing: auto;
+  }
+
   p,
   li {
     text-wrap: pretty;
@@ -48,7 +153,8 @@
   }
 
   ::selection {
-    background: var(--line-strong);
+    background: var(--accent-line);
+    color: var(--fg);
   }
 
   /* Viền mặc định của Tailwind v4 là `currentColor` — kéo về token để mọi
@@ -61,6 +167,19 @@
 }
 
 @layer utilities {
+  /* Parallax của `GrainWaves` hero (ADR 018, 2026-10-13). `--px`/`--py` (−1…1) do
+     `grain-waves.tsx` ghi lên khung gốc theo con trỏ; `--depth` (px) đặt trên từng lớp — lớp gần
+     dời nhiều hơn. `--depth` dương = NGƯỢC chiều chuột (dải sóng: chiều sâu), âm = CÙNG chiều
+     (vệt sáng: con trỏ là nguồn sáng). Chỉ `transform`. */
+  .wave-parallax {
+    transform: translate3d(
+      calc(var(--px, 0) * var(--depth, 0) * -1px),
+      calc(var(--py, 0) * var(--depth, 0) * -1px),
+      0
+    );
+    transition: transform 1.4s cubic-bezier(0.22, 1, 0.36, 1);
+  }
+
   /* Vòng focus — một nguồn. Màu chữ chính (đen ở tông sáng, trắng ở tông tối). */
   .focus-ring {
     @apply focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-fg dark:focus-visible:outline-fg;
@@ -84,6 +203,22 @@
 
 /* Giảm chuyển động — công tắc toàn cục cho animation thuần CSS. */
 @media (prefers-reduced-motion: reduce) {
+  /* Chuyển động nền ADR 018: tắt hẳn (không chỉ rút về 0.01ms) — phần tử đứng ở trạng thái nghỉ. */
+  .animate-wave-drift-a,
+  .animate-wave-drift-b,
+  .animate-twinkle,
+  .animate-orbit-flow,
+  .animate-halo,
+  .animate-rise,
+  .animate-draw-x,
+  .animate-scene-in,
+  .animate-scene-out {
+    animation: none !important;
+  }
+  .wave-parallax {
+    transform: none !important;
+  }
+
   *,
   *::before,
   *::after {
@@ -96,8 +231,8 @@
 
 /* Nội dung Lesson render từ Markdown đã sanitize — components/shared/markdown.tsx.
    Mọi màu đi qua token nên đọc được ở cả hai tông. */
-/* Bài đọc (ADR 014): cùng họ sans với giao diện, cỡ lớn hơn và dòng thưa hơn để đọc đoạn
-   dài — tách "nội dung để học" khỏi "giao diện để bấm" bằng nhịp chữ, không bằng đổi font. */
+/* Bài đọc (ADR 014): thân bài cùng họ sans với giao diện, cỡ lớn hơn và dòng thưa hơn để đọc
+   đoạn dài. ADR 018: tiêu đề h1/h2 của bài dùng serif hiển thị — cùng giọng với tiêu đề trang. */
 .lesson-content {
   font-size: 1.0625rem;
   line-height: 1.75;
@@ -118,11 +253,17 @@
   margin-bottom: 0.6em;
   scroll-margin-top: 6rem;
 }
+.lesson-content h1,
+.lesson-content h2 {
+  font-family: var(--font-display);
+  font-weight: 600;
+  letter-spacing: -0.01em;
+}
 .lesson-content h1 {
-  font-size: 1.55rem;
+  font-size: 1.85rem;
 }
 .lesson-content h2 {
-  font-size: 1.3rem;
+  font-size: 1.5rem;
 }
 .lesson-content h3,
 .lesson-content h4 {
@@ -169,8 +310,8 @@
   color: var(--fg);
 }
 .lesson-content pre {
-  background: #161616;
-  color: #f2f2f2;
+  background: #0e1745;
+  color: #eef1fc;
   border-radius: 0.5rem;
   padding: 1em 1.15em;
   overflow-x: auto;
@@ -185,7 +326,7 @@
   color: inherit;
 }
 .lesson-content blockquote {
-  border-left: 3px solid var(--fg);
+  border-left: 3px solid var(--accent-line);
   padding: 0.1em 0 0.1em 1em;
   margin-bottom: 1em;
 }

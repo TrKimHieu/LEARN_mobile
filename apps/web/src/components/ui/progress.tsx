@@ -43,7 +43,7 @@ export function ProgressBar({
       <div
         className={cn(
           'h-full w-full origin-left rounded-full transition-transform duration-500 ease-out-quint',
-          'bg-fg',
+          'bg-chart-1',
         )}
         style={{ transform: `scaleX(${percent / 100})` }}
       />

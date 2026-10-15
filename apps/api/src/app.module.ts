@@ -2,6 +2,7 @@ import { Module } from '@nestjs/common';
 import { CommonModule } from './common/services';
 import { SecurityModule } from './common/security.module';
 import { HealthModule } from './modules/health/health.module';
+import { MetaModule } from './modules/meta/meta.module';
 import { AuthModule } from './modules/auth/auth.module';
 import { CoursesModule } from './modules/courses/courses.module';
 import { DocumentsModule } from './modules/documents/documents.module';
@@ -15,6 +16,7 @@ import { AdminModule } from './modules/admin/admin.module';
     CommonModule,
     SecurityModule,
     HealthModule,
+    MetaModule,
     AuthModule,
     CoursesModule,
     DocumentsModule,

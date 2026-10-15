@@ -48,21 +48,31 @@ Và nếu thay đổi chạm tới màu, form, hay cấu trúc heading — chạ
 node scripts/audit-a11y.mjs
 ```
 
-Nó quét 18 màn bằng axe-core theo bộ luật WCAG 2.2 AA và trả exit code 1 nếu có vi phạm
-serious/critical. Script chỉ quét **tông sáng** — đổi màu thì soát thêm tông tối (xem §2b). Đây là thứ `eslint-plugin-jsx-a11y` **không** làm được: lint chỉ đọc JSX, còn
+Nó quét 21 màn bằng axe-core theo bộ luật WCAG 2.2 AA và trả exit code 1 nếu có vi phạm
+serious/critical.
+
+**axe không đo được tương phản của chữ trên ảnh nền** (sóng hạt ADR 018 có ở mọi màn): nó xếp chữ
+đó vào "incomplete" (`bgOverlap`), không báo vi phạm. Chạm tới nền, màu chữ hay vị trí chữ thì chạy
+thêm — đo tương phản bằng điểm ảnh nền thật, cả hai tông:
+
+```bash
+node scripts/audit-contrast.mjs
+```
+
+Đã bắt lỗi thật (2026-10-14): axe sạch cả 21 màn, script này tìm ra 9 chỗ dưới chuẩn. Script chỉ quét **tông sáng** — đổi màu thì soát thêm tông tối (xem §2b). Đây là thứ `eslint-plugin-jsx-a11y` **không** làm được: lint chỉ đọc JSX, còn
 tương phản màu chỉ tính ra được sau khi trình duyệt đã render.
 
 ## 1. Ranh giới không được vượt
 
-| Ràng buộc                                                                | Nguồn                   |
-| ------------------------------------------------------------------------ | ----------------------- |
-| **Đơn sắc**: chỉ trắng → đen, xám trung tính ở giữa, không hue (ADR 015) | spec §14.2 `[SPEC]`     |
-| Mascot chỉ ở hero · empty state · tiến độ AI Job · lỗi                   | HANDBOOK §13.1 `[SPEC]` |
-| `celebrate` chỉ khi người dùng hoàn thành bài học                        | HANDBOOK §13.2          |
-| Không bịa gamification (gem, tim, rương thưởng, nhiệm vụ)                | AGENTS.md               |
-| Màn có dữ liệu phải đủ 5 trạng thái: Loading/Empty/Error/Partial/Success | AGENTS.md               |
-| Đáp án đúng không rời server trước khi nộp bài                           | AGENTS.md / `[SPEC]`    |
-| `strict: true`, không `any`, mọi input ngoài đi qua Zod                  | AGENTS.md               |
+| Ràng buộc                                                                     | Nguồn                   |
+| ----------------------------------------------------------------------------- | ----------------------- |
+| **Lam học thuật**: thang `lam-*` + ok/bad/warn trầm, không hue khác (ADR 018) | spec §14.2 `[SPEC]`     |
+| Mascot chỉ ở hero · empty state · tiến độ AI Job · lỗi                        | HANDBOOK §13.1 `[SPEC]` |
+| `celebrate` chỉ khi người dùng hoàn thành bài học                             | HANDBOOK §13.2          |
+| Không bịa gamification (gem, tim, rương thưởng, nhiệm vụ)                     | AGENTS.md               |
+| Màn có dữ liệu phải đủ 5 trạng thái: Loading/Empty/Error/Partial/Success      | AGENTS.md               |
+| Đáp án đúng không rời server trước khi nộp bài                                | AGENTS.md / `[SPEC]`    |
+| `strict: true`, không `any`, mọi input ngoài đi qua Zod                       | AGENTS.md               |
 
 Muốn đổi một dòng `[SPEC]` thì **sửa spec trước**, rồi mới sửa code. Đổi quyết định `[QĐ]` thì
 viết ADR vào `docs/adr/`.
@@ -75,8 +85,9 @@ hạng. Dải chỉ số ở `AppShell` chỉ hiện số có thật từ `Progr
 Nguồn duy nhất: `packages/config/tailwind/theme.css` (Tailwind v4, không có `tailwind.config.js`).
 Ba khối, theo thứ tự:
 
-1. **`[SPEC]` §14.2** (ADR 015) — `white`, `black`, `mono-50…950`. Mọi màu có R = G = B. Đầu file
-   đặt `--color-*: initial` nên bảng màu mặc định của Tailwind (blue, sky…) **không tồn tại**.
+1. **`[SPEC]` §14.2** (ADR 018) — `white`, `black`, `lam-50…950` (navy → coban → periwinkle),
+   `xanh-700` / `do-700` / `ho-phach-700` cho phản hồi. Đầu file đặt `--color-*: initial` nên bảng
+   màu mặc định của Tailwind (blue, purple…) **không tồn tại**.
 2. **Bổ sung**: bo góc `control/card/panel/pill`, `--text-2xs`, `--ease-out-quint`, `--font-*`.
 3. **Ngữ nghĩa** (ADR 011) — `@theme inline` trỏ vào biến thô, giá trị đổi theo `data-theme`:
 
@@ -94,16 +105,39 @@ Ba khối, theo thứ tự:
 | Biểu đồ                      | `bg-chart-1`                                | cột biểu đồ (đã qua validator dataviz)                      |
 | Bóng                         | `shadow-card/raised/overlay/glow`           | thẻ · nổi tạm · menu · node đã xong                         |
 
-**Đơn sắc (ADR 015):** nền `#FAFAFA`, viền `#E5E5E5`, thẻ không bóng. Token `ok/bad/warn/accent` giữ
-tên nhưng là các mức xám: trạng thái phân biệt bằng **icon + chữ + độ đậm của viền**. Lỗi = viền
-đen đậm, nhãn lỗi đảo màu (nền đen chữ trắng); đáp án đúng = viền liền đậm, lựa chọn sai = viền
-đứt; nút phá huỷ = viền đen 2px (khác nút chính khối đặc); liên kết = màu chữ + gạch chân.
+**Lam học thuật (ADR 018, từ ảnh tham chiếu của chủ sản phẩm):** nền `#F6F8FD`, viền `#E1E7F5`,
+chữ + nút chính navy `#0E1745`/`#18286A`, liên kết + thanh tiến độ coban. Trạng thái vẫn phân biệt
+bằng **icon + chữ + kiểu viền** như ADR 015 (lựa chọn sai = viền đứt, nhãn lỗi đảo màu); xanh lá /
+đỏ / hổ phách chỉ là lớp tín hiệu thứ hai.
 
-**Luật:** component dùng token ngữ nghĩa. Không gradient, không glow/blur, không mảng tối giữa
-trang sáng, không màu có hue (build cũng không sinh ra được).
+**Lớp nền trang trí** — `components/shared/decor.tsx`: `GrainWaves` (sóng lam hạt nhiễu, `hero` ở
+đăng nhập/đăng ký/quên & đặt lại mật khẩu/404/lỗi, `app` cố định sau mọi màn trong app), `Sparkle`, `Orbit`, `DotField`, `Eyebrow`. Màu qua
+`--wave-1…4`, `--spark`, độ hạt qua `--grain`. Gradient/blur **chỉ** ở lớp nền này; thẻ, form,
+bảng luôn nền `panel` đặc (không kính mờ). Hoạ tiết không đặt trong thẻ dữ liệu hay bảng quản trị —
+ngoại lệ duy nhất: hai sao quanh mascot của `EmptyState`. `GrainWaves` nằm riêng ở
+`components/shared/grain-waves.tsx` (client component, re-export qua `decor.tsx`), gồm 4 lớp xa → gần:
+dải trên · dải lớn + dải trắng + mảng coban · vệt sáng dọc đỉnh sóng · hạt nhiễu. **Hạt là chủ đạo, blur là đệm**:
+mỗi dải vẽ một quầng mờ nhạt + một bản _dissolve_ (mép vỡ thành hạt — filter giải thích trong
+`waveImage`). Đừng thay dissolve bằng blur to hơn: chủ sản phẩm đã chọn hạt.
 
-**Chữ (ADR 014).** Một họ sans duy nhất: **Hanken Grotesk** (tiêu đề + giao diện + bài đọc 17px),
-**JetBrains Mono** cho code. **Không serif.** Tự host qua Fontsource (`@fontsource-variable/*`,
+**Mỗi màn một cảnh nền — luật của chủ sản phẩm (2026-10-13): không hai màn nào trùng hình nền.**
+Hình sóng sinh từ tham số trong `components/shared/wave-scenes.ts`; mỗi màn một chỉ số trong
+`SCREENS` (khớp theo đường dẫn; 404 và lỗi truyền `scene`). Thêm `page.tsx` mới ⇒ **thêm một dòng
+vào CUỐI `SCREENS`** (chèn giữa làm đổi nền mọi màn phía sau) — `wave-scenes.test.ts` đỏ nếu quên,
+và đỏ nếu hai cảnh gần nhau quá. Soát cả bộ ở mục "Lớp nền" của `/dev/ui` (21 cảnh cạnh nhau).
+
+**Mức `app`**: `fixed` sau AppShell, **đứng yên** (không trôi, không parallax), mặt nạ để sạch cột
+nội dung (`clear` = nửa `max-w`: 512 / 576 ở admin) — sóng chỉ ở hai lề + dải trên. Lý do đo được:
+`fg-subtle`/`accent` đặt thẳng trên coban không đạt 4.5:1 ở mọi cường độ ≥ 50%, mà nền `fixed` thì
+chữ cuộn qua mọi vùng. Dải trên chỉ nằm sau header (đặc tới 40px, tan hết ở 140px) — bản giữ tới
+300px làm tab con admin / breadcrumb chỉ còn 3.3–3.9:1. Đổi màn trong cùng layout thì hai cảnh hoà
+nhau 650ms (`animate-scene-in/out`).
+
+**Luật:** component dùng token ngữ nghĩa. Không mảng tối giữa trang sáng, không tím, không neon.
+
+**Chữ (ADR 014 + 018).** **Hanken Grotesk** cho giao diện + bài đọc 17px; **Playfair Display**
+(`font-display`, đứng 600–700, nghiêng 400 cho dòng dẫn) cho `h1` trang, tiêu đề hero, `h1/h2` bài
+đọc — chỉ ở cỡ ≥ 24px; **JetBrains Mono** cho code. Tự host qua Fontsource (`@fontsource-variable/*`,
 import ở `app/layout.tsx`) — không dùng `next/font/google`, vì bản đó tải font lúc dev/build và rơi
 về font dự phòng khi không có mạng. Độ đậm 400/500/600. Bẫy còn giữ:
 
@@ -134,9 +168,9 @@ Thêm token mới thì thêm luôn một ô màu vào `/dev/ui` (mục "Màu") �
   vào `useEffect`, sẽ nháy trắng với người dùng tông tối.
 - **Ép tông cho cây con** vẫn làm được (`data-theme="dark"` lên phần tử), nhưng ADR 012 **không
   dùng** nó trong trang sáng — mảng tối lạc giữa trang là dấu hiệu "AI slop" đã bị loại.
-- Logo đổi theo tông bằng CSS: thân `fill-fg`, mặt `fill-app` (ADR 015).
+- Logo đổi theo tông bằng CSS: thân `fill-lam-900` / `dark:fill-lam-200`, mặt `fill-app` (ADR 018).
 - `dark:` bám theo `data-theme`, không theo media query (`@custom-variant` ở `globals.css`).
-- Mascot chỉ trắng và đen (ADR 015): thân đen mặt trắng ở tông sáng, đảo lại ở tông tối — `components/shared/mascot.tsx`.
+- Mascot (ADR 018): thân navy mặt trắng ở tông sáng, thân lam nhạt mặt navy ở tông tối — `components/shared/mascot.tsx`.
 - Soát: `node scripts/capture-ui.mjs --dark <route>`. `audit-a11y.mjs` chỉ quét tông sáng; phiên 21
   quét tông tối riêng bằng `@axe-core/playwright` + `colorScheme: 'dark'` (15 màn, 0 vi phạm
   serious/critical) — lặp lại khi đổi màu.
@@ -211,6 +245,45 @@ nội dung không bao giờ được phép kẹt vô hình. Trạng thái "ẩn"
 `opacity-0`, để nếu paint có kẹt ở đâu đó thì ảnh chụp màn hình vẫn đọc được nội dung. Toàn bộ chi
 tiết + cách đo nằm trong docblock ngay trên `RevealOnScroll` ở `lib/motion.tsx` — đọc trước khi
 "sửa lại cho giống code cũ" hay thêm một component `*OnScroll` mới dùng `whileInView`.
+
+### Chuyển động nền (ADR 018, 2026-10-12)
+
+Ngoại lệ có chủ đích của luật 1 ở trên: chủ sản phẩm yêu cầu "chuyển động nhẹ" cho phong cách lam.
+Giữ nó **chỉ ở lớp nền** (`components/shared/decor.tsx`, `grain-waves.tsx`) và **chỉ bằng CSS**
+(keyframes trong `@theme` của `app/globals.css`), không qua `motion`. Ngoại lệ JS duy nhất: parallax
+theo chuột của `GrainWaves` hero — JS chỉ ghi `--px`/`--py`, phần dời vẫn là CSS:
+
+| Utility                        | Ở đâu                                        | Nhịp                                                     |
+| ------------------------------ | -------------------------------------------- | -------------------------------------------------------- |
+| `animate-wave-drift-a/b`       | hai lớp `GrainWaves` **hero** (app đứng yên) | 28s / 36s, trôi rồi về chỗ cũ                            |
+| `animate-scene-in/out`         | `GrainWaves` khi đổi màn trong cùng layout   | 650ms, cảnh cũ mờ đi trong khi cảnh mới hiện             |
+| `animate-twinkle`              | `<Sparkle twinkle={ms trễ}>`                 | 6s, co + mờ một nhịp ngắn, so le                         |
+| `animate-orbit-flow` · `-halo` | `<Orbit>`                                    | chấm chảy dọc vành 8s · vòng toả 3.6s                    |
+| `animate-rise` · `-draw-x`     | thẻ form + chữ hero, gạch `Eyebrow animated` | một lần khi mở trang, so le 80–120ms                     |
+| mũi tên trong nút              | `Icon name="arrow-right"` bên trong `Button` | hover: nhích 2px (`data-icon`)                           |
+| `.wave-parallax` (2026-10-13)  | 3 lớp `GrainWaves` **hero** (không ở `app`)  | sóng ngược chuột 6/12px · vệt sáng cùng chuột 14px, 1.4s |
+
+- Mọi keyframe lặp **quay về trạng thái nghỉ ở 100%**; khối `prefers-reduced-motion` đặt
+  `animation: none` cho cả bộ — phần tử đứng yên ở trạng thái nghỉ, chữ hero hiện đủ.
+- Chỉ animate `transform` / `opacity` / `stroke-dashoffset`.
+- **Bẫy đã đo (2026-10-12):** sóng ban đầu là `<svg>` nội tuyến có `feGaussianBlur` + hạt
+  `feTurbulence`. Khi Chromium vẽ bằng CPU (không GPU), chỉ một ngôi sao lấp lánh cũng làm trình
+  duyệt vẽ lại cả lớp blur mỗi khung hình: **61 → ~10 fps**. Đã đổi sóng + hạt sang `background-image`
+  `data:` SVG (giải mã một lần thành bitmap): sao/quỹ đạo 60 fps, sóng trôi ~30 fps khi vẽ bằng CPU,
+  61 fps khi có GPU. Đừng đưa sóng về `<svg>` nội tuyến; màu sóng vì thế nằm ở `WAVE_PALETTE`
+  trong `grain-waves.tsx` — **đồng bộ tay** với `--wave-*` / `--app` của `theme.css`. Cùng lý do,
+  không dùng shader WebGL cho nền: không GPU thì shader cũng vẽ bằng CPU.
+- **Đo lại 2026-10-13** (4 lớp + parallax + dissolve, `/login` 1440×900): CPU 31 fps nghỉ · 25 fps
+  khi rê chuột; GPU 61 · 60; rasterize lại khi đổi tông ~38ms. Thêm lớp nữa thì đo lại bằng Playwright `--disable-gpu`, đừng đoán.
+- Hai chiều có chủ đích: dải sóng **ngược** chuột (chiều sâu, nền không trôi về ô form đang bấm),
+  vệt sáng **cùng** chuột (con trỏ là nguồn sáng). `--depth` dương = ngược, âm = cùng.
+- Parallax chỉ ở `hero`: trong app người dùng rê chuột liên tục để làm bài, nền dịch theo tay là
+  xao nhãng. Tắt khi không có chuột thật (`hover: hover` + `pointer: fine`) hoặc khi giảm chuyển động.
+- **Đo 2026-10-13, nền `app` toàn khung nhìn** (`/settings`, cuộn liên tục, CPU): sóng trôi → **13 fps**
+  (lớp `fixed` có mặt nạ phải vẽ lại cả màn mỗi khung); đứng yên → **59 fps**. Vì vậy `app` không
+  trôi. Đừng bật lại trôi cho `app` mà không đo lại.
+- Pane trình duyệt của app desktop khi bị ẩn chặn `requestAnimationFrame` — parallax "không chạy"
+  ở đó là bình thường; kiểm bằng Playwright (chờ hydrate xong rồi mới `mouse.move`).
 
 ## 4b. Hình khối: bóng nhẹ, không phải viền dày
 
@@ -348,8 +421,8 @@ này chỉ `join(' ')` nên `<Button className="bg-white">` vẫn ra nền của
   header `@ts-nocheck` (phải đứng **trên** `'use client'`). Xem `docs/adr/006-...`.
 - `MascotState` cố tình hẹp hơn 40 state của thư viện — chỉ những state ứng với vị trí `[SPEC]`
   cho phép mới có mặt.
-- Mascot **chỉ trắng và đen** (ADR 015), phẳng: 3 điểm dừng `gradient` cùng một màu, `effects={false}`
-  (hiệu ứng vendor chạy qua nhiều hue). Không sửa file vendor — truyền qua props của wrapper.
+- Mascot navy (ADR 018): 3 điểm dừng `gradient` coban → navy, `effects={false}` (hiệu ứng vendor
+  chạy qua nhiều hue ngoài bảng màu). Không sửa file vendor — truyền qua props của wrapper.
 - Component tự tôn trọng `prefers-reduced-motion`.
 
 ## 7b. Logo
@@ -419,7 +492,7 @@ code. Đừng vô tình đảo ngược chúng.
   ≥ 4.5:1 trên `panel`, `app` và `muted` ở **cả hai tông** (số đo ghi trong `theme.css`).
 - Trong cây con tông tối (sidebar, banner) dùng chính các token đó — chúng tự thành chữ sáng. Chữ
   trắng mờ trên banner aurora: `text-white/75` trở lên.
-- Đơn sắc (ADR 015): không bậc màu nào có hue; chữ dùng `fg` / `fg-muted` / `fg-subtle`.
+- Lam học thuật (ADR 018): chữ dùng `fg` / `fg-muted` / `fg-subtle`; chữ đặt trên `GrainWaves` dùng `fg` (navy), không `fg-muted` **và không `accent`** — mảng coban đậm làm chữ xám-lam tụt tương phản (đo 2026-10-14: số bước 01/03 `accent` 24px chỉ 2.7:1). Vệt sáng tông tối cố ý dịu (`#93a8ee`) vì nó có thể chạy ngay sau chữ sáng.
 
 ## 11. Cố ý KHÔNG làm
 
@@ -445,4 +518,5 @@ code. Đừng vô tình đảo ngược chúng.
 - [ ] Màn có dữ liệu vẫn đủ 5 trạng thái
 - [ ] Không đụng khối `[SPEC]` trong `theme.css`
 - [ ] `node scripts/audit-a11y.mjs` sạch (nếu chạm tới màu / form / heading)
+- [ ] `node scripts/audit-contrast.mjs` sạch (nếu chạm tới nền sóng, màu chữ hay vị trí chữ trên nền)
 - [ ] Enum của API được dịch, không lọt ra màn hình dạng thô

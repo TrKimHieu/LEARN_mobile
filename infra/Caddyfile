@@ -1,0 +1,31 @@
+# Một origin cho web + API + tệp tải lên — ADR 017.
+#   https://{$DOMAIN}/api/*              → api:4000   (web và app mobile gọi chung)
+#   https://{$DOMAIN}/learn-documents/*  → minio:9000 (presigned URL; Host giữ nguyên để chữ ký SigV4 khớp)
+#   https://{$DOMAIN}/*                  → web:3000
+# Caddy tự xin/gia hạn chứng chỉ Let's Encrypt cho {$DOMAIN} (vd 3-1-2-4.sslip.io). Chạy thử trên
+# máy dev: DOMAIN=localhost → Caddy dùng chứng chỉ nội bộ (trình duyệt báo không tin cậy — bình thường).
+
+{$DOMAIN} {
+	encode zstd gzip
+
+	handle /api/* {
+		reverse_proxy api:4000
+	}
+
+	handle /learn-documents/* {
+		# Tệp tải lên tối đa 25MB (UPLOAD_MAX_BYTES) — chừa biên.
+		request_body {
+			max_size 30MB
+		}
+		reverse_proxy minio:9000
+	}
+
+	handle {
+		reverse_proxy web:3000
+	}
+
+	header {
+		Strict-Transport-Security "max-age=31536000"
+		-Server
+	}
+}

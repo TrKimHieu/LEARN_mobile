@@ -26,7 +26,9 @@ COPY packages/ui/package.json packages/ui/package.json
 # Schema Prisma phải nằm trong context lúc `npm ci` (postinstall chạy `prisma generate`).
 COPY packages/db/prisma packages/db/prisma
 
-RUN npm ci
+# Cache npm của BuildKit + thử lại khi mạng chập chờn: build lại không tải lại ~1.500 gói từ đầu.
+RUN --mount=type=cache,target=/root/.npm \
+    npm ci --fetch-retries=5 --fetch-retry-mintimeout=20000 --fetch-retry-maxtimeout=120000
 
 COPY . .
 
@@ -49,11 +51,16 @@ COPY packages/ui/package.json packages/ui/package.json
 
 # --ignore-scripts: postinstall (`prisma generate`) không cần — client đã generate
 # ở builder và được copy xuống. Tránh npm chạy script lúc install rồi fail vì thiếu prisma CLI.
-RUN npm ci --omit=dev --ignore-scripts -w apps/api
+RUN --mount=type=cache,target=/root/.npm \
+    npm ci --fetch-retries=5 --fetch-retry-mintimeout=20000 --fetch-retry-maxtimeout=120000 \
+      --omit=dev --ignore-scripts -w apps/api
 
 # Prisma client đã generate (engine + client) — copy từ builder, KHÔNG generate lại lúc runtime.
 COPY --from=builder /app/node_modules/.prisma node_modules/.prisma
 COPY --from=builder /app/node_modules/@prisma/client node_modules/@prisma/client
+# Client Prisma của repo sinh ra `packages/db/generated/client` (schema.prisma `output`), đường dẫn
+# này được ghi cứng vào client lúc sinh — chép đúng chỗ để bundle tìm thấy query engine Linux.
+COPY --from=builder /app/packages/db/generated packages/db/generated
 # Bundle tsup (apps/api/dist/main.js) — phụ thuộc @learn/* và native (@node-rs/argon2) đã có trong node_modules.
 COPY --from=builder /app/apps/api/dist apps/api/dist
 

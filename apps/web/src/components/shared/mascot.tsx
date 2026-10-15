@@ -49,20 +49,19 @@ const CircleAvatar = dynamic(() => import('./mascot/CircleAvatar'), {
 });
 
 /**
- * Màu mascot — ADR 015: **chỉ trắng và đen**.
+ * Màu mascot — ADR 018 (lam học thuật; trước là trắng/đen, ADR 015).
  *
- * Tông sáng: thân đen, mắt + miệng trắng — cũng chính là màu gốc của bản export Blob Studio
- * (`DEFAULT_GRADIENT` đen tuyền). Tông tối: đảo lại (thân trắng, mặt đen), vì thân đen chìm
- * hẳn trên nền gần đen. Vendor nhận `gradient` 3 điểm dừng; truyền cùng một màu cho cả ba là
- * thân phẳng, không phải sửa file vendor (ADR 006).
+ * Tông sáng: thân navy `lam-900`, mắt + miệng trắng. Tông tối: thân lam nhạt `lam-200`, mặt navy
+ * — thân navy chìm trên nền đêm navy. Vendor nhận `gradient` 3 điểm dừng: navy → coban nhẹ cho
+ * thân có chiều sâu như dải sóng nền, không phải sửa file vendor (ADR 006).
  *
- * `effects={false}`: hiệu ứng của vendor (vệt sao chổi, pháo giấy quanh mascot) chạy qua
- * nhiều hue — phá quy tắc đơn sắc. Pháo giấy khi qua bài ở `lib/celebrate.ts` đã là thang xám.
+ * `effects={false}`: hiệu ứng của vendor (vệt sao chổi, pháo giấy quanh mascot) chạy qua nhiều
+ * hue ngoài bảng màu. Pháo giấy khi qua bài ở `lib/celebrate.ts` dùng thang lam.
  */
-const BLACK = '#111111';
+const NAVY = '#18286A';
 const WHITE = '#FFFFFF';
-const BODY_LIGHT: [string, string, string] = [BLACK, BLACK, BLACK];
-const BODY_DARK: [string, string, string] = [WHITE, WHITE, WHITE];
+const BODY_LIGHT: [string, string, string] = ['#2C49B0', NAVY, '#0E1745'];
+const BODY_DARK: [string, string, string] = ['#EEF2FB', '#D6E0F7', '#B5C6F0'];
 
 export function Mascot({
   state,
@@ -89,7 +88,7 @@ export function Mascot({
         size={size}
         expression={expression}
         gradient={dark ? BODY_DARK : BODY_LIGHT}
-        eyeColor={dark ? BLACK : WHITE}
+        eyeColor={dark ? NAVY : WHITE}
         effects={false}
       />
     </span>

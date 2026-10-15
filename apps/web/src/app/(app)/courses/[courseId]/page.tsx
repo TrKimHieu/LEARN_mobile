@@ -167,7 +167,7 @@ export default function CourseDetailPage({ params }: { params: Promise<{ courseI
       {/* ------------------------------------------------ đầu trang */}
       <header className="mt-6 grid gap-8 md:grid-cols-[minmax(0,1fr)_14rem] md:items-end">
         <div className="min-w-0">
-          <h1 className="text-[2.25rem] font-semibold leading-tight tracking-[-0.025em] text-fg sm:text-[2.75rem]">
+          <h1 className="font-display text-[2.375rem] font-semibold leading-[1.08] text-fg sm:text-[3.125rem]">
             {course.data.title}
           </h1>
           {course.data.description && (

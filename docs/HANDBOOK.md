@@ -398,7 +398,7 @@ Spec ghi rõ stack là **khuyến nghị, không bắt buộc** `[SPEC]`. Dướ
 | Tầng          | Chọn `[QĐ]`                                                            | Phiên bản | Lý do                                                                                        |
 | ------------- | ---------------------------------------------------------------------- | --------- | -------------------------------------------------------------------------------------------- |
 | Frontend      | **Next.js (App Router) + TypeScript**                                  | 15.x      | SSR cho marketing site tốt SEO, cùng ngôn ngữ với backend                                    |
-| CSS           | **Tailwind CSS**                                                       | 4.x       | Spec khuyến nghị; token màu map thẳng từ bảng màu spec — đơn sắc trắng → đen (ADR 015; trước là navy/xám/sky) |
+| CSS           | **Tailwind CSS**                                                       | 4.x       | Spec khuyến nghị; token màu map thẳng từ bảng màu spec — lam học thuật navy/coban (ADR 018; trước là đơn sắc ADR 015) |
 | Data fetching | **TanStack Query**                                                     | 5.x       | Spec khuyến nghị; xử lý cache và polling job gọn                                             |
 | Backend       | **NestJS + TypeScript**                                                | 11.x      | Cấu trúc module rõ ràng, map 1-1 với các module trong spec                                   |
 | ORM           | **Prisma**                                                             | 6.x       | Migration tường minh, kiểu sinh tự động                                                      |
@@ -859,7 +859,7 @@ enum CourseMemberRole { OWNER EDITOR VIEWER }
 | ----------- | ---------------------------------------------------------------------------- |
 | Base URL    | `/api/v1` — version nằm trong path                                           |
 | Định dạng   | JSON. `camelCase` cho field. Thời gian là ISO-8601 UTC.                      |
-| Xác thực    | `Authorization: Bearer <accessToken>`; refresh token trong cookie `httpOnly` |
+| Xác thực    | `Authorization: Bearer <accessToken>`; refresh token trong cookie `httpOnly` (app mobile: trong body — ADR 016) |
 | Phân trang  | Cursor-based: `?limit=20&cursor=<id>` → trả `{ items, nextCursor }`          |
 | Sắp xếp     | `?sort=createdAt&order=desc` — chỉ chấp nhận field trong danh sách trắng     |
 | Idempotency | Header `Idempotency-Key` bắt buộc cho POST tạo AIJob và thanh toán           |
@@ -1261,6 +1261,7 @@ WHERE id = $1 AND status = 'QUEUED';
 | Băm mật khẩu          | **argon2id**, `memoryCost=19456, timeCost=2, parallelism=1`                         |
 | Access token          | JWT, sống **15 phút**, giữ trong memory phía client (không localStorage)            |
 | Refresh token         | Chuỗi ngẫu nhiên 256 bit, cookie `httpOnly; Secure; SameSite=Lax`, sống **30 ngày** |
+| Client native (mobile) | Header `x-learn-client: native` → refresh token đi qua **body**, cất trong Keychain/Keystore; ở chế độ này server không đọc cookie — ADR 016 |
 | Lưu refresh token     | Chỉ lưu **SHA-256 hash** trong DB                                                   |
 | Xoay vòng             | Mỗi lần refresh cấp token mới và thu hồi token cũ                                   |
 | Phát hiện tái sử dụng | Dùng lại token đã thu hồi → **thu hồi cả `familyId`**, buộc đăng nhập lại           |
@@ -1539,7 +1540,7 @@ hoặc tham chiếu thẳng một file:
 **Nên**
 
 - Giữ nguyên tỉ lệ; muốn đổi kích thước thì scale cả file
-- Chỉ hai màu trắng và đen (ADR 015): thân đen + mặt trắng trên nền sáng, thân trắng + mặt đen trên nền tối
+- Thân navy + mặt trắng trên nền sáng, thân lam nhạt + mặt navy trên nền tối (ADR 018; trước là trắng/đen, ADR 015)
 - Chừa khoảng trống quanh mascot ít nhất 25% chiều cao
 
 **Không**
@@ -1591,7 +1592,7 @@ Menu chính: **Home · Product · How It Works · Technical · Demo · GitHub**
 **Phong cách:** AI SaaS hiện đại, cao cấp nhưng tiết chế. Bố cục sạch. Phân cấp thị giác mạnh.
 Tông portfolio kỹ sư chuyên nghiệp. Phân tách rõ nội dung marketing và nội dung kỹ thuật.
 
-**Ngôn ngữ thị giác:** đơn sắc — chỉ các tông từ trắng tới đen, xám trung tính ở giữa, không hue nào (đổi 2026-09-28 theo quyết định chủ sản phẩm, ADR 015; trước là navy + xám + sky `#5EC8F5`). Thẻ bo góc.
+**Ngôn ngữ thị giác:** lam học thuật (đổi 2026-10-12 theo ảnh tham chiếu của chủ sản phẩm, ADR 018; trước là đơn sắc trắng → đen, ADR 015). Nền gần trắng có sóng gradient lam hạt nhiễu, chữ và nút chính navy `#0E1745`, điểm nhấn lam coban `#3A5FD0` (ngôi sao bốn cánh, quỹ đạo nét mảnh). Đúng/sai/cảnh báo được thêm một sắc xanh lá, đỏ, hổ phách trầm, luôn kèm icon + chữ. Tiêu đề lớn dùng serif biên tập (Playfair Display: đứng đậm cho tiêu đề, nghiêng cho dòng dẫn), giao diện và bài đọc vẫn sans. Thẻ bo góc.
 Gradient nhẹ. Mockup dashboard. Sơ đồ kiến trúc có đường nối rõ ràng. Font monospace cho code
 và metadata kỹ thuật. Mascot Circle ở hero, empty state, tiến độ AI Job và trạng thái lỗi —
 **không đặt trong các section kỹ thuật.**

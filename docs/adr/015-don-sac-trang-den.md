@@ -1,7 +1,7 @@
 # ADR 015 — Đơn sắc: chỉ các tông từ trắng tới đen; mascot chỉ trắng và đen
 
 - **Ngày:** 2026-09-28
-- **Trạng thái:** Đã chấp nhận
+- **Trạng thái:** Bị thay bởi ADR 018 (2026-10-12, lam học thuật)
 - **Đổi `[SPEC]`:** spec §14 "Suggested Visual Language", HANDBOOK §14.2 và §13.4 — đã sửa spec
   **trước** khi sửa code, đúng quy trình AGENTS.md.
 - **Thay thế:** bảng màu navy/xám/sky `#5EC8F5` (spec cũ), pastel của ADR 013, mascot sky của ADR 014.

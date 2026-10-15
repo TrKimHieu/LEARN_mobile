@@ -38,6 +38,8 @@ import {
   type BadgeTone,
 } from '@/components/ui';
 import { CourseCover } from '@/components/shared/course-cover';
+import { GrainWaves } from '@/components/shared/grain-waves';
+import { SCREENS } from '@/components/shared/wave-scenes';
 import { QuotaNotice } from '@/components/shared/quota-notice';
 import { LessonList } from '@/features/learning/lesson-list';
 import { CostChart } from '@/features/admin/cost-chart';
@@ -56,18 +58,20 @@ import { StaggerItem, StaggerList } from '@/lib/motion';
 
 const SPEC_TOKENS = [
   ['white', '#ffffff'],
-  ['mono-50', '#fafafa'],
-  ['mono-100', '#f2f2f2'],
-  ['mono-200', '#e5e5e5'],
-  ['mono-300', '#d4d4d4'],
-  ['mono-400', '#a3a3a3'],
-  ['mono-500', '#808080'],
-  ['mono-600', '#666666'],
-  ['mono-700', '#404040'],
-  ['mono-800', '#262626'],
-  ['mono-900', '#161616'],
-  ['mono-950', '#0e0e0e'],
-  ['black', '#000000'],
+  ['lam-50', '#f6f8fd'],
+  ['lam-100', '#eef2fb'],
+  ['lam-200', '#d6e0f7'],
+  ['lam-300', '#b5c6f0'],
+  ['lam-400', '#8aa4e6'],
+  ['lam-500', '#5b7fdb'],
+  ['lam-600', '#3a5fd0'],
+  ['lam-700', '#2c49b0'],
+  ['lam-800', '#213887'],
+  ['lam-900', '#18286a'],
+  ['lam-950', '#0e1745'],
+  ['xanh-700', '#16704f'],
+  ['do-700', '#b0202d'],
+  ['ho-phach-700', '#855600'],
 ] as const;
 
 /** Token ngữ nghĩa — ô màu đọc giá trị sống qua `var()`, nên đổi theo tông đang chọn. */
@@ -91,6 +95,11 @@ const SEMANTIC_TOKENS = [
   'warn',
   'warn-soft',
   'chart-1',
+  'wave-1',
+  'wave-2',
+  'wave-3',
+  'wave-4',
+  'spark',
   'primary',
   'line-input',
 ] as const;
@@ -177,7 +186,7 @@ function DevUi() {
 
         <Section id="tokens" title="Màu">
           <h3 className="mb-3 text-sm font-semibold text-fg">
-            Khối [SPEC] §14.2: đơn sắc trắng → đen (ADR 015)
+            Khối [SPEC] §14.2: lam học thuật (ADR 018)
           </h3>
           <ul className="grid grid-cols-2 gap-3 sm:grid-cols-4 lg:grid-cols-6">
             {SPEC_TOKENS.map(([name, hex]) => (
@@ -242,6 +251,30 @@ function DevUi() {
               ))}
             </div>
           </div>
+        </Section>
+
+        <Section id="backdrop" title="Lớp nền">
+          {/* Mỗi màn một cảnh (ADR 018, `wave-scenes.ts`) — soát cả bộ cạnh nhau để chắc không hai
+              cảnh nào na ná. Ô cuối: mức `app` với mặt nạ để sạch cột giữa (thu nhỏ `clear`). */}
+          <ul className="grid grid-cols-2 gap-3 md:grid-cols-3 lg:grid-cols-4">
+            {SCREENS.map(({ key }) => (
+              <li
+                key={key}
+                className="relative isolate aspect-[16/10] overflow-hidden rounded-card border border-line"
+              >
+                <GrainWaves variant="hero" scene={key} parallax={false} className="-z-10" />
+                <p className="absolute bottom-2 left-3 rounded bg-panel/80 px-1.5 font-mono text-2xs font-semibold text-fg">
+                  {key}
+                </p>
+              </li>
+            ))}
+            <li className="relative isolate aspect-[16/10] overflow-hidden rounded-card border border-line">
+              <GrainWaves variant="app" scene="dashboard" clear={70} className="-z-10" />
+              <p className="absolute bottom-2 left-3 rounded bg-panel/80 px-1.5 font-mono text-2xs font-semibold text-fg">
+                variant=&quot;app&quot;
+              </p>
+            </li>
+          </ul>
         </Section>
 
         <Section id="buttons" title="Nút">

@@ -31,11 +31,14 @@ export function ResetPasswordView() {
   const [error, setError] = useState<unknown>(null);
   const [submitting, setSubmitting] = useState(false);
   const [done, setDone] = useState(false);
+  // Mở thư trên điện thoại: cho phép tiếp tục trong app mobile (scheme `learn://`, bản APK/cài đặt).
+  const [onPhone, setOnPhone] = useState(false);
 
   useEffect(() => {
     const match = /(?:^|&)token=([^&]+)/.exec(window.location.hash.slice(1));
     setToken(match?.[1] ? decodeURIComponent(match[1]) : null);
     if (match) window.history.replaceState(null, '', window.location.pathname);
+    setOnPhone(/Android|iPhone|iPad/i.test(navigator.userAgent));
   }, []);
 
   async function onSubmit(e: FormEvent) {
@@ -117,6 +120,17 @@ export function ResetPasswordView() {
         title="Đặt mật khẩu mới"
         description="Chọn mật khẩu từ 8 ký tự. Sau khi đổi, mọi thiết bị đang đăng nhập sẽ bị đăng xuất."
       />
+      {onPhone && (
+        <p className="mb-5 text-sm text-fg-subtle">
+          Đã cài ứng dụng LEARN?{' '}
+          <a
+            href={`learn://reset-password?token=${encodeURIComponent(token)}`}
+            className="rounded-md font-semibold text-accent underline underline-offset-2 hover:no-underline focus-ring"
+          >
+            Mở trong ứng dụng
+          </a>
+        </p>
+      )}
       <form onSubmit={onSubmit} className="space-y-5" noValidate>
         <Field label="Mật khẩu mới" htmlFor="password" error={fieldError.password}>
           <PasswordInput

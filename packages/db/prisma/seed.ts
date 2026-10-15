@@ -75,15 +75,23 @@ async function main() {
     });
   }
 
-  const adminPw = await hashPassword('Admin@12345');
-  const demoPw = await hashPassword('Demo@12345');
+  // Production (server thật — docs/DEPLOY.md): mật khẩu admin BẮT BUỘC từ biến môi trường, không
+  // tạo tài khoản demo lẫn khóa học mẫu. Dev giữ nguyên tài khoản quen thuộc cho test/e2e.
+  const isProd = process.env.NODE_ENV === 'production';
+  const adminEmail = process.env.SEED_ADMIN_EMAIL || 'admin@learn.ai';
+  const adminPassword = process.env.SEED_ADMIN_PASSWORD || (isProd ? '' : 'Admin@12345');
+  if (isProd && adminPassword.length < 12) {
+    throw new Error('Production: đặt SEED_ADMIN_PASSWORD (ít nhất 12 ký tự) trước khi seed.');
+  }
+
+  const adminPw = await hashPassword(adminPassword);
 
   const admin = await prisma.user.upsert({
-    where: { email: 'admin@learn.ai' },
+    where: { email: adminEmail },
     update: {},
     create: {
       id: newId(),
-      email: 'admin@learn.ai',
+      email: adminEmail,
       passwordHash: adminPw,
       displayName: 'Admin LEARN',
       role: 'ADMIN',
@@ -91,6 +99,14 @@ async function main() {
     },
   });
 
+  if (isProd) {
+    console.log(
+      `Seed production hoàn tất: 3 gói + admin ${adminEmail} (mật khẩu từ SEED_ADMIN_PASSWORD).`,
+    );
+    return;
+  }
+
+  const demoPw = await hashPassword('Demo@12345');
   let demo = await prisma.user.findUnique({ where: { email: 'demo@learn.ai' } });
   if (!demo) {
     demo = await prisma.user.create({
@@ -248,7 +264,9 @@ async function main() {
   });
 
   console.log('Seed hoàn tất.');
-  console.log('  Admin: admin@learn.ai / Admin@12345');
+  console.log(
+    `  Admin: ${adminEmail} / ${adminPassword === 'Admin@12345' ? adminPassword : '(SEED_ADMIN_PASSWORD)'}`,
+  );
   console.log('  Đemo : demo@learn.ai  / Demo@12345');
 }
 

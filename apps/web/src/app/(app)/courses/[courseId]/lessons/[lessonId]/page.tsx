@@ -183,7 +183,7 @@ export default function LessonReadPage({
               {STATUS_LABEL[status] ?? humanizeCode(status)}
             </Badge>
           </div>
-          <h1 className="mt-2 text-[2.25rem] sm:text-[2.75rem] font-semibold leading-tight tracking-[-0.025em] text-fg">
+          <h1 className="mt-2 font-display text-[2.375rem] font-semibold leading-[1.08] text-fg sm:text-[3.125rem]">
             {data.title}
           </h1>
           {data.summary && !editing && (

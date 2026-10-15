@@ -1,7 +1,26 @@
 import { z } from 'zod';
 import { userPublicSchema } from './auth';
 import { courseSummarySchema } from './course';
-import { aiJobSummarySchema, aiJobDetailSchema } from './ai';
+import { aiCostMetricsSchema, aiJobSummarySchema, aiJobDetailSchema } from './ai';
+
+/**
+ * `GET /admin/metrics` — trước nằm riêng trong web (`admin-api.ts`); đưa vào contracts để API, web
+ * và app mobile cùng một kiểu (admin service khai báo kiểu trả về bằng type này).
+ */
+export const adminMetricsSchema = z.object({
+  generatedAt: z.string(),
+  totals: z.object({
+    users: z.number().int(),
+    usersToday: z.number().int(),
+    courses: z.number().int(),
+    documents: z.number().int(),
+    aiJobs: z.number().int(),
+    aiJobsToday: z.number().int(),
+    submissions: z.number().int(),
+    totalCostUsd: z.number(),
+  }),
+  dailyCosts: aiCostMetricsSchema,
+});
 
 export const adminUserSchema = userPublicSchema.extend({
   courseCount: z.number().int(),
@@ -41,6 +60,7 @@ export const auditLogEntrySchema = z.object({
   createdAt: z.string(),
 });
 
+export type AdminMetrics = z.infer<typeof adminMetricsSchema>;
 export type AdminUser = z.infer<typeof adminUserSchema>;
 export type AdminCourse = z.infer<typeof adminCourseSchema>;
 export type AdminSubscription = z.infer<typeof adminSubscriptionSchema>;

@@ -3,7 +3,6 @@
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import type { ProgressCourse } from '@learn/contracts';
-import { useAuth } from '@/features/auth/auth-context';
 import {
   useLessons,
   useProgressCourses,
@@ -31,18 +30,6 @@ import { absoluteTime, relativeTime } from '@/lib/format';
 /** Số lần làm bài gần nhất ở "Hoạt động gần đây". */
 const HISTORY_LIMIT = 5;
 
-function greeting(now = new Date()) {
-  const h = now.getHours();
-  if (h < 11) return 'Chào buổi sáng';
-  if (h < 18) return 'Chào buổi chiều';
-  return 'Chào buổi tối';
-}
-
-function todayLabel(now = new Date()) {
-  const s = now.toLocaleDateString('vi-VN', { weekday: 'long', day: 'numeric', month: 'long' });
-  return s.charAt(0).toUpperCase() + s.slice(1);
-}
-
 /**
  * Tổng quan — ADR 012.
  *
@@ -54,11 +41,9 @@ function todayLabel(now = new Date()) {
  */
 export default function DashboardPage() {
   const router = useRouter();
-  const { user } = useAuth();
   const overview = useProgressOverview();
   const courses = useProgressCourses();
   const history = useProgressHistory(HISTORY_LIMIT);
-  const firstName = user?.displayName?.trim().split(/\s+/).pop() ?? '';
 
   const all = courses.data?.courses ?? [];
   // Khóa đang dở, gần xong nhất trước — đẩy người học về đích; rồi tới khóa chưa bắt đầu.
@@ -69,8 +54,7 @@ export default function DashboardPage() {
     return (
       <div aria-busy="true" aria-live="polite">
         <span className="sr-only">Đang tải tổng quan</span>
-        <Skeleton className="h-4 w-40" />
-        <Skeleton className="mt-3 h-10 w-72" />
+        <Skeleton className="h-10 w-56" />
         <div className="mt-10 grid gap-10 lg:grid-cols-[minmax(0,1fr)_18rem]">
           <Skeleton className="h-44 rounded-card" />
           <Skeleton className="h-44 rounded-card" />
@@ -94,12 +78,11 @@ export default function DashboardPage() {
   }
 
   const data = overview.data;
-  const title = `${greeting()}${firstName ? `, ${firstName}` : ''}`;
 
   if (data.courseCount === 0) {
     return (
       <>
-        <Header title={title}>
+        <Header>
           Bắt đầu bằng một khóa học: đặt tên, tải tài liệu lên, rồi để AI dựng lộ trình bài học.
         </Header>
         <EmptyState
@@ -114,7 +97,7 @@ export default function DashboardPage() {
 
   return (
     <>
-      <Header title={title}>
+      <Header>
         {data.totalLessons > 0 ? (
           <>
             Bạn đã xong <b className="font-medium text-fg">{data.completedLessons}</b> trên{' '}
@@ -273,12 +256,11 @@ function rank(c: ProgressCourse) {
   return 2;
 }
 
-function Header({ title, children }: { title: string; children: React.ReactNode }) {
+function Header({ children }: { children: React.ReactNode }) {
   return (
     <header>
-      <p className="text-sm text-fg-subtle">{todayLabel()}</p>
-      <h1 className="mt-1 text-[2.25rem] font-semibold leading-tight tracking-[-0.025em] text-fg sm:text-[2.75rem]">
-        {title}
+      <h1 className="font-display text-[2.375rem] font-semibold leading-[1.08] text-fg sm:text-[3.125rem]">
+        Tổng quan
       </h1>
       <p className="mt-2 max-w-xl text-[0.9375rem] leading-relaxed text-fg-subtle">{children}</p>
     </header>

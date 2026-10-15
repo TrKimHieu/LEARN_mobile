@@ -1,29 +1,14 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import type {
+  AdminMetrics,
   AdminUser,
   AdminCourse,
   AdminSubscription,
   AdminAiJobList,
   AdminAiJobDetail,
   AuditLogEntry,
-  AiCostMetrics,
 } from '@learn/contracts';
 import { apiFetch } from '@/lib/api-client';
-
-interface AdminMetrics {
-  generatedAt: string;
-  totals: {
-    users: number;
-    usersToday: number;
-    courses: number;
-    documents: number;
-    aiJobs: number;
-    aiJobsToday: number;
-    submissions: number;
-    totalCostUsd: number;
-  };
-  dailyCosts: AiCostMetrics;
-}
 
 export function useAdminMetrics() {
   return useQuery({

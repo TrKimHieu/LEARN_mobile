@@ -11,6 +11,10 @@
  *
  * Chạy:  node scripts/audit-a11y.mjs
  * Ra:    bảng vi phạm ở stdout; exit code 1 nếu có vi phạm serious/critical.
+ *
+ * ⚠ axe KHÔNG đo được tương phản của chữ nằm trên ảnh nền (sóng hạt ADR 018): nó xếp vào
+ * "incomplete" (`bgOverlap`), không báo vi phạm. Chạy kèm `scripts/audit-contrast.mjs` — đo bằng
+ * điểm ảnh nền thật. "axe 0 vi phạm" một mình không đủ để kết luận tương phản.
  */
 import AxeBuilder from '@axe-core/playwright';
 import { chromium } from 'playwright';
@@ -23,7 +27,15 @@ const TAGS = ['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa', 'wcag22aa'];
 const LEARNER = { email: 'demo@learn.ai', password: 'Demo@12345' };
 const ADMIN = { email: 'admin@learn.ai', password: 'Admin@12345' };
 
-const ANON_ROUTES = ['/', '/login', '/register', '/forgot-password', '/reset-password'];
+// `/khong-ton-tai`: màn 404 có thương hiệu (nền + thẻ riêng), không có link nào dẫn tới.
+const ANON_ROUTES = [
+  '/',
+  '/login',
+  '/register',
+  '/forgot-password',
+  '/reset-password',
+  '/khong-ton-tai',
+];
 const LEARNER_ROUTES = ['/dashboard', '/courses', '/courses/new', '/progress', '/settings'];
 const ADMIN_ROUTES = [
   '/admin',
@@ -57,8 +69,24 @@ async function login(page, { email, password }) {
   await page.waitForURL(`${BASE}/dashboard`, { timeout: 20000 });
 }
 
+/** `href` của mọi link khớp `re` trên trang hiện tại — đọc ngay, không chờ link xuất hiện. */
+async function hrefs(page, re) {
+  const all = await page.$$eval('a[href]', (as) => as.map((a) => a.getAttribute('href') ?? ''));
+  return [...new Set(all.filter((h) => re.test(h)))];
+}
+
+/**
+ * Mở trang và chờ yên. Không dùng `waitUntil: 'networkidle'` làm điều kiện bắt buộc: màn bài học
+ * giữ kết nối mở nên không bao giờ "idle" và `goto` chết sau 30s. Chờ `load` (90s — lần đầu dev
+ * server biên dịch màn bài học mất ~60s), rồi cho thêm tối đa 10s để mạng lắng.
+ */
+async function open(page, route) {
+  await page.goto(`${BASE}${route}`, { waitUntil: 'load', timeout: 90000 });
+  await page.waitForLoadState('networkidle', { timeout: 10000 }).catch(() => {});
+}
+
 async function scan(page, route, results) {
-  await page.goto(`${BASE}${route}`, { waitUntil: 'networkidle' });
+  await open(page, route);
   await page
     .locator('.animate-pulse')
     .first()
@@ -110,26 +138,38 @@ async function main() {
   await login(lp, LEARNER);
   for (const r of LEARNER_ROUTES) await scan(lp, r, results);
 
-  // Chi tiết khóa học → bài học → bài tập: id động nên phải đi theo link thật.
-  await lp.goto(`${BASE}/courses`, { waitUntil: 'networkidle' });
-  const courseHref = await lp
-    .locator('a[href^="/courses/"]:not([href="/courses/new"])')
-    .first()
-    .getAttribute('href');
-  if (courseHref) {
-    await scan(lp, courseHref, results);
-    await lp.goto(`${BASE}${courseHref}`, { waitUntil: 'networkidle' });
-    const lessonHref = await lp.locator('a[href*="/lessons/"]').first().getAttribute('href');
+  // Chi tiết khóa học → bài học → bài tập: id động nên phải đi theo link thật. Chọn khóa học ĐẦU
+  // TIÊN CÓ BÀI — khóa đầu danh sách có thể chưa sinh bài, và trước đây `getAttribute` chờ một link
+  // bài học không bao giờ xuất hiện rồi làm sập cả script (màn admin phía sau không được audit).
+  await open(lp, '/courses');
+  let lessonHref = null;
+  let courseHref = null;
+  for (const href of await hrefs(lp, /^\/courses\/(?!new$)[^/]+$/)) {
+    courseHref ??= href;
+    await open(lp, href);
+    lessonHref = (await hrefs(lp, /^\/courses\/[^/]+\/lessons\/[^/]+$/))[0] ?? null;
     if (lessonHref) {
-      await scan(lp, lessonHref, results);
-      await scan(lp, `${lessonHref}/practice`, results);
+      courseHref = href;
+      break;
     }
+  }
+  if (courseHref) await scan(lp, courseHref, results);
+  if (lessonHref) {
+    await scan(lp, lessonHref, results);
+    await scan(lp, `${lessonHref}/practice`, results);
+  } else {
+    console.log('  ! không khóa học nào của tài khoản demo có bài — bỏ qua bài học/bài tập');
   }
 
   const admin = await browser.newContext(CONTEXT);
   const adp = await admin.newPage();
   await login(adp, ADMIN);
   for (const r of ADMIN_ROUTES) await scan(adp, r, results);
+  // Chi tiết một AI Job: id động, đi theo link đầu tiên của danh sách.
+  await open(adp, '/admin/ai-jobs');
+  const jobHref = (await hrefs(adp, /^\/admin\/ai-jobs\/[^/]+$/))[0];
+  if (jobHref) await scan(adp, jobHref, results);
+  else console.log('  ! chưa có AI Job nào — bỏ qua màn chi tiết');
 
   await browser.close();
 

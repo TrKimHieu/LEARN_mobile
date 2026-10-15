@@ -125,7 +125,11 @@ nhãn `Mở rộng tương lai`:
 - AI tutor hội thoại có bộ nhớ dài hạn.
 - Học xã hội (chia sẻ tiến trình, bảng xếp hạng giữa người dùng khác course).
 - Chợ course công khai (marketplace).
-- Ứng dụng di động native.
+- Ứng dụng di động native — **`Đang phát triển`** từ 2026-09-30 theo yêu cầu tường minh của chủ
+  sản phẩm: repo riêng `C:\Projects\LEARN_mobile` (Expo SDK 57), dùng chung API; backend thêm chế
+  độ refresh token cho client native (ADR 016). Gồm màn người học + Quản trị bản rút gọn; web và
+  app chạy chung một server (ADR 017). Đối chiếu từng tính năng: `docs/PARITY.md`. Vẫn ngoài phạm
+  vi MVP web — chưa chạy trên điện thoại thật.
 - Multi-tenancy doanh nghiệp.
 - Gamification phức tạp (huy hiệu, streak nâng cao ngoài chuỗi ngày học cơ bản).
 - Spaced repetition nâng cao.

@@ -243,7 +243,7 @@ function ExerciseSession({
             : 'Bài tập'}
           {` · ${total} câu, cần ${data.passScore} điểm để qua`}
         </p>
-        <h1 className="mt-1 text-[2.25rem] font-semibold leading-tight tracking-[-0.025em] text-fg">
+        <h1 className="mt-1 font-display text-[2.375rem] font-semibold leading-[1.08] text-fg sm:text-[3.125rem]">
           {data.title ?? 'Bài tập'}
         </h1>
         {data.instruction && (

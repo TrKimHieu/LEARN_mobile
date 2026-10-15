@@ -56,6 +56,9 @@ Hướng dẫn ký hiệu: `[ ]` chưa làm · `[~]` đang làm · `[x]` xong (c
 - [x] `POST /auth/refresh` có xoay vòng token — test tay: refresh qua cookie httpOnly thành công, token mới khác token cũ
 - [x] `POST /auth/logout` và `/auth/logout-all` — test tay: logout xong, refresh bằng cookie cũ bị 401 ngay
 - [x] `GET /auth/me` trả hồ sơ + gói + hạn mức còn lại — test tay: trả đúng user + plan FREE + usage
+- [x] Refresh token cho client native (app mobile, ADR 016): header `x-learn-client: native` → token
+      trong body, không cookie; native không bao giờ đọc cookie — **integration test 2026-09-30**
+      `native-auth.integration.test.ts` 5/5 (cùng `auth.integration.test.ts` 8/8 không vỡ)
 - [~] `PATCH /auth/me` — chưa test tay
 - [~] `POST /auth/change-password` thu hồi các phiên khác — chưa test tay
 - [ ] Băm argon2id đúng tham số ở HANDBOOK §10.1 — chưa verify tham số cụ thể
@@ -783,3 +786,50 @@ eslint, build web; kịch bản đầu-cuối qua API trên Postgres/Redis/MinIO
 - [ ] Gửi thư qua SMTP thật — mới kiểm `MAIL_MODE=log`
 - [x] Quét axe các màn mới — `/reset-password` thêm vào `scripts/audit-a11y.mjs` (20/20 màn 0 vi phạm);
       khối Nguồn, cảnh báo LOW, thanh chọn bài tập, ô độ khó, lịch sử có link: 0 vi phạm cả sáng lẫn tối
+
+## 20.23 Mobile đồng bộ web + một server chung (phiên 24d — 2026-09-30) — ADR 016, ADR 017
+
+Kế hoạch đã duyệt: `~/.claude/plans/l-p-k-ho-ch-smooth-simon.md`. App mobile ở repo riêng
+`LEARN_mobile`; đối chiếu từng tính năng ở `docs/PARITY.md`.
+
+- [x] Đặt lại mật khẩu trên mobile (`learn://reset-password?token=`) + link "Mở trong ứng dụng" trên
+      trang web khi mở bằng điện thoại
+- [x] Quản trị bản rút gọn trên mobile (số liệu, AI Job, chạy lại, nhật ký) — tab ẩn với người không
+      phải ADMIN (e2e xác nhận); `adminMetricsSchema` chuyển vào contracts, web + API dùng chung
+- [x] Màn "không tìm thấy" + ErrorBoundary gốc trên mobile
+- [x] Pháo giấy khi qua bài, mục lục đánh dấu mục đang đọc, mascot dựng từ dữ liệu vendor web
+- [x] `GET /api/v1/meta` (hash contracts + `MIN_MOBILE_VERSION`) — unit test; `CONTRACTS_HASH` +
+      test `version.test.ts` đỏ khi quên `npm run contracts:hash`
+- [x] `docs/PARITY.md` + quy tắc trong AGENTS.md
+- [x] Mobile có test: jest 15/15 (phiên đăng nhập: 401 → refresh đúng một lần; mất mạng giữ token…)
+- [x] Mobile e2e Playwright trên bản web: 22 màn (người học sáng/tối, tạo mới đầu-cuối, quản trị),
+      axe 0 vi phạm serious/critical (sửa 3 loại lỗi aria phát hiện được)
+- [x] `TRUST_PROXY` — sau Caddy, rate limit theo IP thật thay vì IP proxy
+- [x] Seed production: mật khẩu admin bắt buộc từ env, không tạo tài khoản demo
+- [x] `infra/docker-compose.prod.yml` + `Caddyfile` + `.env.prod.example` + `docs/DEPLOY.md`
+- [x] Build thật 3 Dockerfile (trước chưa từng kiểm chứng) — lộ lỗi lockfile thiếu `@node-rs/argon2`
+      bản Linux (npm/cli#4828): khai báo `optionalDependencies` ở `packages/db`
+- [x] Stack production chạy trọn trên máy dev (`DOMAIN=localhost`, cổng 8443): health/ready đều `up`,
+      seed production, luồng native (đăng ký → refresh body → tạo khóa → PUT presigned qua Caddy →
+      MinIO → trích xuất → sinh 6 bài), web đăng nhập + tải lại giữ phiên (cookie `Secure` cùng
+      origin), web thấy khóa học tạo từ luồng native. Lộ thêm lỗi Prisma client bản Windows lọt
+      vào image → `.dockerignore` loại `packages/db/generated`, runtime chép client sinh trong container
+- [ ] Deploy EC2 thật (người dùng tạo máy theo DEPLOY.md)
+- [ ] EAS: `eas init` / `update` / APK (cần người dùng đăng nhập Expo)
+- [ ] Checklist điện thoại thật (README mobile)
+
+## 20.24 Lam học thuật theo ảnh tham chiếu (phiên 25 — 2026-10-12) — ADR 018
+
+- [x] Spec §14 + HANDBOOK §14.2/§13.4 sửa sang lam học thuật TRƯỚC khi sửa code; ADR 015 → "bị thay"
+- [x] `theme.css`: thang `lam-50…950` + ok/bad/warn trầm, token ngữ nghĩa đo lại tương phản cả hai tông
+- [x] Playfair Display tự host (đứng + nghiêng), `h1` trang/hero/bài đọc dùng `font-display`
+- [x] `decor.tsx`: sóng lam hạt nhiễu (hero/ambient), sao bốn cánh, quỹ đạo, lưới chấm, eyebrow
+- [x] Đăng nhập/đăng ký/404 bố cục theo ảnh; shell có dải sóng ambient; mascot + logo + favicon navy
+- [x] typecheck · eslint · build · 264 unit · axe WCAG 2.2 AA 8 màn × 2 tông 0 serious/critical · 390px không tràn
+- [x] Chuyển động nhẹ bằng CSS (sóng trôi, sao lấp lánh, quỹ đạo, vào cảnh hero, mũi tên nút); tắt khi giảm chuyển động; đo fps GPU 61 · CPU ≥ 23–30
+- [x] Nền hạt chủ đạo (2026-10-13): mép sóng dissolve thành hạt + quầng mờ đệm, vệt sáng dọc đỉnh, parallax chuột 3 tầng chỉ ở hero; mục "Lớp nền" ở `/dev/ui`; CPU 31/25 fps · GPU 61/60
+- [x] Nền toàn site, mỗi màn một cảnh (2026-10-13): `wave-scenes.ts` + test chống trùng; app `fixed` chừa cột nội dung, đứng yên (CPU cuộn 59 fps); hoà cảnh khi đổi màn; axe 11 màn 0 vi phạm
+- [x] axe đủ 21 màn 0 vi phạm (2026-10-14): `audit-a11y.mjs` chọn khóa học có bài, chờ `load` thay `networkidle`, thêm 404 + chi tiết AI Job
+- [x] `scripts/audit-contrast.mjs` (mới) — tương phản chữ trên nền thật, axe bỏ qua (`bgOverlap`); tìm 9 lỗi, sửa xong: 0/20 màn × 2 tông; tự kiểm: cài lại lỗi cũ → bắt đúng 2.72:1
+- [ ] Chụp lại ảnh portfolio (`docs/screenshots/`) trên backend thật
+- [ ] Quyết định có đồng bộ phong cách này sang `LEARN_mobile` không

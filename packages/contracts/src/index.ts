@@ -13,3 +13,5 @@ export * from './progress';
 export * from './subscription';
 export * from './ai';
 export * from './admin';
+export * from './meta';
+export * from './version';
