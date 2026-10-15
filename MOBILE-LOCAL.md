@@ -20,12 +20,14 @@ Trong `../LEARN`:
 
 | Copy | Thành | Sửa gì |
 | --- | --- | --- |
+| `.env.example` (gốc) | `packages/db/.env` | Không cần sửa — Prisma (`db:migrate`, `db:seed`) lấy `DATABASE_URL` ở đây |
 | `apps/api/.env.example` | `apps/api/.env` | `S3_PUBLIC_ENDPOINT` = IP Wi‑Fi máy bạn, cổng 9000 |
 | `apps/worker/.env.example` | `apps/worker/.env` | Giữ `LLM_MODE=mock`, hoặc `live` + `LLM_API_KEY` **của bạn** |
 
 > [!IMPORTANT]
-> API và worker chỉ đọc `.env` trong thư mục của chính chúng (`apps/api/`, `apps/worker/`),
-> **không** đọc `.env` ở gốc repo.
+> API, worker và Prisma chỉ đọc `.env` trong thư mục của chính chúng (`apps/api/`, `apps/worker/`,
+> `packages/db/`), **không** đọc `.env` ở gốc repo. Thiếu `packages/db/.env` thì `npm run db:migrate`
+> báo lỗi thiếu `DATABASE_URL`.
 
 ## 3. Chạy
 
