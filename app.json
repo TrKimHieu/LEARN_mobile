@@ -36,6 +36,13 @@
     },
     "runtimeVersion": {
       "policy": "appVersion"
-    }
+    },
+    "extra": {
+      "router": {},
+      "eas": {
+        "projectId": "1d60d1e2-0017-4a99-ac67-1f02f5454443"
+      }
+    },
+    "owner": "trankimhieu"
   }
 }

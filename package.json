@@ -31,7 +31,8 @@
     "react-native-screens": "~4.26.0",
     "react-native-svg": "15.15.4",
     "react-native-web": "^0.21.2",
-    "zod": "^4.6.5"
+    "zod": "^4.6.5",
+    "@learn/api-contracts": "file:vendor/learn-api-contracts-1.0.0.tgz"
   },
   "devDependencies": {
     "@axe-core/playwright": "^4.13.0",
@@ -51,14 +52,15 @@
     "ios": "expo start --ios",
     "web": "expo start --web",
     "mock": "node mock-api/server.js",
-    "sync:contracts": "node scripts/sync-contracts.mjs",
-    "typecheck": "node scripts/sync-contracts.mjs --check && tsc --noEmit",
+    "typecheck": "tsc --noEmit",
     "lint": "expo lint",
     "doctor": "npx expo-doctor",
-    "test": "jest",
+    "test": "jest --runInBand",
     "e2e": "node e2e/run.mjs",
     "icons": "node scripts/gen-icons.mjs",
-    "mascot:data": "node scripts/gen-circle-data.mjs"
+    "mascot:data": "node scripts/gen-circle-data.mjs",
+    "export": "expo export --platform web",
+    "build:apk": "eas build --platform android --profile preview"
   },
   "private": true,
   "jest": {
