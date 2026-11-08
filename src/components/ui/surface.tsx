@@ -116,7 +116,7 @@ export function ProgressBar({
         overflow: 'hidden',
       }}
     >
-      <View style={{ width: `${pct}%`, height: '100%', backgroundColor: fill ?? p.fgMuted }} />
+      <View style={{ width: `${pct}%`, height: '100%', backgroundColor: fill ?? p.primary }} />
     </View>
   );
 }

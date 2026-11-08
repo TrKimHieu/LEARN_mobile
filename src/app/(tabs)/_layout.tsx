@@ -26,7 +26,7 @@ export default function TabsLayout() {
       backBehavior="history"
       screenOptions={{
         headerShown: false,
-        tabBarActiveTintColor: p.fg,
+        tabBarActiveTintColor: p.primary,
         tabBarInactiveTintColor: p.fgSubtle,
         // Cao đủ cho icon + nhãn (Hanken có dòng cao hơn font hệ thống) + vùng home indicator.
         tabBarStyle: {

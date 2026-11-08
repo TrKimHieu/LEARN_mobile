@@ -12,7 +12,7 @@
     },
     "android": {
       "adaptiveIcon": {
-        "backgroundColor": "#f1f1f1",
+        "backgroundColor": "#faf8f5",
         "foregroundImage": "./assets/android-icon-foreground.png",
         "backgroundImage": "./assets/android-icon-background.png",
         "monochromeImage": "./assets/android-icon-monochrome.png"
@@ -35,7 +35,10 @@
       "typedRoutes": true
     },
     "runtimeVersion": {
-      "policy": "appVersion"
+      "policy": "fingerprint"
+    },
+    "updates": {
+      "url": "https://u.expo.dev/1d60d1e2-0017-4a99-ac67-1f02f5454443"
     },
     "extra": {
       "router": {},

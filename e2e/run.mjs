@@ -105,7 +105,7 @@ async function learner(browser) {
   }
 }
 
-/** Tạo mới đầu-cuối: đăng ký → tạo khóa → tải tài liệu → trích xuất → sinh bài → đăng xuất. */
+/** M1: đăng ký → tạo khóa → xác nhận khóa nhập bản gốc → đăng xuất. */
 async function create(browser) {
   console.log('create');
   const { page, errors, close } = await newPage(browser, 'light');
@@ -125,15 +125,9 @@ async function create(browser) {
   await page.getByPlaceholder('Ví dụ: Nhập môn giao thức HTTP').fill('Git cơ bản (e2e)');
   await page.getByRole('button', { name: 'Tạo khóa học', exact: true }).click();
   await page.getByRole('heading', { name: 'Lộ trình bài học' }).waitFor({ timeout: 15000 });
-  const chooser = page.waitForEvent('filechooser');
-  await page.getByRole('button', { name: 'Chọn tệp để tải lên' }).click();
-  await (await chooser).setFiles(new URL('./fixtures/git-co-ban.md', import.meta.url).pathname.replace(/^\/([A-Za-z]:)/, '$1'));
-  await page.getByText('Đã trích xuất').waitFor({ timeout: 60000 });
-  await page.getByRole('button', { name: 'Sinh bài học', exact: true }).click();
-  await page.getByText(/AI Job ·|Đang kết nối/).first().waitFor({ timeout: 15000 });
-  await shot(page, 'create-03-ai-job', { axe: false });
-  await page.getByRole('button', { name: /^Bài 1:/ }).first().waitFor({ timeout: 120000 });
-  await shot(page, 'create-04-lessons');
+  await page.getByText(/Nhập tài liệu mới đang tạm khóa/).waitFor();
+  if (await page.getByRole('button', { name: 'Chọn tệp để tải lên' }).count()) failures.push('legacy upload available');
+  await shot(page, 'create-03-import-locked');
   await page.goBack();
   await page.waitForTimeout(1200);
   await tab(page, 'Cài đặt');

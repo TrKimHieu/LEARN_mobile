@@ -62,7 +62,8 @@ export function Button({
       style={({ pressed }) => [
         styles.base,
         {
-          height: HEIGHT[size],
+          minHeight: HEIGHT[size],
+          paddingVertical: space.sm,
           paddingHorizontal: size === 'sm' ? space.md : space.lg,
           backgroundColor: pressed ? bgPressed : bg,
           borderColor: border,
@@ -81,8 +82,7 @@ export function Button({
         )}
         <Txt
           variant={size === 'sm' ? 'smallStrong' : 'bodyStrong'}
-          style={{ color: fg }}
-          numberOfLines={1}
+          style={{ color: fg, flexShrink: 1, textAlign: 'center' }}
         >
           {label}
         </Txt>
@@ -138,6 +138,6 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
-  row: { flexDirection: 'row', alignItems: 'center', gap: space.sm },
+  row: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: space.sm, flexShrink: 1, maxWidth: '100%' },
   iconBtn: { borderRadius: radius.control, alignItems: 'center', justifyContent: 'center' },
 });

@@ -6,13 +6,16 @@
   "build": {
     "development": {
       "developmentClient": true,
+      "channel": "development",
       "distribution": "internal",
-      "environment": "development"
+      "environment": "development",
+      "env": { "APP_ENV": "development" }
     },
     "preview": {
       "distribution": "internal",
       "channel": "preview",
       "environment": "preview",
+      "env": { "APP_ENV": "preview" },
       "android": {
         "buildType": "apk"
       }
@@ -20,6 +23,7 @@
     "production": {
       "channel": "production",
       "environment": "production",
+      "env": { "APP_ENV": "production" },
       "autoIncrement": true
     }
   },

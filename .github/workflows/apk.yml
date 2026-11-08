@@ -7,6 +7,9 @@ jobs:
   apk:
     runs-on: ubuntu-latest
     environment: staging
+    env:
+      APP_ENV: preview
+      EXPO_PUBLIC_API_URL: ${{ vars.EXPO_PUBLIC_API_URL }}
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
@@ -16,7 +19,7 @@ jobs:
           eas-version: 27.3.0
           token: ${{ secrets.EXPO_TOKEN }}
       - run: npm ci
-      - run: npm run typecheck && npm test
+      - run: npm run lint && npm run typecheck && npm test
       - name: Build signed preview APK
         run: eas build --platform android --profile preview --non-interactive --wait --json > apk-build.json
       - uses: actions/upload-artifact@v4

@@ -11,7 +11,6 @@ import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { Button, Txt } from '@/components/ui';
 import { LogoMark, Mascot } from '@/components/mascot';
 import { AuthProvider, useAuth } from '@/features/auth/auth-context';
-import { config } from '@/lib/config';
 import { queryClient } from '@/lib/query-client';
 import { ThemeProvider, usePalette } from '@/theme/theme';
 import { dark, font, light, space } from '@/theme/tokens';
@@ -97,8 +96,7 @@ function RootNavigator() {
           Không kết nối được máy chủ
         </Txt>
         <Txt variant="small" tone="subtle" style={{ textAlign: 'center' }}>
-          Phiên đăng nhập vẫn được giữ trên máy. Kiểm tra điện thoại và máy chạy API ({config.apiUrl}) có cùng
-          mạng Wi‑Fi, rồi thử lại.
+          Phiên đăng nhập vẫn được giữ trên máy. Kiểm tra kết nối Internet rồi thử lại.
         </Txt>
         <Button label="Thử lại" icon="retry" onPress={retry} />
       </View>
