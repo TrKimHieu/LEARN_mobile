@@ -56,6 +56,8 @@
     "lint": "expo lint",
     "doctor": "npx expo-doctor",
     "test": "jest --runInBand",
+    "test:tooling": "node --test scripts/__tests__/*.test.mjs",
+    "sync:contracts": "node scripts/sync-contracts.mjs",
     "e2e": "node e2e/run.mjs",
     "icons": "node scripts/gen-icons.mjs",
     "mascot:data": "node scripts/gen-circle-data.mjs",
