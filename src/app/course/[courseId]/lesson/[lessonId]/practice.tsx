@@ -31,7 +31,7 @@ export default function PracticeScreen() {
 
   if (exercise.isLoading) {
     return (
-      <Screen>
+      <Screen width="reading">
         <LoadingState rows={4} height={120} label="Đang tải bài tập" />
       </Screen>
     );
@@ -39,7 +39,7 @@ export default function PracticeScreen() {
 
   if (exercise.isError) {
     return (
-      <Screen>
+      <Screen width="reading">
         {isNotFound(exercise.error) && exerciseParam ? (
           <EmptyState
             title="Không tìm thấy bài tập này"

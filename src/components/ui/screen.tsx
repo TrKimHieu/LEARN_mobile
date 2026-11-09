@@ -2,6 +2,7 @@ import { forwardRef, useState } from 'react';
 import { RefreshControl, ScrollView, StyleSheet, View, type ScrollViewInstance, type ScrollViewProps } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { usePalette } from '@/theme/theme';
+import { contentWidth, useLayout } from '@/theme/layout';
 import { space } from '@/theme/tokens';
 import { Txt } from './text';
 
@@ -16,10 +17,12 @@ export const Screen = forwardRef<
     onRefresh?: () => Promise<unknown>;
     topInset?: boolean;
     bottomSpace?: number;
+    width?: keyof typeof contentWidth;
   }
->(function Screen({ children, onRefresh, topInset = false, bottomSpace = space.xxl, contentContainerStyle, ...rest }, ref) {
+>(function Screen({ children, onRefresh, topInset = false, bottomSpace = space.xxl, width = 'wide', contentContainerStyle, ...rest }, ref) {
   const p = usePalette();
   const insets = useSafeAreaInsets();
+  const layout = useLayout();
   const [refreshing, setRefreshing] = useState(false);
 
   return (
@@ -30,7 +33,12 @@ export const Screen = forwardRef<
       keyboardShouldPersistTaps="handled"
       contentContainerStyle={[
         styles.content,
-        { paddingTop: (topInset ? insets.top : 0) + space.lg, paddingBottom: bottomSpace },
+        {
+          paddingTop: (topInset ? insets.top : 0) + space.lg,
+          paddingBottom: bottomSpace,
+          paddingLeft: insets.left + layout.gutter,
+          paddingRight: insets.right + layout.gutter,
+        },
         contentContainerStyle,
       ]}
       refreshControl={
@@ -52,7 +60,9 @@ export const Screen = forwardRef<
         ) : undefined
       }
     >
-      {children}
+      <View testID="screen-body" style={[styles.body, { maxWidth: contentWidth[width] }]}>
+        {children}
+      </View>
     </ScrollView>
   );
 });
@@ -89,7 +99,8 @@ export function PageHeader({
 }
 
 const styles = StyleSheet.create({
-  content: { paddingHorizontal: space.lg, gap: space.xl },
+  content: {},
+  body: { width: '100%', alignSelf: 'center', gap: space.xl },
   header: { gap: space.xs },
   headerRow: { flexDirection: 'row', alignItems: 'center', gap: space.md },
 });

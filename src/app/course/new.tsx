@@ -54,7 +54,7 @@ export default function NewCourseScreen() {
 
   return (
     <KeyboardAvoidingView style={{ flex: 1 }} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
-      <Screen>
+      <Screen width="reading">
         <Txt variant="small" tone="subtle">
           Đặt tên cho khóa học, sau đó tải tài liệu lên để AI sinh bài học.
         </Txt>
