@@ -75,3 +75,21 @@ Kiểm tra tự động: typecheck, lint (0 lỗi), 120 Jest, bundle web/Android
 - [ ] Bắt đầu bài khi offline → tắt chế độ máy bay → server ghi nhận đúng một lần
 - [ ] Viên "Offline" hiện/ẩn đúng; nộp bài khi offline hiện "Đã lưu bài làm" và server nhận đúng một lượt khi có mạng lại
 - [ ] Đăng xuất khi còn hàng chờ thì có hỏi; đăng nhập tài khoản khác không thấy cache cũ
+
+## R3 — Nhập tài liệu, trích chữ tại máy (2026-11-09)
+
+Plan: `docs/superpowers/plans/2026-11-09-r3-local-import.md`; quyết định: `docs/adr/004-local-extraction.md`. Nút "Nhập tài liệu" thay cho thông báo tạm khoá. Chọn PDF, ảnh hoặc `.txt`/`.md` → trích chữ tại máy → xem lại, đổi tên, sửa từng trang → gửi văn bản tới `POST /courses/:courseId/documents/text` (LEARN_backend#8, contracts 1.1.0). Upload tệp gốc vẫn bị chặn ở mobile.
+
+- PDF có chữ: pdf.js trong WebView ẩn, thư viện nằm sẵn trong bundle (`pdfjs-source.generated.ts`, tạo bằng `npm run gen:pdfjs`).
+- Ảnh và trang quét (dưới 20 ký tự): ML Kit Text Recognition tại máy. Expo Go không có module này, nên giữ các trang có chữ và báo số trang bị bỏ qua.
+- Giới hạn: 100 trang, 25 MiB, 30 giây. Server kiểm lại số ký tự và hạn mức.
+- Cần development build (`expo-dev-client`) để có OCR.
+
+Kiểm tra tự động: typecheck, lint (0 lỗi), 166 Jest, bundle web/Android/iOS đều qua. Chưa nghiệm thu trên thiết bị:
+- [ ] Development build Android/iOS cài được (`eas build --profile development`)
+- [ ] pdf.js nạp từ Blob URL trong Android WebView và iOS WKWebView (rủi ro lớn nhất; nếu lỗi thì nhúng thư viện dạng script thường)
+- [ ] PDF 100 trang có chữ xong trong 30 giây; RAM tăng ≤ 150 MiB
+- [ ] PDF quét và ảnh chụp chữ tiếng Việt có dấu được OCR đúng
+- [ ] PDF có mật khẩu hoặc tệp hỏng báo lỗi, không treo
+- [ ] Expo Go: nhập văn bản và PDF có chữ chạy được; ảnh báo cần bản cài đặt đầy đủ
+- [ ] Tài liệu nhập xong dùng được để sinh bài bằng AI

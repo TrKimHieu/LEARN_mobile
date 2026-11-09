@@ -71,7 +71,8 @@
     "icons": "node scripts/gen-icons.mjs",
     "mascot:data": "node scripts/gen-circle-data.mjs",
     "export": "expo export --platform web",
-    "build:apk": "eas build --platform android --profile preview"
+    "build:apk": "eas build --platform android --profile preview",
+    "gen:pdfjs": "node scripts/gen-pdfjs.mjs"
   },
   "private": true,
   "jest": {
