@@ -2,6 +2,8 @@ import { Tabs } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Icon, Txt, type IconName } from '@/components/ui';
 import { useAuth } from '@/features/auth/auth-context';
+import { tabBarOptionsFor } from '@/features/navigation/tab-bar-options';
+import { useLayout } from '@/theme/layout';
 import { usePalette } from '@/theme/theme';
 
 /**
@@ -19,6 +21,7 @@ const TABS: { name: string; title: string; icon: IconName; adminOnly?: boolean }
 export default function TabsLayout() {
   const p = usePalette();
   const insets = useSafeAreaInsets();
+  const layout = useLayout();
   const isAdmin = useAuth().user?.role === 'ADMIN';
   return (
     <Tabs
@@ -26,17 +29,9 @@ export default function TabsLayout() {
       backBehavior="history"
       screenOptions={{
         headerShown: false,
-        tabBarActiveTintColor: p.fg,
+        tabBarActiveTintColor: p.primary,
         tabBarInactiveTintColor: p.fgSubtle,
-        // Cao đủ cho icon + nhãn (Hanken có dòng cao hơn font hệ thống) + vùng home indicator.
-        tabBarStyle: {
-          backgroundColor: p.panel,
-          borderTopColor: p.line,
-          height: 68 + insets.bottom,
-          paddingTop: 6,
-          paddingBottom: insets.bottom + 6,
-        },
-        tabBarHideOnKeyboard: true,
+        ...tabBarOptionsFor(layout, insets, p),
         sceneStyle: { backgroundColor: p.app },
       }}
     >

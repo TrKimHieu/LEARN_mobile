@@ -1,6 +1,6 @@
 import { router } from 'expo-router';
 import { useRef, useState } from 'react';
-import { TextInput, View } from 'react-native';
+import { View, type TextInputInstance } from 'react-native';
 import { loginSchema } from '@/contracts';
 import { Button, Field, InlineError, PasswordField, Txt } from '@/components/ui';
 import { AuthLink, AuthShell } from '@/features/auth/components/auth-shell';
@@ -19,7 +19,7 @@ export default function LoginScreen() {
   const [fieldError, setFieldError] = useState<Partial<Record<FieldName, string>>>({});
   const [error, setError] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
-  const refs = { email: useRef<TextInput>(null), password: useRef<TextInput>(null) };
+  const refs = { email: useRef<TextInputInstance>(null), password: useRef<TextInputInstance>(null) };
 
   async function onSubmit() {
     setError(null);

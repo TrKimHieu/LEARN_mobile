@@ -71,11 +71,11 @@ export default function OverviewScreen() {
       <Screen topInset onRefresh={refresh}>
         <PageHeader
           title="Tổng quan"
-          description="Bắt đầu bằng một khóa học: đặt tên, tải tài liệu lên, rồi để AI dựng lộ trình bài học."
+          description="Tạo khóa học hoặc tiếp tục học từ tài liệu đã có."
         />
         <EmptyState
           title="Chưa có khóa học nào"
-          description="Tạo khóa học đầu tiên và tải tài liệu lên. AI sẽ sinh bài học và bài tập từ chính nội dung đó."
+          description="Bạn có thể tạo khóa học. Nhập tài liệu mới trên điện thoại đang được chuẩn bị; tài liệu thêm từ website vẫn dùng được."
           action={{ label: 'Tạo khóa học đầu tiên', icon: 'plus', onPress: () => router.push(routes.newCourse) }}
         />
       </Screen>
@@ -99,7 +99,7 @@ export default function OverviewScreen() {
                 .
               </>
             ) : (
-              'Các khóa của bạn chưa có bài học nào. Tải tài liệu lên để AI dựng lộ trình.'
+              'Các khóa của bạn chưa có bài học nào. Mở khóa có tài liệu đã xử lý để sinh bài học.'
             )}
           </Txt>
         }

@@ -1,10 +1,11 @@
 import * as Haptics from 'expo-haptics';
 import { useRef, useState } from 'react';
-import { Platform, ScrollView, StyleSheet, View } from 'react-native';
+import { Platform, StyleSheet, View, type ScrollViewInstance } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import type { ExerciseRead, SubmissionResult } from '@/contracts';
 import { Button, Icon, InlineError, ProgressBar, Screen, Txt } from '@/components/ui';
 import { errorText } from '@/lib/api-client';
+import { useIsOnline } from '@/lib/offline/network';
 import { usePalette } from '@/theme/theme';
 import { space } from '@/theme/tokens';
 import type { Answer, AnswerState } from '../answers';
@@ -38,7 +39,8 @@ export function ExerciseSession({
   const p = usePalette();
   const insets = useSafeAreaInsets();
   const submit = useSubmitExercise(courseId, lessonId);
-  const scrollRef = useRef<ScrollView>(null);
+  const online = useIsOnline();
+  const scrollRef = useRef<ScrollViewInstance>(null);
   const questionY = useRef(new Map<string, number>());
   const listY = useRef(0);
   const startedAt = useRef(Date.now());
@@ -166,7 +168,13 @@ export function ExerciseSession({
           </Txt>
           <ProgressBar value={answered} max={total} label={`Đã trả lời ${answered} trên ${total} câu`} />
         </View>
-        <Button label={submit.isPending ? 'Đang nộp…' : 'Nộp bài'} loading={submit.isPending} onPress={() => void handleSubmit()} />
+        {/* Nộp bài chưa idempotent nên không xếp hàng offline (plan R2): khoá nút khi mất mạng. */}
+        <Button
+          label={!online ? 'Cần mạng để nộp' : submit.isPending ? 'Đang nộp…' : 'Nộp bài'}
+          loading={submit.isPending}
+          disabled={!online}
+          onPress={() => void handleSubmit()}
+        />
       </ActionBar>
     </View>
   );

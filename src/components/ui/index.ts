@@ -4,5 +4,7 @@ export { Icon, type IconName } from './icon';
 export { Field, PasswordField } from './field';
 export { Card, Badge, ProgressBar, Skeleton, Divider, SectionTitle, Segmented } from './surface';
 export { ProgressRing } from './ring';
+export { FlipCard } from './flip-card';
 export { LoadingState, EmptyState, ErrorState, InlineError, Notice, QuotaNotice } from './states';
 export { Screen, PageHeader } from './screen';
+export { Grid } from './grid';

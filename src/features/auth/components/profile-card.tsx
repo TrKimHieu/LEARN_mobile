@@ -4,6 +4,8 @@ import { confirmAction } from '@/lib/dialog';
 import { humanizeCode } from '@/lib/format';
 import { usePalette } from '@/theme/theme';
 import { radius, space } from '@/theme/tokens';
+import { mayLogout } from '@/features/offline/logout-guard';
+import { useOffline } from '@/features/offline/offline-provider';
 import { useAuth } from '../auth-context';
 
 /** Nhãn tiếng Việt cho enum của API — không đổ mã máy ra màn hình (NN/g H2). */
@@ -12,6 +14,24 @@ const ROLE_LABEL: Record<string, string> = { LEARNER: 'Người học', ADMIN: '
 /** Hồ sơ người dùng đang đăng nhập + đăng xuất. */
 export function ProfileCard() {
   const { user, logout, logoutAll } = useAuth();
+  const offline = useOffline();
+
+  // Đăng xuất xoá cache và hàng chờ của tài khoản trên máy: gửi trước, còn sót thì hỏi.
+  async function endSession(end: () => Promise<void>) {
+    const ok = await mayLogout({
+      flush: offline.flush,
+      countPending: offline.countPending,
+      confirm: (n) =>
+        confirmAction({
+          title: `Còn ${n} thao tác chưa gửi`,
+          message: 'Đăng xuất bây giờ sẽ bỏ các thao tác này.',
+          confirmLabel: 'Bỏ và đăng xuất',
+        }),
+    });
+    if (!ok) return;
+    await offline.discard();
+    await end();
+  }
 
   // Đăng xuất mọi thiết bị: xác nhận hai nhịp — cùng mẫu với "Xoá bài học".
   async function confirmLogoutAll() {
@@ -21,7 +41,7 @@ export function ProfileCard() {
       confirmLabel: 'Đăng xuất hết',
       cancelLabel: 'Không',
     });
-    if (ok) await logoutAll();
+    if (ok) await endSession(logoutAll);
   }
 
   return (
@@ -44,7 +64,7 @@ export function ProfileCard() {
       </View>
       <Divider />
       <View style={{ gap: space.sm }}>
-        <Button label="Đăng xuất" icon="logout" variant="secondary" fullWidth onPress={() => void logout()} />
+        <Button label="Đăng xuất" icon="logout" variant="secondary" fullWidth onPress={() => void endSession(logout)} />
         <Button label="Đăng xuất mọi thiết bị" variant="ghost" fullWidth onPress={() => void confirmLogoutAll()} />
       </View>
     </Card>

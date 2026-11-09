@@ -1,5 +1,5 @@
 import { forwardRef, useState } from 'react';
-import { Pressable, StyleSheet, TextInput, View, type TextInputProps } from 'react-native';
+import { Pressable, StyleSheet, TextInput, View, type TextInputInstance, type TextInputProps } from 'react-native';
 import { usePalette } from '@/theme/theme';
 import { font, radius, space } from '@/theme/tokens';
 import { Icon } from './icon';
@@ -10,7 +10,7 @@ import { Txt } from './text';
  * + viền đậm, không chỉ bằng màu.
  */
 export const Field = forwardRef<
-  TextInput,
+  TextInputInstance,
   TextInputProps & {
     label: string;
     hint?: string;
@@ -83,7 +83,7 @@ export const Field = forwardRef<
 
 /** Ô mật khẩu có nút hiện/ẩn. */
 export const PasswordField = forwardRef<
-  TextInput,
+  TextInputInstance,
   Omit<React.ComponentProps<typeof Field>, 'secureTextEntry' | 'right'>
 >(function PasswordField(props, ref) {
   const p = usePalette();

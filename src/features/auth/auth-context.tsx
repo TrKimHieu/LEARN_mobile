@@ -9,6 +9,7 @@ import {
   setSessionExpiredHandler,
   storeSession,
 } from '@/lib/api-client';
+import { readLastUser, writeLastUser } from '@/lib/last-user';
 
 /**
  * `offline`: có phiên đã lưu nhưng không tới được máy chủ lúc mở app — khác `guest` (chưa đăng
@@ -38,6 +39,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     setUser(null);
     setStatus('guest');
     queryClient.clear();
+    void writeLastUser(null);
   }, [queryClient]);
 
   /** Mở app → đổi refresh token trong SecureStore lấy phiên mới. */
@@ -54,10 +56,22 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       if (session) {
         setUser(session.user as UserPublic);
         setStatus('authed');
+        void writeLastUser(session.user as UserPublic);
         return;
       }
       // refreshSession chỉ xoá token khi bị từ chối thật; token còn nghĩa là lỗi mạng.
-      setStatus((await readRefreshToken()) ? 'offline' : 'guest');
+      if (!(await readRefreshToken())) {
+        setStatus('guest');
+        return;
+      }
+      // Mất mạng nhưng phiên còn: vào bằng tài khoản gần nhất để đọc cache offline (R2).
+      // Request đầu tiên khi có mạng lại nhận 401 và api-client tự làm mới phiên.
+      const last = await readLastUser();
+      if (cancelled) return;
+      if (last) {
+        setUser(last);
+        setStatus('authed');
+      } else setStatus('offline');
     })();
     return () => {
       cancelled = true;
@@ -73,6 +87,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     await storeSession(data);
     setUser(data.user as UserPublic);
     setStatus('authed');
+    await writeLastUser(data.user as UserPublic);
   }, []);
 
   const login = useCallback(
