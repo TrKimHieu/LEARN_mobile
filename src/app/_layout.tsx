@@ -1,7 +1,3 @@
-import { HankenGrotesk_400Regular } from '@expo-google-fonts/hanken-grotesk/400Regular';
-import { HankenGrotesk_500Medium } from '@expo-google-fonts/hanken-grotesk/500Medium';
-import { HankenGrotesk_600SemiBold } from '@expo-google-fonts/hanken-grotesk/600SemiBold';
-import { HankenGrotesk_700Bold } from '@expo-google-fonts/hanken-grotesk/700Bold';
 import { QueryClientProvider } from '@tanstack/react-query';
 import { useFonts } from 'expo-font';
 import { Stack, type ErrorBoundaryProps } from 'expo-router';
@@ -12,17 +8,12 @@ import { Button, Txt } from '@/components/ui';
 import { LogoMark, Mascot } from '@/components/mascot';
 import { AuthProvider, useAuth } from '@/features/auth/auth-context';
 import { queryClient } from '@/lib/query-client';
+import { FONT_SOURCES } from '@/theme/fonts';
 import { ThemeProvider, usePalette } from '@/theme/theme';
 import { dark, font, light, space } from '@/theme/tokens';
 
 export default function RootLayout() {
-  // Nạp từng weight theo subpath — import từ gốc package kéo cả 18 file .ttf vào bundle.
-  const [fontsLoaded, fontError] = useFonts({
-    HankenGrotesk_400Regular,
-    HankenGrotesk_500Medium,
-    HankenGrotesk_600SemiBold,
-    HankenGrotesk_700Bold,
-  });
+  const [fontsLoaded, fontError] = useFonts(FONT_SOURCES);
   // Lỗi nạp font thì vẫn chạy bằng font hệ thống, không kẹt ở màn trắng.
   if (!fontsLoaded && !fontError) return null;
 

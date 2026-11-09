@@ -69,12 +69,14 @@ export const dark: Palette = {
   overlay: 'rgba(0,0,0,0.5)',
 };
 
-/** Existing bundled font fallback. Inter/Plus Jakarta migration awaits dependency access (ADR 002). */
+/** Inter cho giao diện và bài đọc, Plus Jakarta Sans cho tiêu đề — cùng website (ADR 002). Nạp trong `fonts.ts`. */
 export const font = {
-  regular: 'HankenGrotesk_400Regular',
-  medium: 'HankenGrotesk_500Medium',
-  semibold: 'HankenGrotesk_600SemiBold',
-  bold: 'HankenGrotesk_700Bold',
+  regular: 'Inter_400Regular',
+  medium: 'Inter_500Medium',
+  semibold: 'Inter_600SemiBold',
+  bold: 'Inter_700Bold',
+  displaySemibold: 'PlusJakartaSans_600SemiBold',
+  displayBold: 'PlusJakartaSans_700Bold',
 } as const;
 
 export const space = { xs: 4, sm: 8, md: 12, lg: 16, xl: 24, xxl: 32, xxxl: 48 } as const;
@@ -82,9 +84,9 @@ export const radius = { control: 14, card: 20, panel: 24, pill: 9999 } as const;
 
 /** Chữ nhỏ nhất 14px cho nội dung đọc — NFR-UX-07 của LEARN; 12–13px chỉ cho nhãn phụ. */
 export const text = {
-  display: { fontFamily: font.bold, fontSize: 30, lineHeight: 36, letterSpacing: -0.5 },
-  title: { fontFamily: font.bold, fontSize: 24, lineHeight: 30, letterSpacing: -0.3 },
-  heading: { fontFamily: font.semibold, fontSize: 18, lineHeight: 24 },
+  display: { fontFamily: font.displayBold, fontSize: 30, lineHeight: 36, letterSpacing: -0.5 },
+  title: { fontFamily: font.displayBold, fontSize: 24, lineHeight: 30, letterSpacing: -0.3 },
+  heading: { fontFamily: font.displaySemibold, fontSize: 18, lineHeight: 24 },
   body: { fontFamily: font.regular, fontSize: 16, lineHeight: 24 },
   bodyStrong: { fontFamily: font.semibold, fontSize: 16, lineHeight: 24 },
   small: { fontFamily: font.regular, fontSize: 14, lineHeight: 20 },
