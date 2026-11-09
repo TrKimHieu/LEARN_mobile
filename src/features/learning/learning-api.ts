@@ -9,6 +9,7 @@ import type {
   ProgressOverview,
 } from '@/contracts';
 import { apiFetch } from '@/lib/api-client';
+import { queueOrSend } from '@/lib/offline/outbox';
 
 /** Cùng endpoint và query key với `apps/web/src/features/learning/learning-api.ts`. */
 export function useLessons(courseId: string) {
@@ -41,7 +42,10 @@ export function useLessonSources(courseId: string, lessonId: string, enabled: bo
 export function useStartLesson(courseId: string, lessonId: string) {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: () => apiFetch(`/api/v1/courses/${courseId}/lessons/${lessonId}/start`, { method: 'POST' }),
+    mutationFn: () => {
+      const path = `/api/v1/courses/${courseId}/lessons/${lessonId}/start`;
+      return queueOrSend({ method: 'POST', path }, () => apiFetch(path, { method: 'POST' }));
+    },
     onSuccess: () => {
       void queryClient.invalidateQueries({ queryKey: ['courses', courseId, 'lessons'] });
     },
