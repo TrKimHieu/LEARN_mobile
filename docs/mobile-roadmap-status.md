@@ -43,3 +43,17 @@ Chạy `npm run sync:contracts`, `npm run lint`, `npm run typecheck`, `npm test`
 Kết quả cục bộ ngày 2026-11-09: typecheck, SHA artifact và các bộ test Jest/Node tooling đã chạy; kết quả cuối được ghi trong progress của task. Export web/iOS/Android đã tạo JS/Hermes bundle, chưa phải binary ký/cài lên thiết bị. Kiểm thử UI Playwright chưa chạy được vì bộ duyệt tự động từ chối lệnh mở Expo dev server. Mock API thử nghiệm đã dừng sau đó. Các test chống downgrade environment, loopback, phân vùng token, reset thẻ và thông báo screen reader đã được thấy thất bại trước sửa. Kiểm kích thước chữ/bố cục thật vẫn cần thiết bị.
 
 Chưa nghiệm thu: staging login → khóa → bài/nguồn → luyện tập → tiến trình; Android/iOS safe area/Back/keyboard/dark mode/chữ lớn/screen reader; cài mới/nâng cấp; ownership/live AI/recovery của roadmap đầy đủ.
+
+## Responsive và xoay ngang (2026-11-09)
+
+Theo `docs/adr/003-responsive-layout.md` và plan `docs/superpowers/plans/2026-11-09-responsive-landscape.md`. App mở xoay; `useLayout()` phân loại cửa sổ compact/medium/expanded (600/840 dp) và `shortHeight` (< 480). `Screen` và thanh hành động chừa tai thỏ hai bên, nội dung giới hạn 480/720/1200. Lưới khóa học 1/2/3 cột, số liệu 2/4 cột. Cửa sổ rộng dùng rail trái. Tablet ngang có mục lục bài học thành cột. Đăng nhập chia đôi khi điện thoại ngang.
+
+Kiểm tra tự động: typecheck, lint (0 lỗi), 77 Jest, 6 tooling và bundle web/Android/iOS đều qua.
+
+Chưa nghiệm thu trên thiết bị. Cần kiểm trên Expo Go:
+- [ ] Điện thoại dọc/ngang: mọi tab, chi tiết khóa, bài học, làm bài, kết quả, đăng nhập
+- [ ] Xoay khi đang gõ đăng nhập; xoay khi mục lục mở; xoay giữa bài làm
+- [ ] Tai thỏ ở cả hai hướng ngang
+- [ ] Chữ hệ thống lớn nhất, dọc và ngang
+- [ ] Tablet dọc/ngang; chia đôi màn hình Android
+- [ ] Sáng và tối
