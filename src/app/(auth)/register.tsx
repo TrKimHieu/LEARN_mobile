@@ -1,6 +1,6 @@
 import { router } from 'expo-router';
 import { useRef, useState } from 'react';
-import { TextInput, View } from 'react-native';
+import { View, type TextInputInstance } from 'react-native';
 import { registerSchema } from '@/contracts';
 import { Button, Field, InlineError, PasswordField } from '@/components/ui';
 import { AuthLink, AuthShell } from '@/features/auth/components/auth-shell';
@@ -21,9 +21,9 @@ export default function RegisterScreen() {
   const [error, setError] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
   const refs = {
-    displayName: useRef<TextInput>(null),
-    email: useRef<TextInput>(null),
-    password: useRef<TextInput>(null),
+    displayName: useRef<TextInputInstance>(null),
+    email: useRef<TextInputInstance>(null),
+    password: useRef<TextInputInstance>(null),
   };
 
   async function onSubmit() {

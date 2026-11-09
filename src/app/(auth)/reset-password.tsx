@@ -1,6 +1,6 @@
 import { router, useLocalSearchParams } from 'expo-router';
 import { useRef, useState } from 'react';
-import { TextInput, View } from 'react-native';
+import { View, type TextInputInstance } from 'react-native';
 import { resetPasswordSchema } from '@/contracts';
 import { Mascot } from '@/components/mascot';
 import { Button, InlineError, PasswordField, Txt } from '@/components/ui';
@@ -21,7 +21,7 @@ export default function ResetPasswordScreen() {
   const [confirm, setConfirm] = useState('');
   const [fieldError, setFieldError] = useState<{ password?: string; confirm?: string }>({});
   const [done, setDone] = useState(false);
-  const confirmRef = useRef<TextInput>(null);
+  const confirmRef = useRef<TextInputInstance>(null);
   const reset = useResetPassword();
   const { error, isPending: submitting } = reset;
 

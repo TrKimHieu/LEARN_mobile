@@ -1,6 +1,6 @@
 import { router } from 'expo-router';
 import { forwardRef, useEffect, useState } from 'react';
-import { ScrollView, StyleSheet, View } from 'react-native';
+import { StyleSheet, View, type ScrollViewInstance } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import type { ExerciseRead, SubmissionResult } from '@/contracts';
 import { Confetti } from '@/components/celebrate';
@@ -18,7 +18,7 @@ export interface NextLesson {
 }
 
 export const ResultView = forwardRef<
-  ScrollView,
+  ScrollViewInstance,
   {
     data: ExerciseRead;
     result: SubmissionResult;

@@ -1,5 +1,5 @@
 import { forwardRef, useState } from 'react';
-import { RefreshControl, ScrollView, StyleSheet, View, type ScrollViewProps } from 'react-native';
+import { RefreshControl, ScrollView, StyleSheet, View, type ScrollViewInstance, type ScrollViewProps } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { usePalette } from '@/theme/theme';
 import { space } from '@/theme/tokens';
@@ -10,7 +10,7 @@ import { Txt } from './text';
  * `topInset`: màn trong Tabs không có header native nên tự chừa tai thỏ.
  */
 export const Screen = forwardRef<
-  ScrollView,
+  ScrollViewInstance,
   ScrollViewProps & {
     children: React.ReactNode;
     onRefresh?: () => Promise<unknown>;

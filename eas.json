@@ -9,13 +9,18 @@
       "channel": "development",
       "distribution": "internal",
       "environment": "development",
-      "env": { "APP_ENV": "development" }
+      "env": {
+        "APP_ENV": "development"
+      }
     },
     "preview": {
       "distribution": "internal",
       "channel": "preview",
       "environment": "preview",
-      "env": { "APP_ENV": "preview" },
+      "env": {
+        "APP_ENV": "preview",
+        "EXPO_PUBLIC_API_URL": "https://3-107-190-42.sslip.io"
+      },
       "android": {
         "buildType": "apk"
       }
@@ -23,7 +28,10 @@
     "production": {
       "channel": "production",
       "environment": "production",
-      "env": { "APP_ENV": "production" },
+      "env": {
+        "APP_ENV": "production",
+        "EXPO_PUBLIC_API_URL": "https://3-107-190-42.sslip.io"
+      },
       "autoIncrement": true
     }
   },

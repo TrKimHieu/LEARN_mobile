@@ -1,6 +1,6 @@
 import { router, Stack, useLocalSearchParams } from 'expo-router';
 import { useEffect, useMemo, useRef, useState } from 'react';
-import { Modal, Pressable, ScrollView, StyleSheet, View } from 'react-native';
+import { Modal, Pressable, ScrollView, StyleSheet, View, type ScrollViewInstance } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Markdown, useMarkdown } from '@/components/markdown';
 import {
@@ -39,7 +39,7 @@ export default function LessonScreen() {
   const del = useDeleteLesson(courseId);
   const startMutate = start.mutate;
 
-  const scrollRef = useRef<ScrollView>(null);
+  const scrollRef = useRef<ScrollViewInstance>(null);
   const contentY = useRef(0);
   const blockY = useRef(new Map<number, number>());
   const sourcesY = useRef(0);
