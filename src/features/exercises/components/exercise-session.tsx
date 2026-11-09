@@ -3,7 +3,7 @@ import { useRef, useState } from 'react';
 import { Platform, StyleSheet, View, type ScrollViewInstance } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import type { ExerciseRead, SubmissionResult } from '@/contracts';
-import { Button, Icon, InlineError, ProgressBar, Screen, Txt } from '@/components/ui';
+import { Button, Icon, InlineError, Notice, ProgressBar, Screen, Txt } from '@/components/ui';
 import { errorText } from '@/lib/api-client';
 import { useIsOnline } from '@/lib/offline/network';
 import { usePalette } from '@/theme/theme';
@@ -48,6 +48,8 @@ export function ExerciseSession({
   const [result, setResult] = useState<SubmissionResult | null>(null);
   const [submitError, setSubmitError] = useState<string | null>(null);
   const [missingId, setMissingId] = useState<string | null>(null);
+  /** Lượt nộp đã vào hàng chờ vì mất mạng; app tự gửi khi có mạng lại. */
+  const [queued, setQueued] = useState(false);
 
   function setAnswer(a: Answer) {
     setAnswers((prev) => ({ ...prev, [a.questionId]: a }));
@@ -81,6 +83,11 @@ export function ExerciseSession({
         exerciseId: data.id,
         durationMs: Math.min(3_600_000, Math.max(1, Date.now() - startedAt.current)),
       });
+      if (!res) {
+        setQueued(true);
+        haptic(Haptics.NotificationFeedbackType.Success);
+        return;
+      }
       setResult(res);
       haptic(res.passed ? Haptics.NotificationFeedbackType.Success : Haptics.NotificationFeedbackType.Warning);
       scrollTop();
@@ -159,6 +166,11 @@ export function ExerciseSession({
         </View>
 
         {submitError && <InlineError>{submitError}</InlineError>}
+        {queued && (
+          <Notice icon="check">
+            Đã lưu bài làm. App sẽ tự nộp khi có mạng; xem điểm ở Tiến trình sau đó.
+          </Notice>
+        )}
       </Screen>
 
       <ActionBar>
@@ -168,11 +180,11 @@ export function ExerciseSession({
           </Txt>
           <ProgressBar value={answered} max={total} label={`Đã trả lời ${answered} trên ${total} câu`} />
         </View>
-        {/* Nộp bài chưa idempotent nên không xếp hàng offline (plan R2): khoá nút khi mất mạng. */}
+        {/* Mất mạng vẫn nộp được: lượt nộp vào hàng chờ với Idempotency-Key (LEARN_backend#7). */}
         <Button
-          label={!online ? 'Cần mạng để nộp' : submit.isPending ? 'Đang nộp…' : 'Nộp bài'}
+          label={queued ? 'Đã lưu, chờ mạng' : submit.isPending ? 'Đang nộp…' : online ? 'Nộp bài' : 'Lưu để nộp sau'}
           loading={submit.isPending}
-          disabled={!online}
+          disabled={queued}
           onPress={() => void handleSubmit()}
         />
       </ActionBar>

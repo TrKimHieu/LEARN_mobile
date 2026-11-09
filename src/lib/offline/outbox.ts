@@ -6,17 +6,26 @@ export type OutboxRequest = {
   method: OutboxItem['method'];
   path: string;
   body?: unknown;
+  /** Key đã dùng cho lần gửi trực tiếp — giữ nguyên khi xếp hàng để server nhận ra lần gửi lại. */
+  eventId?: string;
 };
 
-const QUEUEABLE_START = /^\/api\/v1\/courses\/[^/]+\/lessons\/[^/]+\/start$/;
+/**
+ * Chỉ request server xử lý idempotent mới được xếp hàng: bắt đầu bài (idempotent sẵn) và nộp bài
+ * (server nhận `Idempotency-Key` = `eventId`, LEARN_backend#7).
+ */
+const QUEUEABLE = [
+  /^\/api\/v1\/courses\/[^/]+\/lessons\/[^/]+\/start$/,
+  /^\/api\/v1\/lessons\/[^/]+\/exercise\/submit$/,
+];
 
-/** Chỉ request server xử lý idempotent mới được xếp hàng. */
 export function isQueueable(method: string, path: string): boolean {
-  return method === 'POST' && QUEUEABLE_START.test(path);
+  return method === 'POST' && QUEUEABLE.some((re) => re.test(path));
 }
 
+/** Không tới được server: lỗi ném thẳng từ fetch, hoặc `ApiClientError` status 0 do `apiFetch` bọc lại. */
 export function isNetworkError(err: unknown): boolean {
-  return !(err instanceof ApiClientError);
+  return !(err instanceof ApiClientError) || err.status === 0;
 }
 
 export async function enqueue(
@@ -29,7 +38,7 @@ export async function enqueue(
     throw new Error(`Request không được xếp hàng: ${req.method} ${req.path}`);
   }
   const item: OutboxItem = {
-    eventId: uuid(),
+    eventId: req.eventId ?? uuid(),
     method: req.method,
     path: req.path,
     body: req.body === undefined ? null : JSON.stringify(req.body),
