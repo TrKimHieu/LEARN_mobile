@@ -48,6 +48,14 @@ describe('apiFetch + refreshSession', () => {
     expect(headers['Authorization']).toBe('Bearer access-expired');
   });
 
+  it('gửi kèm header riêng (Idempotency-Key) nhưng không cho ghi đè header client', async () => {
+    const fetchFn = mockFetch(() => json(200, { ok: true }));
+    await apiFetch('/api/v1/meta', { headers: { 'Idempotency-Key': 'k1', 'x-learn-client': 'web' } });
+    const headers = fetchFn.mock.calls[0]![1]!.headers as Record<string, string>;
+    expect(headers['Idempotency-Key']).toBe('k1');
+    expect(headers['x-learn-client']).toBe('native');
+  });
+
   it('nhiều request cùng dính 401 chỉ gây MỘT lượt refresh, rồi đều thành công', async () => {
     let refreshCalls = 0;
     const fetchFn = mockFetch((url, init) => {

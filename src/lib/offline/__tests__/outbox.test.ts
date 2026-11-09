@@ -13,17 +13,20 @@ jest.mock('expo-crypto', () => ({ randomUUID: () => 'uuid-default' }));
 
 const START = '/api/v1/courses/c1/lessons/l1/start';
 const req = { method: 'POST', path: START } as const;
+const SUBMIT = '/api/v1/lessons/l1/exercise/submit';
 
 function item(id: string, createdAt: number): OutboxItem {
   return { eventId: id, method: 'POST', path: START, body: null, createdAt, attempts: 0, lastError: null };
 }
 
 describe('isQueueable', () => {
-  it('chỉ nhận POST lesson start', () => {
+  it('chỉ nhận POST lesson start và nộp bài (server idempotent theo Idempotency-Key)', () => {
     expect(isQueueable('POST', START)).toBe(true);
     expect(isQueueable('GET', START)).toBe(false);
-    expect(isQueueable('POST', '/api/v1/lessons/l1/exercise/submit')).toBe(false);
+    expect(isQueueable('POST', SUBMIT)).toBe(true);
+    expect(isQueueable('PUT', SUBMIT)).toBe(false);
     expect(isQueueable('POST', `${START}/x`)).toBe(false);
+    expect(isQueueable('POST', '/api/v1/courses')).toBe(false);
   });
 });
 
@@ -34,10 +37,13 @@ describe('enqueue', () => {
     expect(it).toMatchObject({ eventId: 'u1', createdAt: 100, attempts: 0, body: '{"a":1}' });
     expect(await store.count()).toBe(1);
   });
-  it('ném lỗi với path submit', async () => {
-    await expect(
-      enqueue(memoryOutbox(), { method: 'POST', path: '/api/v1/lessons/l1/exercise/submit' }),
-    ).rejects.toThrow();
+  it('ném lỗi với path không queueable', async () => {
+    await expect(enqueue(memoryOutbox(), { method: 'POST', path: '/api/v1/courses' })).rejects.toThrow();
+  });
+  it('giữ eventId đã dùng cho lần gửi trực tiếp, để server nhận ra lần gửi lại', async () => {
+    const store = memoryOutbox();
+    const it = await enqueue(store, { method: 'POST', path: SUBMIT, body: {}, eventId: 'k1' }, 1, () => 'other');
+    expect(it.eventId).toBe('k1');
   });
 });
 
@@ -98,9 +104,13 @@ describe('flushOutbox', () => {
 });
 
 describe('isNetworkError', () => {
-  it('false với ApiClientError, true với lỗi khác', () => {
+  it('false với lỗi server, true với lỗi mạng', () => {
     expect(isNetworkError(new ApiClientError(500, undefined, 'x'))).toBe(false);
+    expect(isNetworkError(new ApiClientError(409, 'CONFLICT', 'x'))).toBe(false);
     expect(isNetworkError(new Error('x'))).toBe(true);
+  });
+  it('true với lỗi mạng mà apiFetch thật ném ra (status 0, code NETWORK)', () => {
+    expect(isNetworkError(new ApiClientError(0, 'NETWORK', 'offline'))).toBe(true);
   });
 });
 
@@ -125,8 +135,16 @@ describe('queueOrSend', () => {
   it('không queueable thì ném lại', async () => {
     setOutboxSink(jest.fn());
     await expect(
-      queueOrSend({ method: 'POST', path: '/api/v1/lessons/l1/exercise/submit' }, async () => { throw new Error('net'); }),
+      queueOrSend({ method: 'POST', path: '/api/v1/courses' }, async () => { throw new Error('net'); }),
     ).rejects.toThrow('net');
+  });
+  it('lỗi mạng thật của apiFetch thì xếp hàng', async () => {
+    const sink = jest.fn().mockResolvedValue(undefined);
+    setOutboxSink(sink);
+    await expect(
+      queueOrSend(req, async () => { throw new ApiClientError(0, 'NETWORK', 'offline'); }),
+    ).resolves.toBeUndefined();
+    expect(sink).toHaveBeenCalledWith(req);
   });
   it('ApiClientError thì ném lại', async () => {
     const sink = jest.fn();

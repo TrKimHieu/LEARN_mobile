@@ -46,11 +46,18 @@ export function OfflineProvider({ children }: { children: React.ReactNode }) {
   const flush = useCallback(async () => {
     const s = session.current;
     if (!s || !onlineManager.isOnline()) return;
-    await flushOutbox(s.outbox, (item) =>
-      apiFetch(item.path, { method: item.method, body: item.body ? JSON.parse(item.body) : undefined }).then(() => undefined),
+    const { sent } = await flushOutbox(s.outbox, (item) =>
+      apiFetch(item.path, {
+        method: item.method,
+        body: item.body ? JSON.parse(item.body) : undefined,
+        // Gửi lại cùng key: server trả kết quả lần đầu thay vì ghi thêm (LEARN_backend#7).
+        headers: { 'Idempotency-Key': item.eventId },
+      }).then(() => undefined),
     );
     await refreshCount();
-  }, [refreshCount]);
+    // Bài nộp / bài bắt đầu từ hàng chờ đã tới server: tiến độ và điểm trên máy đã cũ.
+    if (sent > 0) await queryClient.invalidateQueries();
+  }, [refreshCount, queryClient]);
 
   const closeSession = useCallback(async () => {
     const s = session.current;

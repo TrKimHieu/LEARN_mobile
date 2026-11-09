@@ -63,6 +63,8 @@ export interface ApiRequestOptions {
   method?: 'GET' | 'POST' | 'PATCH' | 'PUT' | 'DELETE';
   body?: unknown;
   retried?: boolean;
+  /** Header thêm, ví dụ `Idempotency-Key` khi nộp bài. */
+  headers?: Record<string, string>;
 }
 
 /** Envelope lỗi chuẩn HANDBOOK §7.3: {type, title, status, code, detail, requestId, meta}. */
@@ -90,7 +92,7 @@ export async function apiFetch<T = unknown>(
   options: ApiRequestOptions = {},
 ): Promise<T> {
   const { method = 'GET', body, retried = false } = options;
-  const headers: Record<string, string> = { [CLIENT_HEADER]: NATIVE_CLIENT };
+  const headers: Record<string, string> = { ...options.headers, [CLIENT_HEADER]: NATIVE_CLIENT };
   if (accessToken) headers['Authorization'] = `Bearer ${accessToken}`;
   if (body !== undefined) headers['Content-Type'] = 'application/json';
 
