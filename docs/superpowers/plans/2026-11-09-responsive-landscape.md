@@ -28,6 +28,21 @@
 4. Tiêu đề khóa học tiếng Việt rất dài trong lưới 3 cột: không tràn ô, các ô cùng hàng cao bằng nhau. → Task 4 (test `numberOfLines` trên tiêu đề thẻ, hàng `alignItems: 'stretch'`).
 5. Cửa sổ chia đôi Android hẹp (< 360 dp) hoặc chữ hệ thống 200 %: vẫn 1 cột, tab ở đáy, không cột phụ. → Task 1 (test `layoutFor(320, 640)`), checklist thiết bị ở Task 7.
 
+## Chạy song song
+
+Mục tiêu 40 phút. Chia theo file sở hữu, để không có hai agent cùng sửa một file. Mọi agent làm chung một thư mục, không commit; điều phối viên commit từng task sau khi gộp.
+
+| Bước | Ai | Task | File sở hữu |
+| --- | --- | --- | --- |
+| 0 | Điều phối | 1, 2 (trừ Modal) | `src/theme/layout.ts`, `app.json`, test của hai task |
+| 1 | Agent A | 3 | `src/components/ui/screen.tsx`, `course/new.tsx`, `lesson/[lessonId]/edit.tsx`, `practice.tsx`, `(tabs)/settings.tsx` |
+| 1 | Agent B | 4 | `grid.tsx`, `ui/index.ts`, `features/courses/**`, `(tabs)/courses.tsx`, `progress-stats.tsx`, `(tabs)/admin.tsx` |
+| 1 | Agent C | 5 | `features/navigation/tab-bar-options.ts`, `(tabs)/_layout.tsx` |
+| 1 | Agent D | 6 + Modal của Task 2 | `features/navigation/screen-modes.ts`, `lesson/[lessonId]/index.tsx`, `action-bar.tsx`, `auth-shell.tsx` |
+| 2 | Điều phối | Gộp, chạy kiểm tra toàn bộ, Task 7 | `docs/**` |
+
+Agent D dùng prop `width` của `Screen` mà Agent A thêm. Khi chạy riêng, lỗi typecheck chỉ ở prop đó là chấp nhận được; nó hết sau bước 2. Mỗi agent chỉ chạy Jest cho test của mình (`npx jest <đường-dẫn>`); typecheck/lint toàn bộ chạy ở bước 2.
+
 ---
 
 ### Task 1: Phân loại cửa sổ `layoutFor` và hook `useLayout`
