@@ -84,7 +84,7 @@ describe('flushOutbox', () => {
     const r = await flushOutbox(store, send);
     expect(send).toHaveBeenCalledTimes(1);
     expect(r.remaining).toBe(2);
-    expect((await store.list())[0].attempts).toBe(1);
+    expect((await store.list())[0]?.attempts).toBe(1);
   });
 
   it('flush đồng thời chỉ gửi mỗi mục một lần', async () => {

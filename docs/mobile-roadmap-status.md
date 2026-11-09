@@ -57,3 +57,20 @@ Kiểm tra tự động: typecheck, lint (0 lỗi), 77 Jest, 6 tooling và bundl
 - [ ] Chữ hệ thống lớn nhất, dọc và ngang
 - [ ] Tablet dọc/ngang; chia đôi màn hình Android
 - [ ] Sáng và tối
+
+## R2 — Dữ liệu offline SQLite (2026-11-09)
+
+Plan: `docs/superpowers/plans/2026-11-09-r2-offline-sqlite.md`. Mỗi tài khoản một file SQLite (`learn-<env>-<hash origin>-<userId>.db`, migration theo `PRAGMA user_version`) gồm bảng `kv` và `outbox`.
+
+- Cache React Query của khóa, bài, bài tập được lưu và khôi phục khi mở app. Không lưu `meta` và màn quản trị. Bỏ cache khi đổi contracts hoặc phiên bản app; cache tồn tại tối đa 7 ngày.
+- Mở app khi mất mạng mà phiên còn: vào bằng tài khoản gần nhất (`last-user.ts`, SecureStore theo environment + origin) để đọc cache. Có mạng lại thì api-client tự làm mới phiên.
+- Hàng chờ gửi chỉ nhận `POST …/lessons/:id/start` (server idempotent). Gửi lại khi có mạng và khi app về foreground; 4xx thì bỏ mục, lỗi mạng hoặc 5xx thì giữ lại.
+- Nộp bài chưa idempotent ở backend nên khi offline nút bị khoá ("Cần mạng để nộp"). Muốn nộp offline, backend cần nhận `Idempotency-Key` trước.
+- Đăng xuất: gửi hàng chờ trước, còn sót thì hỏi; sau đó xoá DB của tài khoản. Hết phiên thì chỉ đóng DB.
+- Bản web dùng store trong bộ nhớ (`sqlite.web.ts`), không lưu bền.
+
+Kiểm tra tự động: typecheck, lint (0 lỗi), 120 Jest, bundle web/Android/iOS đều qua. Chưa nghiệm thu trên thiết bị:
+- [ ] Xem khóa → bật chế độ máy bay → đóng hẳn app → mở lại → vẫn thấy khóa, bài, bài tập
+- [ ] Bắt đầu bài khi offline → tắt chế độ máy bay → server ghi nhận đúng một lần
+- [ ] Viên "Offline" hiện/ẩn đúng; nút nộp bị khoá khi offline
+- [ ] Đăng xuất khi còn hàng chờ thì có hỏi; đăng nhập tài khoản khác không thấy cache cũ
