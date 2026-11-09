@@ -1,13 +1,15 @@
 import { StyleSheet, View } from 'react-native';
 import type { ProgressOverview } from '@/contracts';
-import { Icon, Txt, type IconName } from '@/components/ui';
+import { Grid, Icon, Txt, type IconName } from '@/components/ui';
+import { useLayout } from '@/theme/layout';
 import { usePalette } from '@/theme/theme';
 import { radius, space } from '@/theme/tokens';
 
 /** Bốn ô số liệu của màn Tổng quan — mỗi số liệu hiện đúng một lần (ADR 012). */
 export function ProgressStats({ data }: { data: ProgressOverview }) {
+  const { statColumns } = useLayout();
   return (
-    <View style={styles.stats}>
+    <Grid columns={statColumns}>
       <Stat icon="flame" label="Chuỗi ngày học" value={String(data.activeStreak)} sub="ngày liên tiếp" />
       <Stat icon="book-check" label="Bài đã xong" value={`${data.completedLessons}/${data.totalLessons}`} />
       <Stat
@@ -17,7 +19,7 @@ export function ProgressStats({ data }: { data: ProgressOverview }) {
         sub={data.averageScore === null ? 'chưa nộp bài nào' : undefined}
       />
       <Stat icon="layers" label="Khóa học" value={String(data.courseCount)} />
-    </View>
+    </Grid>
   );
 }
 
@@ -48,9 +50,7 @@ function Stat({ icon, label, value, sub }: { icon: IconName; label: string; valu
 }
 
 const styles = StyleSheet.create({
-  stats: { flexDirection: 'row', flexWrap: 'wrap', gap: space.md },
   stat: {
-    flexBasis: '47%',
     flexGrow: 1,
     padding: space.lg,
     gap: space.xs,

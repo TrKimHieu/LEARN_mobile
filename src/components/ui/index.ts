@@ -7,3 +7,4 @@ export { ProgressRing } from './ring';
 export { FlipCard } from './flip-card';
 export { LoadingState, EmptyState, ErrorState, InlineError, Notice, QuotaNotice } from './states';
 export { Screen, PageHeader } from './screen';
+export { Grid } from './grid';
