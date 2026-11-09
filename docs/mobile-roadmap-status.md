@@ -50,7 +50,7 @@ Theo `docs/adr/003-responsive-layout.md` và plan `docs/superpowers/plans/2026-1
 
 Kiểm tra tự động: typecheck, lint (0 lỗi), 77 Jest, 6 tooling và bundle web/Android/iOS đều qua.
 
-Chưa nghiệm thu trên thiết bị. Cần kiểm trên Expo Go:
+2026-11-09: người dùng báo test trên điện thoại thật qua Expo Go (backend staging) thành công. Các mục dưới chưa được xác nhận riêng từng dòng:
 - [ ] Điện thoại dọc/ngang: mọi tab, chi tiết khóa, bài học, làm bài, kết quả, đăng nhập
 - [ ] Xoay khi đang gõ đăng nhập; xoay khi mục lục mở; xoay giữa bài làm
 - [ ] Tai thỏ ở cả hai hướng ngang
