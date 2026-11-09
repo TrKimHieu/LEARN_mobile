@@ -25,6 +25,9 @@ describe('isQueueable', () => {
     expect(isQueueable('GET', START)).toBe(false);
     expect(isQueueable('POST', SUBMIT)).toBe(true);
     expect(isQueueable('PUT', SUBMIT)).toBe(false);
+    expect(isQueueable('POST', '/api/v1/reviews/q1')).toBe(true);
+    expect(isQueueable('POST', '/api/v1/reviews/q1/x')).toBe(false);
+    expect(isQueueable('GET', '/api/v1/reviews/q1')).toBe(false);
     expect(isQueueable('POST', `${START}/x`)).toBe(false);
     expect(isQueueable('POST', '/api/v1/courses')).toBe(false);
   });

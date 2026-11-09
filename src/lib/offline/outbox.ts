@@ -12,11 +12,12 @@ export type OutboxRequest = {
 
 /**
  * Chỉ request server xử lý idempotent mới được xếp hàng: bắt đầu bài (idempotent sẵn) và nộp bài
- * (server nhận `Idempotency-Key` = `eventId`, LEARN_backend#7).
+ * (server nhận `Idempotency-Key` = `eventId`, LEARN_backend#7), chấm thẻ ôn tập (R5, cùng cơ chế key).
  */
 const QUEUEABLE = [
   /^\/api\/v1\/courses\/[^/]+\/lessons\/[^/]+\/start$/,
   /^\/api\/v1\/lessons\/[^/]+\/exercise\/submit$/,
+  /^\/api\/v1\/reviews\/[^/]+$/,
 ];
 
 export function isQueueable(method: string, path: string): boolean {

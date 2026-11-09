@@ -27,3 +27,12 @@ it('announces the newly revealed content only after the user flips', () => {
   act(() => tree.root.findByType(Button).props.onPress());
   expect(announce).toHaveBeenLastCalledWith('Đáp án: Secret A');
 });
+
+it('reports each flip so callers can react to screen-reader activation too', () => {
+  const onFlip = jest.fn();
+  act(() => { tree = create(<FlipCard prompt="Q" answer="A" onFlip={onFlip} />); });
+  act(() => tree.root.findByType(Button).props.onPress());
+  expect(onFlip).toHaveBeenLastCalledWith(true);
+  act(() => tree.root.findByType(Button).props.onPress());
+  expect(onFlip).toHaveBeenLastCalledWith(false);
+});
