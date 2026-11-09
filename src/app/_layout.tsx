@@ -1,28 +1,25 @@
-import { HankenGrotesk_400Regular } from '@expo-google-fonts/hanken-grotesk/400Regular';
-import { HankenGrotesk_500Medium } from '@expo-google-fonts/hanken-grotesk/500Medium';
-import { HankenGrotesk_600SemiBold } from '@expo-google-fonts/hanken-grotesk/600SemiBold';
-import { HankenGrotesk_700Bold } from '@expo-google-fonts/hanken-grotesk/700Bold';
+import { useEffect } from 'react';
 import { QueryClientProvider } from '@tanstack/react-query';
 import { useFonts } from 'expo-font';
 import { Stack, type ErrorBoundaryProps } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import { ActivityIndicator, Pressable, StyleSheet, Text, useColorScheme, View } from 'react-native';
-import { SafeAreaProvider } from 'react-native-safe-area-context';
+import { SafeAreaProvider, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Button, Txt } from '@/components/ui';
 import { LogoMark, Mascot } from '@/components/mascot';
 import { AuthProvider, useAuth } from '@/features/auth/auth-context';
 import { queryClient } from '@/lib/query-client';
+import { OfflinePill } from '@/components/offline-pill';
+import { OfflineProvider } from '@/features/offline/offline-provider';
+import { startNetworkSync } from '@/lib/offline/network';
+import { FONT_SOURCES } from '@/theme/fonts';
 import { ThemeProvider, usePalette } from '@/theme/theme';
 import { dark, font, light, space } from '@/theme/tokens';
 
 export default function RootLayout() {
-  // Nạp từng weight theo subpath — import từ gốc package kéo cả 18 file .ttf vào bundle.
-  const [fontsLoaded, fontError] = useFonts({
-    HankenGrotesk_400Regular,
-    HankenGrotesk_500Medium,
-    HankenGrotesk_600SemiBold,
-    HankenGrotesk_700Bold,
-  });
+  const [fontsLoaded, fontError] = useFonts(FONT_SOURCES);
+  // Trạng thái mạng thật vào onlineManager của React Query (R2) — một lần cho cả app.
+  useEffect(() => startNetworkSync(), []);
   // Lỗi nạp font thì vẫn chạy bằng font hệ thống, không kẹt ở màn trắng.
   if (!fontsLoaded && !fontError) return null;
 
@@ -31,7 +28,10 @@ export default function RootLayout() {
       <QueryClientProvider client={queryClient}>
         <ThemeProvider>
           <AuthProvider>
-            <RootNavigator />
+            <OfflineProvider>
+              <RootNavigator />
+              <OfflineBadge />
+            </OfflineProvider>
           </AuthProvider>
         </ThemeProvider>
       </QueryClientProvider>
@@ -72,6 +72,16 @@ export function ErrorBoundary({ retry }: ErrorBoundaryProps) {
  * - Chi tiết khóa học / đọc bài / bài tập nằm ở Root Stack, ngoài Tabs → che tab bar khi đi sâu.
  * - Tạo khóa học, sửa bài học: `modal` — tác vụ tạm thời cần tập trung.
  */
+/** Viên "Offline" nổi ở góc trên, không chặn chạm vào nội dung bên dưới. */
+function OfflineBadge() {
+  const insets = useSafeAreaInsets();
+  return (
+    <View pointerEvents="none" style={{ position: 'absolute', top: insets.top + space.xs, right: insets.right + space.lg }}>
+      <OfflinePill />
+    </View>
+  );
+}
+
 function RootNavigator() {
   const { status, retry, user } = useAuth();
   const isAdmin = user?.role === 'ADMIN';

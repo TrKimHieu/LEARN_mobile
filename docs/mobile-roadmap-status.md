@@ -16,7 +16,7 @@ Nguồn yêu cầu: kế hoạch M1–M8 được người dùng giao ngày 2026
 | Cài đặt | `(tabs)/settings.tsx` | Sáng/tối/hệ thống, tài khoản và gói hiện có |
 | Quản trị | `(tabs)/admin.tsx`, `admin/ai-jobs/*` | Giữ màn role ADMIN; quyền thật do backend kiểm |
 
-Token dùng màu/bo góc website. Các component skeleton, empty, error/retry, field và ring đã tồn tại; ring/bar và tab active dùng primary mới. Nút co giãn chiều cao để không cắt chữ lớn. FlipCard không animation, không mount đáp án khi chưa lật. Typography còn Hanken tạm thời, chờ tải font; chưa hoàn tất visual parity.
+Token dùng màu/bo góc website. Các component skeleton, empty, error/retry, field và ring đã tồn tại; ring/bar và tab active dùng primary mới. Nút co giãn chiều cao để không cắt chữ lớn. FlipCard không animation, không mount đáp án khi chưa lật. Typography: Inter cho thân bài, Plus Jakarta Sans cho tiêu đề (2026-11-09); cần kiểm dấu tiếng Việt trên thiết bị.
 
 Mọi môi trường cần `EXPO_PUBLIC_API_URL` là origin tường minh. Preview/production từ chối HTTP, loopback, credentials và path/query/fragment; không suy từ Metro. Refresh token vẫn ở SecureStore với khóa riêng theo environment + origin, access token ở bộ nhớ. Token cũ chưa phân vùng không được chuyển tự động vì không biết server phát hành; cần đăng nhập lại một lần khi nâng cấp. EAS có channel riêng và updates URL từ projectId đã có; runtime fingerprint ngăn OTA xuyên thay đổi native. ProjectId/owner trên tài khoản Expo chưa xác minh. Chưa có development binary Android/iOS.
 
@@ -57,3 +57,20 @@ Kiểm tra tự động: typecheck, lint (0 lỗi), 77 Jest, 6 tooling và bundl
 - [ ] Chữ hệ thống lớn nhất, dọc và ngang
 - [ ] Tablet dọc/ngang; chia đôi màn hình Android
 - [ ] Sáng và tối
+
+## R2 — Dữ liệu offline SQLite (2026-11-09)
+
+Plan: `docs/superpowers/plans/2026-11-09-r2-offline-sqlite.md`. Mỗi tài khoản một file SQLite (`learn-<env>-<hash origin>-<userId>.db`, migration theo `PRAGMA user_version`) gồm bảng `kv` và `outbox`.
+
+- Cache React Query của khóa, bài, bài tập được lưu và khôi phục khi mở app. Không lưu `meta` và màn quản trị. Bỏ cache khi đổi contracts hoặc phiên bản app; cache tồn tại tối đa 7 ngày.
+- Mở app khi mất mạng mà phiên còn: vào bằng tài khoản gần nhất (`last-user.ts`, SecureStore theo environment + origin) để đọc cache. Có mạng lại thì api-client tự làm mới phiên.
+- Hàng chờ gửi chỉ nhận `POST …/lessons/:id/start` (server idempotent). Gửi lại khi có mạng và khi app về foreground; 4xx thì bỏ mục, lỗi mạng hoặc 5xx thì giữ lại.
+- Nộp bài chưa idempotent ở backend nên khi offline nút bị khoá ("Cần mạng để nộp"). Muốn nộp offline, backend cần nhận `Idempotency-Key` trước.
+- Đăng xuất: gửi hàng chờ trước, còn sót thì hỏi; sau đó xoá DB của tài khoản. Hết phiên thì chỉ đóng DB.
+- Bản web dùng store trong bộ nhớ (`sqlite.web.ts`), không lưu bền.
+
+Kiểm tra tự động: typecheck, lint (0 lỗi), 120 Jest, bundle web/Android/iOS đều qua. Chưa nghiệm thu trên thiết bị:
+- [ ] Xem khóa → bật chế độ máy bay → đóng hẳn app → mở lại → vẫn thấy khóa, bài, bài tập
+- [ ] Bắt đầu bài khi offline → tắt chế độ máy bay → server ghi nhận đúng một lần
+- [ ] Viên "Offline" hiện/ẩn đúng; nút nộp bị khoá khi offline
+- [ ] Đăng xuất khi còn hàng chờ thì có hỏi; đăng nhập tài khoản khác không thấy cache cũ
