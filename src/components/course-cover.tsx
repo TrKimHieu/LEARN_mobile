@@ -6,8 +6,7 @@ import { Txt } from './ui/text';
 
 /**
  * Bìa khóa học sinh từ chính `id` — port của `apps/web/src/components/shared/course-cover.tsx`:
- * cùng hàm băm, cùng bốn hoạ tiết, nên một khóa có cùng bìa trên web và mobile (khác sắc độ xám
- * theo bảng màu dịu của app). Toàn bộ là trang trí — tên khóa luôn có ở chữ bên cạnh.
+ * cùng hàm băm và bốn hoạ tiết; màu qua token native. Toàn bộ là trang trí — tên khóa luôn có ở chữ bên cạnh.
  */
 function hash(input: string): number {
   let h = 2166136261;

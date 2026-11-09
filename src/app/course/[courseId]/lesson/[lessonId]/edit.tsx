@@ -41,14 +41,14 @@ export default function EditLessonScreen() {
 
   if (lesson.isLoading) {
     return (
-      <Screen>
+      <Screen width="reading">
         <LoadingState rows={3} height={80} label="Đang tải bài học" />
       </Screen>
     );
   }
   if (lesson.isError || !lesson.data) {
     return (
-      <Screen>
+      <Screen width="reading">
         <ErrorState
           title="Không tải được bài học"
           description={errorText(lesson.error, 'Vui lòng thử lại.')}
@@ -61,7 +61,7 @@ export default function EditLessonScreen() {
 
   return (
     <KeyboardAvoidingView style={{ flex: 1 }} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
-      <Screen>
+      <Screen width="reading">
         <Field
           label="Tiêu đề"
           value={title}

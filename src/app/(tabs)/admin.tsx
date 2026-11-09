@@ -5,6 +5,7 @@ import {
   Card,
   EmptyState,
   ErrorState,
+  Grid,
   PageHeader,
   Screen,
   SectionTitle,
@@ -15,6 +16,7 @@ import { useAdminMetrics } from '@/features/admin/admin-api';
 import { errorDetail, errorText } from '@/lib/api-client';
 import { relativeTime } from '@/lib/format';
 import { routes } from '@/lib/routes';
+import { useLayout } from '@/theme/layout';
 import { usePalette } from '@/theme/theme';
 import { radius, space } from '@/theme/tokens';
 
@@ -26,17 +28,18 @@ const usd = (n: number) => `$${n.toFixed(n < 1 ? 4 : 2)}`;
  */
 export default function AdminScreen() {
   const p = usePalette();
+  const { statColumns } = useLayout();
   const metrics = useAdminMetrics();
 
   if (metrics.isLoading) {
     return (
       <Screen topInset>
         <PageHeader title="Quản trị" />
-        <View style={styles.grid}>
+        <Grid columns={statColumns}>
           {[0, 1, 2, 3].map((i) => (
             <Skeleton key={i} height={84} style={styles.tile} />
           ))}
-        </View>
+        </Grid>
       </Screen>
     );
   }
@@ -75,7 +78,7 @@ export default function AdminScreen() {
         description={`Cập nhật ${relativeTime(generatedAt)}. Bảng người dùng, khóa học và gói đăng ký có trên bản web.`}
       />
 
-      <View style={styles.grid}>
+      <Grid columns={statColumns}>
         {tiles.map((t) => (
           <Card key={t.label} style={styles.tile}>
             <Txt variant="caption" tone="subtle">
@@ -91,7 +94,7 @@ export default function AdminScreen() {
             )}
           </Card>
         ))}
-      </View>
+      </Grid>
 
       <View>
         <SectionTitle title="Chi phí LLM 7 ngày" />
@@ -134,8 +137,7 @@ export default function AdminScreen() {
 }
 
 const styles = StyleSheet.create({
-  grid: { flexDirection: 'row', flexWrap: 'wrap', gap: space.md },
-  tile: { flexBasis: '47%', flexGrow: 1, gap: space.xs },
+  tile: { flexGrow: 1, gap: space.xs },
   costRow: { flexDirection: 'row', alignItems: 'center', gap: space.sm },
   track: { flex: 1, height: 8, borderRadius: radius.pill, overflow: 'hidden' },
 });

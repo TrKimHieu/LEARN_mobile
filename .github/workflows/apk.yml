@@ -1,0 +1,27 @@
+name: mobile-apk
+on:
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  apk:
+    runs-on: ubuntu-latest
+    environment: staging
+    env:
+      APP_ENV: preview
+      EXPO_PUBLIC_API_URL: https://3-107-190-42.sslip.io
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: {node-version: 22, cache: npm}
+      - uses: expo/expo-github-action@v8
+        with:
+          eas-version: 27.3.0
+          token: ${{ secrets.EXPO_TOKEN }}
+      - run: npm run sync:contracts
+      - run: npm ci
+      - run: npm run lint && npm run typecheck && npm test && npm run test:tooling
+      - name: Build signed preview APK
+        run: eas build --platform android --profile preview --non-interactive --wait --json > apk-build.json
+      - uses: actions/upload-artifact@v4
+        with: {name: apk-build-reference, path: apk-build.json}

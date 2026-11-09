@@ -1,6 +1,6 @@
 import * as Haptics from 'expo-haptics';
 import { useRef, useState } from 'react';
-import { Platform, ScrollView, StyleSheet, View } from 'react-native';
+import { Platform, StyleSheet, View, type ScrollViewInstance } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import type { ExerciseRead, SubmissionResult } from '@/contracts';
 import { Button, Icon, InlineError, ProgressBar, Screen, Txt } from '@/components/ui';
@@ -38,7 +38,7 @@ export function ExerciseSession({
   const p = usePalette();
   const insets = useSafeAreaInsets();
   const submit = useSubmitExercise(courseId, lessonId);
-  const scrollRef = useRef<ScrollView>(null);
+  const scrollRef = useRef<ScrollViewInstance>(null);
   const questionY = useRef(new Map<string, number>());
   const listY = useRef(0);
   const startedAt = useRef(Date.now());

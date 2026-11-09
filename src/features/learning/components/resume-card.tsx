@@ -12,7 +12,7 @@ import { resumeLesson } from '../progress';
 /**
  * Thẻ "Học tiếp" — bài kế tiếp = bài đang học dở, không có thì bài chưa bắt đầu đầu tiên. Khi
  * danh sách bài chưa tải xong, nút vẫn dẫn tới trang khóa — không bao giờ là nút chết. Khác web:
- * nền panel + nút xám đậm, không khối đen đặc (ADR 001 của app).
+ * bố cục thẻ native, màu lấy từ token website (ADR 002).
  */
 export function ResumeCard({ course }: { course: ProgressCourse }) {
   const p = usePalette();

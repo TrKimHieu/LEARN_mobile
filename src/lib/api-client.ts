@@ -82,7 +82,7 @@ async function readError(res: Response): Promise<ErrorEnvelope> {
 }
 
 const NETWORK_MESSAGE =
-  'Không kết nối được máy chủ. Kiểm tra điện thoại và máy chạy API có cùng mạng Wi‑Fi không.';
+  'Không kết nối được máy chủ. Kiểm tra kết nối Internet rồi thử lại.';
 
 /** Gọi API kèm Bearer token + tự refresh một lần khi nhận 401. */
 export async function apiFetch<T = unknown>(

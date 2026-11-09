@@ -4,22 +4,12 @@
  * `apps/api` của repo LEARN_website, nhưng chạy trong bộ nhớ, không cần Docker/Postgres/Redis.
  * Chỉ để làm giao diện và thử luồng — KHÔNG phải backend thật, không bảo mật gì cả.
  */
-const fs = require('node:fs');
 const http = require('node:http');
-const path = require('node:path');
 const { randomUUID } = require('node:crypto');
 const { LIMITS, PLANS, createState, addCourse, addDocument, addJob, tick, setProgress, getProgress, iso, DAY } = require('./state');
 
 /** Đọc từ `src/contracts/version.ts` để luôn khớp sau `npm run sync:contracts`. */
-function readContractsHash() {
-  try {
-    const src = fs.readFileSync(path.join(__dirname, '..', 'src', 'contracts', 'version.ts'), 'utf8');
-    return /CONTRACTS_HASH\s*=\s*'([^']+)'/.exec(src)?.[1] ?? 'unknown';
-  } catch {
-    return 'unknown';
-  }
-}
-const CONTRACTS_HASH = readContractsHash();
+const { CONTRACTS_HASH } = require('@learn/api-contracts');
 const MIN_MOBILE_VERSION = '1.0.0';
 const ACCESS_TTL_MS_DEFAULT = 15 * 60_000;
 

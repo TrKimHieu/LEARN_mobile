@@ -15,7 +15,7 @@ export default function SettingsScreen() {
   const { meta, contractsDiffer } = useServerMeta();
 
   return (
-    <Screen topInset onRefresh={() => Promise.all([plans.refetch(), subscription.refetch()])}>
+    <Screen width="reading" topInset onRefresh={() => Promise.all([plans.refetch(), subscription.refetch()])}>
       <PageHeader title="Cài đặt" description="Hồ sơ, giao diện, gói đăng ký và hạn mức sử dụng." />
 
       <ProfileCard />
