@@ -1,4 +1,4 @@
-import { focusManager, onlineManager, QueryClient } from '@tanstack/react-query';
+import { focusManager, QueryClient } from '@tanstack/react-query';
 import { AppState, Platform } from 'react-native';
 import { ApiClientError } from './api-client';
 
@@ -12,7 +12,8 @@ if (Platform.OS !== 'web') {
     return () => sub.remove();
   });
 }
-onlineManager.setOnline(true);
+// Trạng thái online do `startNetworkSync` (src/lib/offline/network.ts) điều khiển từ expo-network,
+// không ép luôn true: offline thì query tạm dừng thay vì lỗi, và nút nộp bài bị khoá.
 
 export const queryClient = new QueryClient({
   defaultOptions: {
