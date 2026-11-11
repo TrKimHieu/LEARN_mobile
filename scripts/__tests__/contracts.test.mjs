@@ -7,6 +7,10 @@ import { fileURLToPath } from 'node:url';
 import { syncContracts } from '../sync-contracts.mjs';
 
 const repo = resolve(dirname(fileURLToPath(import.meta.url)), '../..');
+// Phiên bản đang ghim trong package.json, để test không phải sửa mỗi lần nâng contracts.
+const pinnedSpec = JSON.parse(await readFile(join(repo, 'package.json'), 'utf8')).dependencies['@learn/api-contracts'];
+const pinned = /learn-api-contracts-(\d+\.\d+\.\d+)\.tgz$/.exec(pinnedSpec)[1];
+const pinnedTgz = `vendor/learn-api-contracts-${pinned}.tgz`;
 async function fixture(run) {
   const root = await mkdtemp(join(tmpdir(), 'learn-contracts-'));
   try {
@@ -17,10 +21,10 @@ async function fixture(run) {
 }
 test('validates the actual released artifact independently of backend source', () => fixture(async (root) => {
   const result = await syncContracts({ root });
-  assert.equal(result.version, '1.0.0');
+  assert.equal(result.version, pinned);
 }));
 test('tampered and missing sources fail, keeping the previous artifact intact', () => fixture(async (root) => {
-  const target = join(root, 'vendor/learn-api-contracts-1.0.0.tgz');
+  const target = join(root, pinnedTgz);
   const before = await readFile(target);
   const bad = join(root, 'bad.tgz');
   await writeFile(bad, Buffer.from('private or damaged bytes'));
@@ -35,8 +39,8 @@ test('a checksum alone cannot hide an incompatible package version', () => fixtu
   await assert.rejects(syncContracts({ root }), /Unsupported contracts major/);
 }));
 test('source can restore the pinned artifact only after verification', () => fixture(async (root) => {
-  const target = join(root, 'vendor/learn-api-contracts-1.0.0.tgz');
+  const target = join(root, pinnedTgz);
   await writeFile(target, 'broken');
-  await syncContracts({ root, source: join(repo, 'vendor/learn-api-contracts-1.0.0.tgz') });
-  assert.deepEqual(await readFile(target), await readFile(join(repo, 'vendor/learn-api-contracts-1.0.0.tgz')));
+  await syncContracts({ root, source: join(repo, pinnedTgz) });
+  assert.deepEqual(await readFile(target), await readFile(join(repo, pinnedTgz)));
 }));

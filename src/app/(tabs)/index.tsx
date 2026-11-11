@@ -18,6 +18,7 @@ import { RecentActivity } from '@/features/learning/components/recent-activity';
 import { ResumeCard } from '@/features/learning/components/resume-card';
 import { useProgressCourses, useProgressHistory, useProgressOverview } from '@/features/learning/learning-api';
 import { orderCourses } from '@/features/learning/progress';
+import { ReviewEntry } from '@/features/reviews/components/review-entry';
 import { errorDetail, errorText } from '@/lib/api-client';
 import { routes } from '@/lib/routes';
 import { space } from '@/theme/tokens';
@@ -106,6 +107,7 @@ export default function OverviewScreen() {
       />
 
       <UpdateNotice />
+      <ReviewEntry />
       {courses.isError && <InlineError>{errorText(courses.error, 'Không tải được khóa học đang dở.')}</InlineError>}
       {courses.isLoading && <Skeleton height={150} />}
       {next && <ResumeCard course={next} />}

@@ -93,3 +93,12 @@ Kiểm tra tự động: typecheck, lint (0 lỗi), 166 Jest, bundle web/Android
 - [ ] PDF có mật khẩu hoặc tệp hỏng báo lỗi, không treo
 - [ ] Expo Go: nhập văn bản và PDF có chữ chạy được; ảnh báo cần bản cài đặt đầy đủ
 - [ ] Tài liệu nhập xong dùng được để sinh bài bằng AI
+
+## R5 — Ôn tập ngắt quãng (2026-11-09)
+
+Plan: `docs/superpowers/plans/2026-11-09-r5-srs.md`. Thẻ là câu hỏi của bài tập đã nộp, nên đáp án không lộ trước khi nộp. Server giữ lịch SM-2 (LEARN_backend, contracts 1.2.0). Tổng quan hiện "Ôn hôm nay" khi có thẻ đến hạn; màn `/review` lật thẻ rồi chấm "Quên / Khó / Được / Dễ". Lượt chấm gửi kèm `Idempotency-Key`; khi offline thì vào hàng chờ, và thẻ được bỏ khỏi cache để ôn tiếp được. `FlipCard` có thêm `onFlip`, để nút chấm mở được cả khi lật bằng TalkBack/VoiceOver.
+
+Kiểm tra tự động: typecheck, lint (0 lỗi), 177 Jest, bundle web/Android/iOS đều qua. Chưa nghiệm thu:
+- [ ] Ôn 10 thẻ offline rồi có mạng: server ghi đúng 10 lượt, lịch hôm sau đúng
+- [ ] Đổi giờ máy sang tương lai: lịch không bị đẩy xa
+- [ ] TalkBack/VoiceOver: lật thẻ rồi chấm được

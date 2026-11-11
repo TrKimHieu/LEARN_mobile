@@ -130,7 +130,8 @@ function RootNavigator() {
       >
         <Stack.Protected guard={authed}>
           <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
-          <Stack.Screen name="course/new" options={{ presentation: 'modal', title: 'Tạo khóa học' }} />
+          <Stack.Screen name="review" options={{ title: 'Ôn tập' }} />
+          <Stack.Screen name="course/new"options={{ presentation: 'modal', title: 'Tạo khóa học' }} />
           <Stack.Screen name="course/[courseId]/index" options={{ title: 'Khóa học' }} />
           <Stack.Screen name="course/[courseId]/lesson/[lessonId]/index" options={{ title: 'Bài học' }} />
           <Stack.Screen name="course/[courseId]/lesson/[lessonId]/practice" options={{ title: 'Bài tập' }} />
