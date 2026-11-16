@@ -111,11 +111,13 @@ Thứ tự đề xuất: W1 → W2 → W3 → W4 → W5 → W6. W1–W3 dùng ba
 
 ### W1 — Bộ thẻ và thẻ tự tạo (web: `features/flashcards`)
 Tách biệt khỏi ôn câu hỏi bài tập ở R5 (theo spec, thẻ web và thẻ bài tập là hai thực thể khác nhau). Tab "Thẻ" mới, hoặc mục trong Tổng quan nếu hết chỗ trên thanh tab.
-- [ ] Danh sách bộ thẻ kèm số thẻ mới / đang học / đến hạn; tạo, đổi tên, xoá (có xác nhận) bộ thẻ; gắn khóa học tùy chọn
-- [ ] Chi tiết bộ: thêm, sửa, xoá, chuyển thẻ sang bộ khác; báo lỗi tiếng Việt khi mặt trước/sau trống hoặc quá dài
-- [ ] Ôn một bộ và "Ôn hôm nay" (gộp mọi thẻ đến hạn): lật thẻ → Quên / Khó / Tốt / Dễ theo SM-2, `Idempotency-Key`, vào outbox khi offline
-- [ ] Cache SQLite cho bộ thẻ và thẻ đến hạn; huy hiệu số thẻ đến hạn trên tab và Tổng quan
-- [ ] Phiên ôn trống hiện thời điểm thẻ kế tiếp đến hạn; TalkBack/VoiceOver lật và chấm được
+- [x] Tab "Thẻ" (`(tabs)/decks.tsx`): danh sách bộ kèm Mới / Đang học / Đến hạn, tạo bộ có gắn khóa tùy chọn; chi tiết bộ đổi tên, đổi khóa, xoá có xác nhận (2026-11-16)
+- [x] Chi tiết bộ (`deck/[deckId].tsx`): thêm, sửa, xoá, chuyển thẻ; báo lỗi tiếng Việt khi trống hoặc quá 2000 ký tự (giới hạn client, server kiểm lại)
+- [x] Ôn một bộ và "Ôn thẻ hôm nay" (`deck-review.tsx`): lật thẻ → Quên / Khó / Tốt / Dễ; key và giờ chấm giữ nguyên khi gửi lại; mất mạng thì vào outbox (`/cards/:id/review` thêm vào danh sách cho phép)
+- [~] Cache: query `decks` được persist SQLite như các query khác. Huy hiệu số đến hạn mới có ở tab Thẻ, chưa có trên thanh tab và Tổng quan
+- [~] Phiên ôn trống hiện thời điểm thẻ kế tiếp. TalkBack/VoiceOver dùng `FlipCard` như R5, chưa thử trên thiết bị
+
+Chưa kiểm với backend thật: backend trong `LEARN_backend_unified` hiện chưa có route `/decks` (nằm ở nhánh backend khác); mobile dựng theo contracts 1.5.0, giống web. Kiểm tra: typecheck, lint 0 lỗi, 242 Jest.
 
 ### W2 — AI sinh thẻ nháp
 - [ ] Màn "Sinh thẻ bằng AI": chọn khóa, nguồn (một bài học hoặc một tài liệu), số thẻ tối đa 1–30

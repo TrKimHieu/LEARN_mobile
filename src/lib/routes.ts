@@ -21,6 +21,8 @@ export const routes = {
   }),
   storage: '/storage' as Href,
   focus: '/focus' as Href,
+  deck: (deckId: string): Href => ({ pathname: '/deck/[deckId]', params: { deckId } }),
+  deckReview: (deckId?: string): Href => ({ pathname: '/deck-review', params: deckId ? { deck: deckId } : {} }),
   adminAiJobs: '/admin/ai-jobs' as Href,
   adminAiJob: (jobId: string): Href => ({ pathname: '/admin/ai-jobs/[jobId]', params: { jobId } }),
 };

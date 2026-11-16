@@ -139,6 +139,8 @@ function RootNavigator() {
           <Stack.Screen name="review" options={{ title: 'Ôn tập' }} />
           <Stack.Screen name="storage" options={{ title: 'Quản lý dung lượng' }} />
           <Stack.Screen name="focus" options={{ title: 'Pomodoro' }} />
+          <Stack.Screen name="deck/[deckId]" options={{ title: 'Bộ thẻ' }} />
+          <Stack.Screen name="deck-review" options={{ title: 'Ôn thẻ' }} />
           <Stack.Screen name="course/new"options={{ presentation: 'modal', title: 'Tạo khóa học' }} />
           <Stack.Screen name="course/[courseId]/index" options={{ title: 'Khóa học' }} />
           <Stack.Screen name="course/[courseId]/lesson/[lessonId]/index" options={{ title: 'Bài học' }} />
