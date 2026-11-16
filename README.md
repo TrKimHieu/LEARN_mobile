@@ -10,7 +10,7 @@ Run `npm run sync:contracts` before installation and `npm run test:tooling` alon
 
 New original-file imports are temporarily locked while the on-device text-only pipeline is prepared. Existing documents and lessons remain readable.
 
-EAS channels are development/preview/production. Preview and production builds point to the staging backend `https://3-107-190-42.sslip.io` (backend `APP_URL`) via `eas.json` env; change it there when the domain changes. Verify the configured Expo project/owner before building. Development client dependencies and signing still need setup. Native dependency changes need a new binary; runtime uses fingerprint policy. APK: `npm run build:apk`; web export does not validate a native binary.
+EAS channels are development/preview/production. All three profiles point to the staging backend `https://54-206-111-17.sslip.io` (backend `APP_URL`) via `eas.json` env; cloud builds do not read the local `.env`; change it there when the domain changes. Verify the configured Expo project/owner before building. Development client dependencies and signing still need setup. Native dependency changes need a new binary; runtime uses fingerprint policy. APK: `npm run build:apk`; web export does not validate a native binary.
 
 See [roadmap status and outstanding acceptance gates](docs/mobile-roadmap-status.md).
 
