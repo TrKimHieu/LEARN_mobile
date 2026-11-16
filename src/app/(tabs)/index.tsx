@@ -18,6 +18,7 @@ import { RecentActivity } from '@/features/learning/components/recent-activity';
 import { ResumeCard } from '@/features/learning/components/resume-card';
 import { useProgressCourses, useProgressHistory, useProgressOverview } from '@/features/learning/learning-api';
 import { orderCourses } from '@/features/learning/progress';
+import { DueCardsEntry } from '@/features/flashcards/components/due-cards-entry';
 import { ReviewEntry } from '@/features/reviews/components/review-entry';
 import { errorDetail, errorText } from '@/lib/api-client';
 import { routes } from '@/lib/routes';
@@ -108,6 +109,7 @@ export default function OverviewScreen() {
 
       <UpdateNotice />
       <ReviewEntry />
+      <DueCardsEntry />
       <Button label="Pomodoro" variant="secondary" icon="clock" onPress={() => router.push(routes.focus())} />
       {courses.isError && <InlineError>{errorText(courses.error, 'Không tải được khóa học đang dở.')}</InlineError>}
       {courses.isLoading && <Skeleton height={150} />}

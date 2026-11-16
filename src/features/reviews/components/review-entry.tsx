@@ -10,12 +10,18 @@ import { useDueReviews } from '../reviews-api';
 export function ReminderToggle() {
   const r = useReviewReminder();
   return (
-    <Segmented
-      label={`Nhắc ôn lúc ${REMINDER_HOUR}:00 khi có thẻ đến hạn`}
-      value={r.enabled ? 'on' : 'off'}
-      options={[{ value: 'off', label: 'Tắt' }, { value: 'on', label: 'Bật' }] as const}
-      onChange={(v) => void r.set(v === 'on')}
-    />
+    <Card style={{ gap: space.md }}>
+      <Txt variant="heading">Nhắc ôn</Txt>
+      <Txt variant="small" tone="subtle">
+        Thông báo lúc {REMINDER_HOUR}:00 khi có câu hỏi đến hạn ôn. Cần cho phép thông báo trên máy này.
+      </Txt>
+      <Segmented
+        label="Nhắc ôn"
+        value={r.enabled ? 'on' : 'off'}
+        options={[{ value: 'off', label: 'Tắt' }, { value: 'on', label: 'Bật' }] as const}
+        onChange={(v) => void r.set(v === 'on')}
+      />
+    </Card>
   );
 }
 
