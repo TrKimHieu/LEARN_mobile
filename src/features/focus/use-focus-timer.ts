@@ -1,5 +1,6 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useCallback, useEffect, useState } from 'react';
+import { cancelScheduled, ensureNotificationPermission, scheduleAt } from '@/lib/notifications';
 import {
   advance, initialState, normalizeSettings, parseTimer, pause, remaining, start,
   type Phase, type PomodoroSettings, type TimerState,
@@ -7,6 +8,7 @@ import {
 
 const SETTINGS_KEY = 'learn.focus.settings';
 const TIMER_KEY = 'learn.focus.timer';
+const NOTIFY_ID = 'learn.focus.end';
 
 /**
  * Bộ đếm Pomodoro (T3-2): cài đặt và trạng thái lưu cục bộ, nên đóng app rồi mở lại vẫn đúng giờ.
@@ -36,6 +38,15 @@ export function useFocusTimer() {
   const save = useCallback((next: TimerState) => {
     setTimer(next);
     AsyncStorage.setItem(TIMER_KEY, JSON.stringify(next)).catch(() => undefined);
+    // T3-3: hết chu kỳ khi app ở nền vẫn báo; dừng hoặc đặt lại thì huỷ lịch.
+    if (next.running && next.endsAt !== null) {
+      const [title, body] = next.phase === 'focus'
+        ? ['Hết giờ học', 'Nghỉ một chút nhé.']
+        : ['Hết giờ nghỉ', 'Quay lại học tiếp nhé.'];
+      void scheduleAt(NOTIFY_ID, new Date(next.endsAt), title, body);
+    } else {
+      void cancelScheduled(NOTIFY_ID);
+    }
   }, []);
 
   useEffect(() => {
@@ -72,7 +83,13 @@ export function useFocusTimer() {
     inProgress: timer.running || remaining(timer, now) < initialState(settings, timer.phase).remainingMs,
     finished,
     clearFinished: () => setFinished(null),
-    start: () => { setFinished(null); setNow(t); save(start(timer, t)); },
+    start: () => {
+      setFinished(null);
+      setNow(t);
+      save(start(timer, t));
+      // Hỏi quyền lúc người dùng tự bấm bắt đầu; từ chối thì bộ đếm vẫn chạy, chỉ không có thông báo.
+      void ensureNotificationPermission();
+    },
     pause: () => { setNow(t); save(pause(timer, t)); },
     reset: () => save(initialState(settings, timer.phase)),
   };

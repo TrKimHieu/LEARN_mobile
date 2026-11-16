@@ -4,6 +4,7 @@ import { Button, PageHeader, Screen, SectionTitle, Txt } from '@/components/ui';
 import { ProfileCard } from '@/features/auth/components/profile-card';
 import { CurrentPlan } from '@/features/settings/components/current-plan';
 import { PlanList } from '@/features/settings/components/plan-list';
+import { ReminderToggle } from '@/features/reviews/components/review-entry';
 import { ThemePicker } from '@/features/settings/components/theme-picker';
 import { usePlans, useSubscription } from '@/features/settings/subscription-api';
 import { config } from '@/lib/config';
@@ -22,6 +23,7 @@ export default function SettingsScreen() {
 
       <ProfileCard />
       <ThemePicker />
+      <ReminderToggle />
       <Button label="Quản lý dung lượng" variant="secondary" icon="file" onPress={() => router.push(routes.storage)} />
 
       <View>

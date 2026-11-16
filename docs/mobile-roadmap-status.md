@@ -181,7 +181,8 @@ Kiểm tra T1-7 → T1-9: typecheck, lint 0 lỗi, 221 Jest, export web bundle �
 
 ### T3 — Thời gian học
 - [x] **T3-1** `src/features/focus/timer.ts` cùng logic `pomodoro.ts` của web; 18 test (2026-11-16). Chưa có UI
-- [ ] **T3-2, T3-3** Chu kỳ học/nghỉ chỉnh được; thông báo cục bộ khi hết chu kỳ kể cả app ở nền; xử lý khi từ chối quyền
+- [x] **T3-3** Thông báo cục bộ khi hết chu kỳ, kể cả app ở nền (`src/lib/notifications.ts`, `expo-notifications`). Hỏi quyền lúc bấm Bắt đầu; từ chối thì bộ đếm vẫn chạy, không hỏi lại. Tạm dừng/đặt lại thì huỷ lịch (2026-11-16)
+- [x] **W3 nhắc ôn** Công tắc trong Cài đặt (mặc định tắt). Bật thì hẹn 19:00 khi server báo có thẻ đến hạn, không có thì huỷ. Cần development build mới vì là module native (2026-11-16)
 - [x] **T3-2** Màn `/focus` (Pomodoro), mở từ Tổng quan; học/nghỉ chỉnh được, lưu cục bộ bằng AsyncStorage (2026-11-16)
 - [x] **T3-4** Tạm dừng/tiếp tục; rời màn khi đang chạy thì hỏi, đồng ý thì tạm dừng rồi mới rời (`usePreventRemove`) (2026-11-16)
 - [ ] **T3-5** Bắt đầu từ bài học hoặc phiên SRS; ghi thời gian theo khóa và bài vào SQLite cục bộ (không gửi server)
