@@ -172,13 +172,13 @@ Gộp các mục chưa có hoặc mới có một phần. Mục đã xong hoặc
 - [ ] Kết nối Google Drive (R7)
 
 ### T2 — Ôn tập
-- [ ] **T2-1** Hàm thuần `sm2.ts` + unit test bộ ví dụ cố định, để kiểm lịch server trả về và dự đoán "đến hạn" offline
+- [x] **T2-1** `src/features/reviews/sm2.ts` chép đúng SM-2 của backend (`core/srs/sm2.ts`), thêm `predictDueAt`; 9 test cùng bảng giá trị với backend (2026-11-16). Chưa nối vào UI
 - [ ] **T2-2** API + hook sinh thẻ (AI Job), sửa, thêm, xoá thẻ (trùng W1/W2)
 - [ ] **T2-5** Kiểm "đến hạn" theo múi giờ máy chủ bằng test đổi giờ máy
 - [ ] **T2-7** Lối vào ôn tập ở màn bài học (đã có ở Tổng quan)
 
 ### T3 — Thời gian học
-- [ ] **T3-1** `timer.ts` thuần, tính từ mốc thời gian thật + unit test (trùng W3)
+- [x] **T3-1** `src/features/focus/timer.ts` cùng logic `pomodoro.ts` của web; 18 test (2026-11-16). Chưa có UI
 - [ ] **T3-2, T3-3** Chu kỳ học/nghỉ chỉnh được; thông báo cục bộ khi hết chu kỳ kể cả app ở nền; xử lý khi từ chối quyền
 - [ ] **T3-4** Xác nhận khi thoát giữa chu kỳ; tạm dừng và tiếp tục
 - [ ] **T3-5** Bắt đầu từ bài học hoặc phiên SRS; ghi thời gian theo khóa và bài vào SQLite cục bộ (không gửi server)
@@ -201,8 +201,8 @@ Gộp các mục chưa có hoặc mới có một phần. Mục đã xong hoặc
 - [ ] **T5-7** Lối vào bạn bè và xếp hạng từ tab Tiến trình
 
 ### X — Thiết kế
-- [ ] **X-1** Chốt design system mới (token) + ADR thay ADR 001 (ADR 001 chỉ còn ở `LEARN_mobile/docs/adr`; ADR 002 đã chuyển token từ website)
-- [ ] **X-2** Cập nhật `components/ui/**` theo token mới trước khi tính năng dựng UI
+- [x] **X-1** Không cần design system mới: ADR 002 đã thay ADR 001; token sáng/tối, bo góc 14/20/24 và font Inter/Plus Jakarta trong `src/theme/tokens.ts` khớp `theme.css` web ngày 2026-11-16. Màu trạng thái ok/bad/warn của web chưa có token riêng ở mobile; thêm khi tính năng cần
+- [x] **X-2** `components/ui/**` đã dùng token của `tokens.ts`; không cần đổi (2026-11-16)
 - [ ] **X-3** Visual pass từng tính năng sau khi luồng ổn định
 
 ### Thứ tự đề xuất
