@@ -17,6 +17,8 @@ export type Palette = {
   fgSubtle: string;
   primary: string;
   primaryPressed: string;
+  /** Gờ đáy của nút nổi (web: --primary-edge). */
+  primaryEdge: string;
   primaryFg: string;
   /** Four course-cover surfaces using website semantic colors. */
   cover: readonly [string, string, string, string];
@@ -40,6 +42,7 @@ export const light: Palette = {
   fgSubtle: '#5a5d6b',
   primary: '#2f66e8',
   primaryPressed: '#2858cc',
+  primaryEdge: '#1f47a8',
   primaryFg: '#ffffff',
   cover: ['#e7eefd', '#fff4d6', '#e6f4ec', '#fde8ed'],
   coverAccent: ['#c5c9d6', '#ddae3c', '#5cb88a', '#ef476f'],
@@ -62,6 +65,7 @@ export const dark: Palette = {
   fgSubtle: '#a7abba',
   primary: '#2f66e8',
   primaryPressed: '#2858cc',
+  primaryEdge: '#4a78ec',
   primaryFg: '#ffffff',
   cover: ['#1c2a4d', '#3a3220', '#16332a', '#3a1d2a'],
   coverAccent: ['#3a5aa8', '#8a7430', '#2f7a55', '#ef476f'],

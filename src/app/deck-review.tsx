@@ -2,6 +2,7 @@ import { useLocalSearchParams } from 'expo-router';
 import { ErrorState, LoadingState, Screen } from '@/components/ui';
 import { CardReviewSession } from '@/features/flashcards/components/card-review-session';
 import { useDueCards } from '@/features/flashcards/flashcards-api';
+import { FocusHeaderButton } from '@/features/focus/focus-header-button';
 import { errorText } from '@/lib/api-client';
 
 /** `?deck=<id>` ôn một bộ; không có thì "Ôn hôm nay" gom mọi thẻ đến hạn. */
@@ -18,5 +19,10 @@ export default function DeckReviewScreen() {
       </Screen>
     );
   }
-  return <CardReviewSession data={due.data} />;
+  return (
+    <>
+      <FocusHeaderButton />
+      <CardReviewSession data={due.data} />
+    </>
+  );
 }

@@ -1,4 +1,5 @@
 import { ErrorState, LoadingState, Screen } from '@/components/ui';
+import { FocusHeaderButton } from '@/features/focus/focus-header-button';
 import { ReviewSession } from '@/features/reviews/components/review-session';
 import { useDueReviews } from '@/features/reviews/reviews-api';
 import { errorDetail, errorText } from '@/lib/api-client';
@@ -27,5 +28,10 @@ export default function ReviewScreen() {
     );
   }
 
-  return <ReviewSession cards={due.data.cards} />;
+  return (
+    <>
+      <FocusHeaderButton />
+      <ReviewSession cards={due.data.cards} />
+    </>
+  );
 }

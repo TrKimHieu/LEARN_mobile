@@ -135,7 +135,8 @@ function RootNavigator() {
         }}
       >
         <Stack.Protected guard={authed}>
-          <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
+          {/* `title` không hiện (header ẩn) nhưng là nhãn nút quay lại của màn con; thiếu thì trình đọc màn hình đọc "(tabs)". */}
+          <Stack.Screen name="(tabs)" options={{ headerShown: false, title: 'Trang chính' }} />
           <Stack.Screen name="review" options={{ title: 'Ôn tập' }} />
           <Stack.Screen name="storage" options={{ title: 'Quản lý dung lượng' }} />
           <Stack.Screen name="focus" options={{ title: 'Pomodoro' }} />

@@ -149,8 +149,10 @@ export function useSubmitCardReview() {
       );
     },
     onSuccess: () => {
-      void client.invalidateQueries({ queryKey: [...DECKS, 'due-count'] });
-      return client.invalidateQueries({ queryKey: DECKS, refetchType: 'none' });
+      // Trên stack native, danh sách bộ và chi tiết bộ vẫn mount dưới phiên ôn: làm tươi ngay để số đếm
+      // đúng khi quay lại. Danh sách thẻ đến hạn chỉ đánh dấu cũ; phiên đang mở đã chụp danh sách riêng.
+      void client.invalidateQueries({ queryKey: DECKS, refetchType: 'none', predicate: (q) => q.queryKey.at(-1) === 'due' });
+      return client.invalidateQueries({ queryKey: DECKS, predicate: (q) => q.queryKey.at(-1) !== 'due' });
     },
   });
 }

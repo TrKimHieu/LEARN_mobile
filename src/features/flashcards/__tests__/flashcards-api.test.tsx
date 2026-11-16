@@ -47,3 +47,19 @@ it('queues offline with the same key as eventId', async () => {
   expect(res).toBeUndefined();
   expect(sink).toHaveBeenCalledWith(expect.objectContaining({ eventId: 'k-1', path: '/api/v1/cards/c%201/review' }));
 });
+
+it('refreshes deck counts after grading but leaves the open session list alone', async () => {
+  mockApiFetch.mockResolvedValue({ cardId: 'c 1' });
+  qc.setQueryData(['decks'], { decks: [] });
+  qc.setQueryData(['decks', 'd1'], { deck: {}, cards: [] });
+  qc.setQueryData(['decks', 'd1', 'due'], { cards: [], dueCount: 0, nextDueAt: null });
+  const spy = jest.spyOn(qc, 'invalidateQueries');
+  await act(async () => { await api.mutateAsync(input); });
+  const refetched = spy.mock.calls.find(([f]) => f?.refetchType !== 'none')![0]!;
+  const pick = (key: unknown[]) => refetched.predicate!({ queryKey: key } as never);
+  expect(pick(['decks'])).toBe(true);
+  expect(pick(['decks', 'd1'])).toBe(true);
+  expect(pick(['decks', 'due-count'])).toBe(true);
+  expect(pick(['decks', 'd1', 'due'])).toBe(false);
+  expect(qc.getQueryState(['decks', 'd1', 'due'])?.isInvalidated).toBe(true);
+});

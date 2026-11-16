@@ -114,7 +114,7 @@ Tách biệt khỏi ôn câu hỏi bài tập ở R5 (theo spec, thẻ web và t
 - [x] Tab "Thẻ" (`(tabs)/decks.tsx`): danh sách bộ kèm Mới / Đang học / Đến hạn, tạo bộ có gắn khóa tùy chọn; chi tiết bộ đổi tên, đổi khóa, xoá có xác nhận (2026-11-16)
 - [x] Chi tiết bộ (`deck/[deckId].tsx`): thêm, sửa, xoá, chuyển thẻ; báo lỗi tiếng Việt khi trống hoặc quá 2000 ký tự (giới hạn client, server kiểm lại)
 - [x] Ôn một bộ và "Ôn thẻ hôm nay" (`deck-review.tsx`): lật thẻ → Quên / Khó / Tốt / Dễ; key và giờ chấm giữ nguyên khi gửi lại; mất mạng thì vào outbox (`/cards/:id/review` thêm vào danh sách cho phép)
-- [~] Cache: query `decks` được persist SQLite như các query khác. Huy hiệu số đến hạn mới có ở tab Thẻ, chưa có trên thanh tab và Tổng quan
+- [x] Cache: query `decks` được persist SQLite. Huy hiệu số thẻ tự tạo đến hạn trên tab Thẻ và thẻ "Ôn thẻ" ở Tổng quan (2026-11-16)
 - [~] Phiên ôn trống hiện thời điểm thẻ kế tiếp. TalkBack/VoiceOver dùng `FlipCard` như R5, chưa thử trên thiết bị
 
 Chưa kiểm với backend thật: backend trong `LEARN_backend_unified` hiện chưa có route `/decks` (nằm ở nhánh backend khác); mobile dựng theo contracts 1.5.0, giống web. Kiểm tra: typecheck, lint 0 lỗi, 242 Jest.
@@ -126,9 +126,9 @@ Chưa kiểm với backend thật: backend trong `LEARN_backend_unified` hiện 
 - [x] Màn duyệt thẻ nháp: sửa, bỏ bớt, thêm vào bộ có sẵn hoặc bộ mới; thẻ nháp không có lịch ôn cho đến khi chấp nhận
 
 ### W3 — Pomodoro và nhắc ôn
-- [ ] Bộ đếm học/nghỉ chỉnh được (mặc định 25/5), tính giờ từ mốc thời gian thật để đúng khi app nền hoặc xoay màn; lưu cài đặt cục bộ
-- [ ] Thông báo cục bộ khi hết giờ và khi có thẻ đến hạn (expo-notifications, chỉ khi người dùng cấp quyền; từ chối vẫn dùng đủ tính năng); công tắc tắt trong Cài đặt
-- [ ] Không ghi phiên lên backend, không XP, giống phạm vi web
+- [x] Bộ đếm học/nghỉ chỉnh được, tính từ mốc thời gian thật — xem T3-1/T3-2
+- [x] Thông báo cục bộ khi hết giờ và nhắc ôn khi có thẻ đến hạn — xem T3-3
+- [x] Không ghi phiên lên backend, không XP (thời gian học chỉ lưu cục bộ, T3-5)
 
 ### W4 — Tài liệu và khóa học
 - [x] Word (.docx), PowerPoint (.pptx) trích tại máy — xem T1-4 (2026-11-16)
@@ -178,7 +178,7 @@ Kiểm tra T1-7 → T1-9: typecheck, lint 0 lỗi, 221 Jest, export web bundle �
 
 ### T2 — Ôn tập
 - [x] **T2-1** `src/features/reviews/sm2.ts` chép đúng SM-2 của backend (`core/srs/sm2.ts`), thêm `predictDueAt`; 9 test cùng bảng giá trị với backend (2026-11-16). Chưa nối vào UI
-- [ ] **T2-2** API + hook sinh thẻ (AI Job), sửa, thêm, xoá thẻ (trùng W1/W2)
+- [x] **T2-2** Trùng W1/W2, đã làm ở `features/flashcards/flashcards-api.ts`
 - [x] **T2-5** Test `due-clock.test.tsx`: đặt giờ máy sang năm sau, app vẫn gọi `/api/v1/reviews/due` không kèm giờ máy và hiện đúng số đến hạn của server (2026-11-16). Chưa thử đổi giờ trên thiết bị thật
 - [x] **T2-7** `ReviewEntry` thêm vào cuối màn bài học, chỉ hiện khi có thẻ đến hạn (2026-11-16)
 
@@ -188,7 +188,7 @@ Kiểm tra T1-7 → T1-9: typecheck, lint 0 lỗi, 221 Jest, export web bundle �
 - [x] **W3 nhắc ôn** Công tắc trong Cài đặt (mặc định tắt). Bật thì hẹn 19:00 khi server báo có thẻ đến hạn, không có thì huỷ. Cần development build mới vì là module native (2026-11-16)
 - [x] **T3-2** Màn `/focus` (Pomodoro), mở từ Tổng quan; học/nghỉ chỉnh được, lưu cục bộ bằng AsyncStorage (2026-11-16)
 - [x] **T3-4** Tạm dừng/tiếp tục; rời màn khi đang chạy thì hỏi, đồng ý thì tạm dừng rồi mới rời (`usePreventRemove`) (2026-11-16)
-- [~] **T3-5** Nút "Học tập trung (Pomodoro)" ở màn bài học mở `/focus?courseId&lessonId`; mỗi chu kỳ học chạy hết ghi số phút theo ngày, khóa và bài vào kv của DB SQLite tài khoản (giữ 90 ngày, không gửi server). Chưa có lối vào từ phiên ôn SRS; chu kỳ bỏ dở không tính (2026-11-16)
+- [x] **T3-5** Nút "Học tập trung (Pomodoro)" ở màn bài học mở `/focus?courseId&lessonId`; mỗi chu kỳ học chạy hết ghi số phút theo ngày, khóa và bài vào kv của DB SQLite tài khoản (giữ 90 ngày, không gửi server). Phiên ôn (câu hỏi và thẻ) có nút đồng hồ trên thanh tiêu đề mở Pomodoro, không gắn khóa/bài; chu kỳ bỏ dở không tính (2026-11-16)
 - [x] **T3-6** Thẻ "Thời gian học 7 ngày" ở tab Tiến trình, chỉ số liệu của máy này (2026-11-16)
 
 ### T4 — Mục tiêu và XP
@@ -210,7 +210,7 @@ Kiểm tra T1-7 → T1-9: typecheck, lint 0 lỗi, 221 Jest, export web bundle �
 ### X — Thiết kế
 - [x] **X-1** Không cần design system mới: ADR 002 đã thay ADR 001; token sáng/tối, bo góc 14/20/24 và font Inter/Plus Jakarta trong `src/theme/tokens.ts` khớp `theme.css` web ngày 2026-11-16. Màu trạng thái ok/bad/warn của web chưa có token riêng ở mobile; thêm khi tính năng cần
 - [x] **X-2** `components/ui/**` đã dùng token của `tokens.ts`; không cần đổi (2026-11-16)
-- [ ] **X-3** Visual pass từng tính năng sau khi luồng ổn định
+- [~] **X-3** Rà trên bản web (375×812, chế độ Testing) 2026-11-16, cả tối và sáng: Tổng quan, Pomodoro (chạy/tạm dừng/đặt lại), tab Thẻ, Sinh thẻ bằng AI, Thẻ nháp (trạng thái lỗi), Tiến trình (biểu đồ 7 ngày), Cài đặt, Quản lý dung lượng (trạng thái trống) đều đúng bố cục; đã sửa công tắc nhắc ôn thiếu tiêu đề. Chưa rà được: chi tiết bộ thẻ và phiên ôn thẻ (dữ liệu demo không có API bộ thẻ), màn admin (tài khoản demo không phải ADMIN), và mọi màn trên thiết bị thật
 
 ### Thứ tự đề xuất
 P-1 → P-3 (gồm sửa ADR 004) → P-2 → P-5 → X-1 → X-2 → T1 → T2 → T3 → T4 → T5 → X-3. Nhóm W (website) xen vào T2/T3/T5 vì trùng nội dung; làm một lần, không làm hai bản.

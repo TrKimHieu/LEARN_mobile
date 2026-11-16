@@ -2,6 +2,7 @@ import { Tabs } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Icon, Txt, type IconName } from '@/components/ui';
 import { useAuth } from '@/features/auth/auth-context';
+import { useDueCardCount } from '@/features/flashcards/flashcards-api';
 import { tabBarOptionsFor } from '@/features/navigation/tab-bar-options';
 import { useLayout } from '@/theme/layout';
 import { usePalette } from '@/theme/theme';
@@ -24,6 +25,7 @@ export default function TabsLayout() {
   const insets = useSafeAreaInsets();
   const layout = useLayout();
   const isAdmin = useAuth().user?.role === 'ADMIN';
+  const dueCards = useDueCardCount().data ?? 0;
   return (
     <Tabs
       // Back trên Android quay về tab vừa xem, không nhảy thẳng về tab đầu (bài giảng §4.3.2).
@@ -44,6 +46,10 @@ export default function TabsLayout() {
             title: t.title,
             // `href: null` ẩn hẳn tab (không nút, không deep link từ tab bar) với người không phải ADMIN.
             ...(t.adminOnly && !isAdmin ? { href: null } : {}),
+            // Số thẻ tự tạo đến hạn (W1); thẻ câu hỏi bài tập (R5) có lối vào riêng ở Tổng quan.
+            ...(t.name === 'decks' && dueCards > 0
+              ? { tabBarBadge: dueCards > 99 ? '99+' : dueCards, tabBarBadgeStyle: { backgroundColor: p.primary, color: p.primaryFg } }
+              : {}),
             // Nhãn mặc định bị ép cao ~11px, cắt chân chữ tiếng Việt ("g", "q") của Hanken Grotesk.
             tabBarLabel: ({ color }) => (
               <Txt variant="caption" style={{ color: String(color), flexShrink: 0 }}>
