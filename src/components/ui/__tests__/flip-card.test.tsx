@@ -36,3 +36,21 @@ it('reports each flip so callers can react to screen-reader activation too', () 
   act(() => tree.root.findByType(Button).props.onPress());
   expect(onFlip).toHaveBeenLastCalledWith(false);
 });
+
+it('keeps the face-down side away from screen readers after flipping', () => {
+  act(() => { tree = create(<FlipCard prompt="Q" answer="A" />); });
+  act(() => tree.root.findByType(Button).props.onPress());
+  type Node = { props?: Record<string, unknown>; children?: (Node | string)[] | null };
+  const text = (n: Node | string): string => (typeof n === 'string' ? n : (n.children ?? []).map(text).join(''));
+  const hidden: string[] = [];
+  const shown: string[] = [];
+  const walk = (n: Node | string) => {
+    if (typeof n === 'string') return;
+    if (n.props && 'aria-hidden' in n.props) (n.props['aria-hidden'] ? hidden : shown).push(text(n));
+    else (n.children ?? []).forEach(walk);
+  };
+  walk(tree.toJSON() as Node);
+  expect(hidden.join('|')).toContain('Q');
+  expect(hidden.join('|')).not.toContain('Đáp án');
+  expect(shown.join('|')).toContain('A');
+});

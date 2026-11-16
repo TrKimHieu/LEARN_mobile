@@ -5,6 +5,7 @@ import {
   Button, Card, EmptyState, ErrorState, Field, InlineError, LoadingState, PageHeader, Screen, SectionTitle, Txt,
 } from '@/components/ui';
 import { CourseChips } from '@/features/flashcards/components/course-chips';
+import { CARD_LIMITS } from '@/features/flashcards/card-limits';
 import { cardCountLabel, deckStats } from '@/features/flashcards/deck-stats';
 import { useCreateDeck, useDecks, useDueCardCount } from '@/features/flashcards/flashcards-api';
 import { errorText } from '@/lib/api-client';
@@ -48,7 +49,7 @@ export default function DecksScreen() {
 
       <Card>
         <View style={{ gap: space.md }}>
-          <Field label="Tên bộ thẻ" value={name} onChangeText={setName} maxLength={120} error={formError ?? undefined} />
+          <Field label="Tên bộ thẻ" value={name} onChangeText={setName} maxLength={CARD_LIMITS.title} error={formError ?? undefined} />
           <CourseChips value={courseId} onChange={setCourseId} />
           <Button label="Tạo bộ thẻ" icon="plus" loading={create.isPending} onPress={() => void onCreate()} />
         </View>

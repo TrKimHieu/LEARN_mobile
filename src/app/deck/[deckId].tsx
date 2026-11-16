@@ -4,6 +4,7 @@ import { ScrollView, View } from 'react-native';
 import type { Flashcard } from '@/contracts';
 import { Button, Card, Divider, EmptyState, ErrorState, Field, InlineError, LoadingState, Screen, SectionTitle, Txt } from '@/components/ui';
 import { CourseChips } from '@/features/flashcards/components/course-chips';
+import { CARD_LIMITS, counter, sideError } from '@/features/flashcards/card-limits';
 import { cardCountLabel, deckStats } from '@/features/flashcards/deck-stats';
 import {
   useCreateCard, useDeck, useDecks, useDeleteCard, useDeleteDeck, usePatchCard, usePatchDeck,
@@ -13,13 +14,6 @@ import { confirmAction } from '@/lib/dialog';
 import { routes } from '@/lib/routes';
 import { space } from '@/theme/tokens';
 
-const MAX_SIDE = 2000;
-
-function sideError(front: string, back: string): string | null {
-  if (!front.trim() || !back.trim()) return 'Mặt trước và mặt sau không được để trống.';
-  if (front.length > MAX_SIDE || back.length > MAX_SIDE) return `Mỗi mặt tối đa ${MAX_SIDE} ký tự.`;
-  return null;
-}
 
 export default function DeckScreen() {
   const { deckId } = useLocalSearchParams<{ deckId: string }>();
@@ -74,7 +68,7 @@ export default function DeckScreen() {
           {renaming === null ? (
             <Txt variant="title">{d.title}</Txt>
           ) : (
-            <Field label="Tên bộ thẻ" value={renaming} onChangeText={setRenaming} maxLength={120} autoFocus />
+            <Field label="Tên bộ thẻ" value={renaming} onChangeText={setRenaming} maxLength={CARD_LIMITS.title} autoFocus />
           )}
           <Txt variant="caption" tone="subtle">
             {cardCountLabel(d.cardCount)} · {deckStats(d).map((x) => `${x.label} ${x.value}`).join(' · ')}
@@ -101,8 +95,8 @@ export default function DeckScreen() {
 
       <Card>
         <View style={{ gap: space.md }}>
-          <Field label="Mặt trước" value={front} onChangeText={setFront} multiline maxLength={MAX_SIDE} />
-          <Field label="Mặt sau" value={back} onChangeText={setBack} multiline maxLength={MAX_SIDE} />
+          <Field label="Mặt trước" value={front} onChangeText={setFront} multiline maxLength={CARD_LIMITS.front} hint={counter(front, CARD_LIMITS.front)} />
+          <Field label="Mặt sau" value={back} onChangeText={setBack} multiline maxLength={CARD_LIMITS.back} hint={counter(back, CARD_LIMITS.back)} />
           {addError && <InlineError>{addError}</InlineError>}
           <Button label="Thêm thẻ" icon="plus" loading={createCard.isPending} onPress={() => void onAdd()} />
         </View>
@@ -153,8 +147,8 @@ function CardRow({ card, deckId }: { card: Flashcard; deckId: string }) {
     <View style={{ padding: space.md, gap: space.sm }}>
       {edit ? (
         <>
-          <Field label="Mặt trước" value={edit.front} onChangeText={(front) => setEdit({ ...edit, front })} multiline maxLength={MAX_SIDE} />
-          <Field label="Mặt sau" value={edit.back} onChangeText={(back) => setEdit({ ...edit, back })} multiline maxLength={MAX_SIDE} />
+          <Field label="Mặt trước" value={edit.front} onChangeText={(front) => setEdit({ ...edit, front })} multiline hint={counter(edit.front, CARD_LIMITS.front)} />
+          <Field label="Mặt sau" value={edit.back} onChangeText={(back) => setEdit({ ...edit, back })} multiline hint={counter(edit.back, CARD_LIMITS.back)} />
         </>
       ) : (
         <>

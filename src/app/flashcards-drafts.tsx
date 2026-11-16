@@ -5,6 +5,7 @@ import type { FlashcardDraft } from '@/contracts';
 import {
   Button, Card, Divider, EmptyState, ErrorState, Field, Icon, InlineError, LoadingState, Screen, SectionTitle, Txt,
 } from '@/components/ui';
+import { CARD_LIMITS, counter, sideError } from '@/features/flashcards/card-limits';
 import { acceptLabel, selectAll, toggle, withoutIds } from '@/features/flashcards/drafts-logic';
 import { useAcceptDrafts, useDecks, useDeleteDraft, useDrafts, usePatchDraft } from '@/features/flashcards/flashcards-api';
 import { errorText } from '@/lib/api-client';
@@ -76,7 +77,7 @@ export default function DraftsScreen() {
           <Button key={k.id} label={k.title} size="sm" variant={target === k.id ? 'primary' : 'secondary'} onPress={() => setTarget(k.id)} />
         ))}
       </ScrollView>
-      {target === 'new' && <Field label="Tên bộ thẻ mới" value={newTitle} onChangeText={setNewTitle} maxLength={120} />}
+      {target === 'new' && <Field label="Tên bộ thẻ mới" value={newTitle} onChangeText={setNewTitle} maxLength={CARD_LIMITS.title} />}
       {error && <InlineError>{error}</InlineError>}
       <Button label={acceptLabel(selected.size)} disabled={selected.size === 0} loading={accept.isPending} onPress={() => void onAccept()} />
     </Screen>
@@ -94,7 +95,8 @@ function DraftRow({ draft, checked, onToggle, onDeleted }: {
 
   async function save() {
     if (!edit) return;
-    if (!edit.front.trim() || !edit.back.trim()) return setErr('Mặt trước và mặt sau không được để trống.');
+    const e = sideError(edit.front, edit.back);
+    if (e) return setErr(e);
     await patch.mutateAsync({ id: draft.id, front: edit.front.trim(), back: edit.back.trim() })
       .then(() => { setEdit(null); setErr(null); })
       .catch((x) => setErr(errorText(x, 'Không lưu được thẻ, vui lòng thử lại.')));
@@ -119,8 +121,8 @@ function DraftRow({ draft, checked, onToggle, onDeleted }: {
       </Pressable>
       {edit && (
         <>
-          <Field label="Mặt trước" value={edit.front} onChangeText={(front) => setEdit({ ...edit, front })} multiline />
-          <Field label="Mặt sau" value={edit.back} onChangeText={(back) => setEdit({ ...edit, back })} multiline />
+          <Field label="Mặt trước" value={edit.front} onChangeText={(front) => setEdit({ ...edit, front })} multiline hint={counter(edit.front, CARD_LIMITS.front)} />
+          <Field label="Mặt sau" value={edit.back} onChangeText={(back) => setEdit({ ...edit, back })} multiline hint={counter(edit.back, CARD_LIMITS.back)} />
         </>
       )}
       {err && <InlineError>{err}</InlineError>}
