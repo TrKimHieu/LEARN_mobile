@@ -163,7 +163,7 @@ Gộp các mục chưa có hoặc mới có một phần. Mục đã xong hoặc
 - [ ] **P-6** Xác minh owner/projectId EAS `1d60d1e2-0017-4a99-ac67-1f02f5454443` và `updates.url` (đã khai trong `app.json`, chưa xác minh)
 
 ### T1 — Tệp gốc (đã chốt giữ bản sao cục bộ)
-- [ ] **T1-2** Chọn tệp, sao vào thư mục riêng, ghi chỉ mục cục bộ (mã, tên, kích thước, SHA-256, đường dẫn)
+- [x] **T1-2** Sau khi server nhận văn bản, tệp được sao vào `Paths.document/sources/<tên DB tài khoản>/` và ghi chỉ mục ở bảng SQLite `source_files` (migration 2: mã tài liệu, khóa, tên, mime, kích thước, SHA-256, URI). Đăng xuất hẳn xoá cả thư mục; chế độ Testing không lưu. Lỗi sao chép không làm hỏng tài liệu (2026-11-16, `src/lib/source-files.ts`, 4 test). Chưa thử trên thiết bị
 - [ ] **T1-4** Trích xuất DOCX và PPTX trên máy (độc lập với (b); ADR 004 chưa có hai định dạng này)
 - [ ] **T1-7** Trạng thái "Tệp gốc không còn trên máy này" khi mất tệp (gỡ app, đổi máy)
 - [ ] **T1-8** Gắn lại tệp gốc, kiểm bằng SHA-256

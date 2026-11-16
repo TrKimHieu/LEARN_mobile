@@ -20,6 +20,16 @@ export const MIGRATIONS: readonly string[] = [
      last_error TEXT
    );
    CREATE INDEX IF NOT EXISTS outbox_created_at ON outbox (created_at);`,
+  `CREATE TABLE IF NOT EXISTS source_files (
+     document_id TEXT PRIMARY KEY NOT NULL,
+     course_id TEXT NOT NULL,
+     filename TEXT NOT NULL,
+     mime TEXT NOT NULL,
+     size_bytes INTEGER NOT NULL,
+     sha256 TEXT NOT NULL,
+     uri TEXT NOT NULL,
+     created_at INTEGER NOT NULL
+   );`,
 ];
 
 /** Chạy các migration còn thiếu theo `PRAGMA user_version`; trả về version sau cùng. */

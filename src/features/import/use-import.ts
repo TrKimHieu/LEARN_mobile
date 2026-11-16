@@ -2,6 +2,8 @@ import { useCallback, useState } from 'react';
 import * as DocumentPicker from 'expo-document-picker';
 import type { ImportTextDocumentInput } from '@/contracts';
 import { errorText } from '@/lib/api-client';
+import { useOffline } from '@/features/offline/offline-provider';
+import { saveSourceCopy } from '@/lib/source-files';
 import { useImportText } from './import-api';
 import { assertSize, kindOf } from './extract/limits';
 import { dataUrlToCacheFile, extractImage, isOcrAvailable, recognizeImage } from './extract/ocr';
@@ -26,6 +28,7 @@ const MIME = { text: 'text/plain', pdf: 'application/pdf', image: 'image/jpeg' }
 interface Source {
   mime: string;
   size: number;
+  uri: string;
 }
 
 function messageOf(e: unknown): string {
@@ -35,6 +38,7 @@ function messageOf(e: unknown): string {
 /** Luồng nhập: chọn tệp, trích chữ tại máy, xem/sửa, gửi văn bản. */
 export function useImport(courseId: string) {
   const importText = useImportText(courseId);
+  const { sources } = useOffline();
   const pdf = usePdfExtractor();
   const [state, setState] = useState<ImportState>({ phase: 'idle' });
   const [source, setSource] = useState<Source | null>(null);
@@ -97,7 +101,7 @@ export function useImport(courseId: string) {
             ? await extractImage(asset.uri)
             : await extractPdf(asset.uri);
       if (!out.pages.some((p) => p.text.trim())) throw new Error('Không tìm thấy chữ trong tệp này.');
-      setSource({ mime: asset.mimeType ?? MIME[kind], size: asset.size ?? 0 });
+      setSource({ mime: asset.mimeType ?? MIME[kind], size: asset.size ?? 0, uri: asset.uri });
       setFilename(asset.name);
       setMethod(out.method);
       setPages(out.pages);
@@ -125,13 +129,20 @@ export function useImport(courseId: string) {
     setError(null);
     setState({ phase: 'sending' });
     try {
-      await importText.mutateAsync(input);
+      const doc = await importText.mutateAsync(input);
+      if (sources) {
+        // Văn bản đã lên server; lỗi sao chép chỉ làm mất bản gốc trên máy, không hỏng tài liệu.
+        await saveSourceCopy({
+          store: sources.store, dbName: sources.dbName, pickedUri: source.uri,
+          documentId: doc.id, courseId, filename: input.filename, mime: source.mime,
+        }).catch(() => undefined);
+      }
       setState({ phase: 'done' });
     } catch (e) {
       setError(errorText(e, 'Không gửi được. Thử lại.'));
       setState({ phase: 'review' });
     }
-  }, [canSend, source, filename, method, pages, importText]);
+  }, [canSend, source, filename, method, pages, importText, sources, courseId]);
 
   const chars = pages.reduce((n, p) => n + p.text.length, 0);
 
