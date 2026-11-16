@@ -1,0 +1,60 @@
+import { View } from 'react-native';
+import { Button, Card, Field, Notice, ProgressRing, Screen, Txt } from '@/components/ui';
+import { formatClock } from '@/features/focus/timer';
+import { useFocusTimer } from '@/features/focus/use-focus-timer';
+import { space } from '@/theme/tokens';
+
+const PHASE_LABEL = { focus: 'Học', break: 'Nghỉ' } as const;
+
+/** T3-2, T3-4: Pomodoro. Thông báo khi app ở nền (T3-3) chờ đợt dependency D1. */
+export default function FocusScreen() {
+  const f = useFocusTimer();
+  // shortcut: chưa hỏi xác nhận khi rời màn (T3-4); bộ đếm giữ mốc giờ nên quay lại vẫn đúng.
+  const totalMs = (f.phase === 'focus' ? f.settings.focusMin : f.settings.breakMin) * 60_000;
+
+  return (
+    <Screen width="reading">
+      {f.finished && (
+        <Notice>{f.finished === 'focus' ? 'Hết giờ học, nghỉ một chút.' : 'Hết giờ nghỉ, học tiếp nhé.'}</Notice>
+      )}
+      <Card>
+        <View style={{ alignItems: 'center', gap: space.lg }}>
+          <ProgressRing value={totalMs - f.remainingMs} max={totalMs} size={200} stroke={10} label={`Thời gian ${PHASE_LABEL[f.phase]}`}>
+            <Txt variant="display" accessibilityLiveRegion="polite">{formatClock(f.remainingMs)}</Txt>
+            <Txt variant="small" tone="subtle">{PHASE_LABEL[f.phase]}</Txt>
+          </ProgressRing>
+          <View style={{ flexDirection: 'row', gap: space.md }}>
+            {f.running ? (
+              <Button label="Tạm dừng" variant="secondary" onPress={f.pause} />
+            ) : (
+              <Button label={f.inProgress ? 'Tiếp tục' : 'Bắt đầu'} onPress={f.start} disabled={!f.ready} />
+            )}
+            <Button label="Đặt lại" variant="ghost" icon="retry" onPress={f.reset} disabled={!f.inProgress} />
+          </View>
+        </View>
+      </Card>
+      <View style={{ flexDirection: 'row', gap: space.md }}>
+        <View style={{ flex: 1 }}>
+          <Field
+            label="Học (phút)"
+            keyboardType="number-pad"
+            defaultValue={String(f.settings.focusMin)}
+            key={`f${f.settings.focusMin}`}
+            editable={!f.running}
+            onEndEditing={(e) => f.setSettings({ focusMin: e.nativeEvent.text })}
+          />
+        </View>
+        <View style={{ flex: 1 }}>
+          <Field
+            label="Nghỉ (phút)"
+            keyboardType="number-pad"
+            defaultValue={String(f.settings.breakMin)}
+            key={`b${f.settings.breakMin}`}
+            editable={!f.running}
+            onEndEditing={(e) => f.setSettings({ breakMin: e.nativeEvent.text })}
+          />
+        </View>
+      </View>
+    </Screen>
+  );
+}

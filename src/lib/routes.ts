@@ -20,6 +20,7 @@ export const routes = {
     params: { courseId, lessonId },
   }),
   storage: '/storage' as Href,
+  focus: '/focus' as Href,
   adminAiJobs: '/admin/ai-jobs' as Href,
   adminAiJob: (jobId: string): Href => ({ pathname: '/admin/ai-jobs/[jobId]', params: { jobId } }),
 };

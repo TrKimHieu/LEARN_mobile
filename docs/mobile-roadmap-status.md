@@ -182,7 +182,8 @@ Kiểm tra T1-7 → T1-9: typecheck, lint 0 lỗi, 221 Jest, export web bundle �
 ### T3 — Thời gian học
 - [x] **T3-1** `src/features/focus/timer.ts` cùng logic `pomodoro.ts` của web; 18 test (2026-11-16). Chưa có UI
 - [ ] **T3-2, T3-3** Chu kỳ học/nghỉ chỉnh được; thông báo cục bộ khi hết chu kỳ kể cả app ở nền; xử lý khi từ chối quyền
-- [ ] **T3-4** Xác nhận khi thoát giữa chu kỳ; tạm dừng và tiếp tục
+- [~] **T3-2** Màn `/focus` (Pomodoro) có học/nghỉ chỉnh được, lưu cục bộ bằng AsyncStorage (2026-11-16). Chưa có lối vào từ Tổng quan/bài học; thông báo (T3-3) chờ D1
+- [~] **T3-4** Tạm dừng/tiếp tục có. Còn thiếu hỏi xác nhận khi rời màn giữa chu kỳ (`beforeRemove` lỗi kiểu với expo-router)
 - [ ] **T3-5** Bắt đầu từ bài học hoặc phiên SRS; ghi thời gian theo khóa và bài vào SQLite cục bộ (không gửi server)
 - [ ] **T3-6** Thống kê thời gian học theo ngày ở tab Tiến trình
 
