@@ -17,7 +17,7 @@ const NOTIFY_ID = 'learn.focus.end';
 export function useFocusTimer() {
   const [settings, setSettingsState] = useState<PomodoroSettings>(normalizeSettings(null));
   const [timer, setTimer] = useState<TimerState>(() => initialState(normalizeSettings(null)));
-  const [now, setNow] = useState(Date.now());
+  const [now, setNow] = useState(() => Date.now());
   const [finished, setFinished] = useState<Phase | null>(null);
   const [ready, setReady] = useState(false);
 
@@ -71,7 +71,6 @@ export function useFocusTimer() {
     if (!timer.running) save(initialState(next, timer.phase));
   }, [settings, timer, save]);
 
-  const t = Date.now();
   return {
     ready,
     settings,
@@ -84,13 +83,19 @@ export function useFocusTimer() {
     finished,
     clearFinished: () => setFinished(null),
     start: () => {
+      // Giờ lúc bấm, không phải lúc render: màn tạm dừng không render lại nên giờ render có thể đã cũ.
+      const t = Date.now();
       setFinished(null);
       setNow(t);
       save(start(timer, t));
       // Hỏi quyền lúc người dùng tự bấm bắt đầu; từ chối thì bộ đếm vẫn chạy, chỉ không có thông báo.
       void ensureNotificationPermission();
     },
-    pause: () => { setNow(t); save(pause(timer, t)); },
+    pause: () => {
+      const t = Date.now();
+      setNow(t);
+      save(pause(timer, t));
+    },
     reset: () => save(initialState(settings, timer.phase)),
   };
 }

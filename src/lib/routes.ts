@@ -23,6 +23,8 @@ export const routes = {
   focus: '/focus' as Href,
   deck: (deckId: string): Href => ({ pathname: '/deck/[deckId]', params: { deckId } }),
   deckReview: (deckId?: string): Href => ({ pathname: '/deck-review', params: deckId ? { deck: deckId } : {} }),
+  generateCards: '/flashcards-generate' as Href,
+  drafts: (jobId?: string): Href => ({ pathname: '/flashcards-drafts', params: jobId ? { job: jobId } : {} }),
   adminAiJobs: '/admin/ai-jobs' as Href,
   adminAiJob: (jobId: string): Href => ({ pathname: '/admin/ai-jobs/[jobId]', params: { jobId } }),
 };

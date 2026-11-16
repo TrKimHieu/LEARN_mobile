@@ -22,7 +22,7 @@ export interface SessionState {
 }
 
 /** Bốn Mức nhớ theo thứ tự từ quên đến dễ, nhãn tiếng Việt theo GLOSSARY.md. */
-export const GRADES: ReadonlyArray<{ grade: Grade; label: string }> = [
+export const GRADES: readonly { grade: Grade; label: string }[] = [
   { grade: 'AGAIN', label: 'Quên' },
   { grade: 'HARD', label: 'Khó' },
   { grade: 'GOOD', label: 'Tốt' },

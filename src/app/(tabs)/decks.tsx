@@ -54,6 +54,11 @@ export default function DecksScreen() {
         </View>
       </Card>
 
+      <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: space.sm }}>
+        <Button label="Sinh thẻ bằng AI" variant="secondary" icon="sparkles" onPress={() => router.push(routes.generateCards)} />
+        <Button label="Thẻ nháp" variant="secondary" onPress={() => router.push(routes.drafts())} />
+      </View>
+
       <SectionTitle title="Bộ thẻ của bạn" />
       {decks.isLoading ? (
         <LoadingState rows={3} height={72} label="Đang tải bộ thẻ" />

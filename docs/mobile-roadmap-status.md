@@ -120,9 +120,10 @@ Tách biệt khỏi ôn câu hỏi bài tập ở R5 (theo spec, thẻ web và t
 Chưa kiểm với backend thật: backend trong `LEARN_backend_unified` hiện chưa có route `/decks` (nằm ở nhánh backend khác); mobile dựng theo contracts 1.5.0, giống web. Kiểm tra: typecheck, lint 0 lỗi, 242 Jest.
 
 ### W2 — AI sinh thẻ nháp
-- [ ] Màn "Sinh thẻ bằng AI": chọn khóa, nguồn (một bài học hoặc một tài liệu), số thẻ tối đa 1–30
-- [ ] Theo dõi job (tiến độ, huỷ, thành công một phần, lỗi), báo hết hạn mức AI của gói
-- [ ] Màn duyệt thẻ nháp: sửa, bỏ bớt, thêm vào bộ có sẵn hoặc bộ mới; thẻ nháp không có lịch ôn cho đến khi chấp nhận
+- [x] 2026-11-16: `flashcards-generate.tsx` (chọn khóa, một bài học hoặc một tài liệu đã trích xuất, 1–30 thẻ; tiến độ, dừng, lỗi theo mã, báo hết hạn mức) và `flashcards-drafts.tsx` (chọn sẵn tất cả, sửa, bỏ, thêm vào bộ có sẵn hoặc bộ mới rồi mở bộ đó). Lối vào ở tab Thẻ. Chưa kiểm với backend thật
+- [x] Màn "Sinh thẻ bằng AI": chọn khóa, nguồn (một bài học hoặc một tài liệu), số thẻ tối đa 1–30
+- [x] Theo dõi job (tiến độ, huỷ, lỗi), báo hết hạn mức AI của gói
+- [x] Màn duyệt thẻ nháp: sửa, bỏ bớt, thêm vào bộ có sẵn hoặc bộ mới; thẻ nháp không có lịch ôn cho đến khi chấp nhận
 
 ### W3 — Pomodoro và nhắc ôn
 - [ ] Bộ đếm học/nghỉ chỉnh được (mặc định 25/5), tính giờ từ mốc thời gian thật để đúng khi app nền hoặc xoay màn; lưu cài đặt cục bộ
