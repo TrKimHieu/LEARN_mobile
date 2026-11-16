@@ -7,7 +7,7 @@ import { apiFetch } from '@/lib/api-client';
 import { config } from '@/lib/config';
 import { dbNameFor } from '@/lib/db/scope';
 import { deleteAccountDb, openAccountDb } from '@/lib/db/sqlite';
-import type { OutboxStore, SourceFileStore } from '@/lib/db/stores';
+import type { KvStore, OutboxStore, SourceFileStore } from '@/lib/db/stores';
 import { deleteSourceDir } from '@/lib/source-files';
 import { enqueue, flushOutbox, setOutboxSink } from '@/lib/offline/outbox';
 import { createKvPersister, PERSIST_MAX_AGE, persistBuster, shouldPersistQuery } from '@/lib/offline/persister';
@@ -22,6 +22,8 @@ type OfflineValue = {
   discard: () => Promise<void>;
   /** Chỉ mục bản sao tệp gốc của tài khoản đang mở; null khi chưa mở DB hoặc đang Testing. */
   sources: { store: SourceFileStore; dbName: string } | null;
+  /** kv của DB tài khoản (thời gian học cục bộ...); null khi chưa mở DB hoặc đang Testing. */
+  kv: KvStore | null;
 };
 
 const OfflineContext = createContext<OfflineValue>({
@@ -30,6 +32,7 @@ const OfflineContext = createContext<OfflineValue>({
   flush: async () => {},
   discard: async () => {},
   sources: null,
+  kv: null,
 });
 
 type Session = {
@@ -52,6 +55,7 @@ export function OfflineProvider({ children }: { children: React.ReactNode }) {
   const session = useRef<Session | null>(null);
   const [pendingCount, setPendingCount] = useState(0);
   const [sources, setSources] = useState<OfflineValue['sources']>(null);
+  const [kv, setKv] = useState<KvStore | null>(null);
 
   const refreshCount = useCallback(async () => {
     setPendingCount(session.current ? await session.current.outbox.count() : 0);
@@ -80,6 +84,7 @@ export function OfflineProvider({ children }: { children: React.ReactNode }) {
     setOutboxSink(null);
     setPendingCount(0);
     setSources(null);
+    setKv(null);
     if (!s) return null;
     s.stopPersist();
     await s.close().catch(() => undefined);
@@ -106,6 +111,7 @@ export function OfflineProvider({ children }: { children: React.ReactNode }) {
       };
       session.current = current;
       setSources({ store: db.sourceFiles, dbName: name });
+      setKv(db.kv);
       const persister = createKvPersister(db.kv);
       const restore = persister.restoreClient;
       persister.restoreClient = async () => {
@@ -160,8 +166,8 @@ export function OfflineProvider({ children }: { children: React.ReactNode }) {
 
   const countPending = useCallback(async () => (session.current ? session.current.outbox.count() : 0), []);
   const value = useMemo(
-    () => ({ pendingCount, countPending, flush, discard, sources }),
-    [pendingCount, countPending, flush, discard, sources],
+    () => ({ pendingCount, countPending, flush, discard, sources, kv }),
+    [pendingCount, countPending, flush, discard, sources, kv],
   );
   return <OfflineContext.Provider value={value}>{children}</OfflineContext.Provider>;
 }

@@ -1,4 +1,5 @@
-import { usePreventRemove } from 'expo-router';
+import { useLocalSearchParams, usePreventRemove } from 'expo-router';
+import { useMemo } from 'react';
 import { View } from 'react-native';
 import { confirmAction } from '@/lib/dialog';
 import { Button, Card, Field, Notice, ProgressRing, Screen, Txt } from '@/components/ui';
@@ -8,9 +9,12 @@ import { space } from '@/theme/tokens';
 
 const PHASE_LABEL = { focus: 'Học', break: 'Nghỉ' } as const;
 
-/** T3-2, T3-4: Pomodoro. Thông báo khi app ở nền (T3-3) chờ đợt dependency D1. */
+/** T3-2..T3-5: Pomodoro; thông báo hết chu kỳ qua expo-notifications; chu kỳ học xong ghi vào sổ thời gian học. */
 export default function FocusScreen() {
-  const f = useFocusTimer();
+  const { courseId, lessonId } = useLocalSearchParams<{ courseId?: string; lessonId?: string }>();
+  // Mở từ bài học thì thời gian học ghi theo khóa và bài (T3-5).
+  const ctx = useMemo(() => ({ courseId, lessonId }), [courseId, lessonId]);
+  const f = useFocusTimer(ctx);
   const totalMs = (f.phase === 'focus' ? f.settings.focusMin : f.settings.breakMin) * 60_000;
 
   // T3-4: rời màn khi đang chạy thì hỏi trước. Tạm dừng rồi mới cho đi tiếp, khi chặn đã tắt.

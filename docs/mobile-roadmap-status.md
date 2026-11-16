@@ -188,8 +188,8 @@ Kiểm tra T1-7 → T1-9: typecheck, lint 0 lỗi, 221 Jest, export web bundle �
 - [x] **W3 nhắc ôn** Công tắc trong Cài đặt (mặc định tắt). Bật thì hẹn 19:00 khi server báo có thẻ đến hạn, không có thì huỷ. Cần development build mới vì là module native (2026-11-16)
 - [x] **T3-2** Màn `/focus` (Pomodoro), mở từ Tổng quan; học/nghỉ chỉnh được, lưu cục bộ bằng AsyncStorage (2026-11-16)
 - [x] **T3-4** Tạm dừng/tiếp tục; rời màn khi đang chạy thì hỏi, đồng ý thì tạm dừng rồi mới rời (`usePreventRemove`) (2026-11-16)
-- [ ] **T3-5** Bắt đầu từ bài học hoặc phiên SRS; ghi thời gian theo khóa và bài vào SQLite cục bộ (không gửi server)
-- [ ] **T3-6** Thống kê thời gian học theo ngày ở tab Tiến trình
+- [~] **T3-5** Nút "Học tập trung (Pomodoro)" ở màn bài học mở `/focus?courseId&lessonId`; mỗi chu kỳ học chạy hết ghi số phút theo ngày, khóa và bài vào kv của DB SQLite tài khoản (giữ 90 ngày, không gửi server). Chưa có lối vào từ phiên ôn SRS; chu kỳ bỏ dở không tính (2026-11-16)
+- [x] **T3-6** Thẻ "Thời gian học 7 ngày" ở tab Tiến trình, chỉ số liệu của máy này (2026-11-16)
 
 ### T4 — Mục tiêu và XP
 - [ ] **T4-1** Định nghĩa "ngày đã học" (hoàn thành bài / nộp bài / phiên SRS) theo múi giờ máy chủ; ghi vào ADR XP

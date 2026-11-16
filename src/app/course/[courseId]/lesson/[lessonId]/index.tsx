@@ -319,6 +319,12 @@ export default function LessonScreen() {
             </View>
           )}
 
+          <Button
+            label="Học tập trung (Pomodoro)"
+            variant="secondary"
+            icon="clock"
+            onPress={() => router.push(routes.focus({ courseId, lessonId }))}
+          />
           <ReviewEntry />
         </Screen>
         {tocSide && toc.length > 1 && (

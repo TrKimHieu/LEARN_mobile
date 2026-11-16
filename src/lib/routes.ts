@@ -20,7 +20,7 @@ export const routes = {
     params: { courseId, lessonId },
   }),
   storage: '/storage' as Href,
-  focus: '/focus' as Href,
+  focus: (ctx: { courseId?: string; lessonId?: string } = {}): Href => ({ pathname: '/focus', params: ctx }),
   deck: (deckId: string): Href => ({ pathname: '/deck/[deckId]', params: { deckId } }),
   deckReview: (deckId?: string): Href => ({ pathname: '/deck-review', params: deckId ? { deck: deckId } : {} }),
   generateCards: '/flashcards-generate' as Href,

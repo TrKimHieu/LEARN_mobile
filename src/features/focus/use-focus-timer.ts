@@ -1,10 +1,13 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { useQueryClient } from '@tanstack/react-query';
 import { useCallback, useEffect, useState } from 'react';
+import { useOffline } from '@/features/offline/offline-provider';
 import { cancelScheduled, ensureNotificationPermission, scheduleAt } from '@/lib/notifications';
 import {
   advance, initialState, normalizeSettings, parseTimer, pause, remaining, start,
   type Phase, type PomodoroSettings, type TimerState,
 } from './timer';
+import { recordFocus } from './study-log';
 
 const SETTINGS_KEY = 'learn.focus.settings';
 const TIMER_KEY = 'learn.focus.timer';
@@ -14,7 +17,9 @@ const NOTIFY_ID = 'learn.focus.end';
  * Bộ đếm Pomodoro (T3-2): cài đặt và trạng thái lưu cục bộ, nên đóng app rồi mở lại vẫn đúng giờ.
  * Không gửi gì lên server (ADR 006: Pomodoro không sinh XP).
  */
-export function useFocusTimer() {
+export function useFocusTimer(ctx: { courseId?: string; lessonId?: string } = {}) {
+  const { kv } = useOffline();
+  const qc = useQueryClient();
   const [settings, setSettingsState] = useState<PomodoroSettings>(normalizeSettings(null));
   const [timer, setTimer] = useState<TimerState>(() => initialState(normalizeSettings(null)));
   const [now, setNow] = useState(() => Date.now());
@@ -60,8 +65,12 @@ export function useFocusTimer() {
     if (out.finished) {
       setFinished(out.finished);
       save(out.state);
+      // T3-5: chỉ ghi chu kỳ học chạy hết (tính cả khi hết lúc app đóng); bỏ dở không tính.
+      if (out.finished === 'focus' && kv) void recordFocus(kv, settings.focusMin, ctx)
+          .then(() => qc.invalidateQueries({ queryKey: ['study-log'] }))
+          .catch(() => undefined);
     }
-  }, [timer, settings, now, save]);
+  }, [timer, settings, now, save, kv, ctx, qc]);
 
   const setSettings = useCallback((raw: Partial<Record<keyof PomodoroSettings, string | number>>) => {
     const next = normalizeSettings({ ...settings, ...raw });

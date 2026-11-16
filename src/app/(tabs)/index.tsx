@@ -108,7 +108,7 @@ export default function OverviewScreen() {
 
       <UpdateNotice />
       <ReviewEntry />
-      <Button label="Pomodoro" variant="secondary" icon="clock" onPress={() => router.push(routes.focus)} />
+      <Button label="Pomodoro" variant="secondary" icon="clock" onPress={() => router.push(routes.focus())} />
       {courses.isError && <InlineError>{errorText(courses.error, 'Không tải được khóa học đang dở.')}</InlineError>}
       {courses.isLoading && <Skeleton height={150} />}
       {next && <ResumeCard course={next} />}

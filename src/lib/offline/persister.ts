@@ -35,6 +35,6 @@ export function shouldPersistQuery(q: {
 }): boolean {
   if (q.state.status !== 'success') return false;
   const head = q.queryKey[0];
-  // `source-files` đọc thẳng từ SQLite và file system; lưu lại chỉ sinh bản cũ.
-  return head !== 'meta' && head !== 'admin' && head !== 'source-files';
+  // `source-files`, `study-log` đọc thẳng từ SQLite/file system; lưu lại chỉ sinh bản cũ.
+  return head !== 'meta' && head !== 'admin' && head !== 'source-files' && head !== 'study-log';
 }
