@@ -210,7 +210,7 @@ Kiểm tra T1-7 → T1-9: typecheck, lint 0 lỗi, 221 Jest, export web bundle �
 ### X — Thiết kế
 - [x] **X-1** Không cần design system mới: ADR 002 đã thay ADR 001; token sáng/tối, bo góc 14/20/24 và font Inter/Plus Jakarta trong `src/theme/tokens.ts` khớp `theme.css` web ngày 2026-11-16. Màu trạng thái ok/bad/warn của web chưa có token riêng ở mobile; thêm khi tính năng cần
 - [x] **X-2** `components/ui/**` đã dùng token của `tokens.ts`; không cần đổi (2026-11-16)
-- [~] **X-3** Rà trên bản web (375×812, chế độ Testing) 2026-11-16: Tổng quan, Pomodoro (chạy/tạm dừng/đặt lại), tab Thẻ, Tiến trình (biểu đồ 7 ngày), Cài đặt đều đúng bố cục; sửa công tắc nhắc ôn thiếu tiêu đề. Chưa rà màn quản lý dung lượng, chi tiết bộ thẻ, thẻ nháp, admin; chưa rà trên thiết bị và chế độ sáng
+- [~] **X-3** Rà trên bản web (375×812, chế độ Testing) 2026-11-16, cả tối và sáng: Tổng quan, Pomodoro (chạy/tạm dừng/đặt lại), tab Thẻ, Sinh thẻ bằng AI, Thẻ nháp (trạng thái lỗi), Tiến trình (biểu đồ 7 ngày), Cài đặt, Quản lý dung lượng (trạng thái trống) đều đúng bố cục; đã sửa công tắc nhắc ôn thiếu tiêu đề. Chưa rà được: chi tiết bộ thẻ và phiên ôn thẻ (dữ liệu demo không có API bộ thẻ), màn admin (tài khoản demo không phải ADMIN), và mọi màn trên thiết bị thật
 
 ### Thứ tự đề xuất
 P-1 → P-3 (gồm sửa ADR 004) → P-2 → P-5 → X-1 → X-2 → T1 → T2 → T3 → T4 → T5 → X-3. Nhóm W (website) xen vào T2/T3/T5 vì trùng nội dung; làm một lần, không làm hai bản.
