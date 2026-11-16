@@ -34,7 +34,7 @@ Chạy lại nhiều lần nếu cần; mỗi lần cache npm giữ thêm gói �
 
 | Đợt | Gói | Loại | Dùng cho |
 | --- | --- | --- | --- |
-| D1 thông báo | `expo-notifications` | native, cần build mới | W3, T3-3, T4-4, T4-5 |
+| D1 thông báo | `expo-notifications` ~58.1.9 (cài 2026-11-16) | native, cần build mới | W3, T3-3, T4-4, T4-5 |
 | D2 Office | một thư viện giải nén ZIP JS thuần (chọn khi làm T1-4, ưu tiên gói nhỏ không cần native) | JS | T1-4 DOCX/PPTX |
 | D3 native R7 | `expo-speech`, `expo-auth-session` (Google Drive), gói nhận nội dung chia sẻ | native | R7, kết nối Drive |
 
