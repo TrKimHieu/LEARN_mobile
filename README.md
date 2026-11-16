@@ -2,7 +2,7 @@
 
 Standalone private mobile repository. Public contracts 1.0.0 are pinned in vendor/ with SHA-256. No backend or other client checkout is required.
 
-Setup: npm ci, npm run lint, npm run typecheck, npm test, npm run export.
+Setup: npm ci, npm run lint, npm run typecheck, npm test, npm run export. Adding dependencies: see [docs/dependencies.md](docs/dependencies.md).
 
 Copy .env.example to .env and set an explicit EXPO_PUBLIC_API_URL origin. Set APP_ENV to development, preview or production. Preview and production require remote HTTPS; API paths already include /api/v1. The example API is a build placeholder. No Metro/LAN origin is inferred.
 

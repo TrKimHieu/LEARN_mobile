@@ -159,7 +159,7 @@ Gộp các mục chưa có hoặc mới có một phần. Mục đã xong hoặc
 - [x] **P-1** Commit baseline sạch trên nhánh `chore/baseline-testing-mode-docs` (2026-11-16, chưa push, chưa PR). Thực tế nội dung là chế độ Testing, sửa lỗi offline và tài liệu; không tìm thấy refactor "tách component theo feature" chưa commit. typecheck 0 lỗi, lint 0 lỗi (37 cảnh báo), 187 Jest qua
 - [~] **P-2** Nâng pin lên contracts 1.5.0 (2026-11-16, nhánh `chore/contracts-1.5.0`): tgz lấy từ web vendor, SHA-256 `fc954293…abccc` khớp pin tin cậy của web; `sync:contracts`, typecheck, lint (0 lỗi), 187 Jest và 6 tooling đều qua. 1.5.0 thêm module `flashcard` (Deck, Card, `reviewCard`, `createDeckSchema`, `patchDeckSchema`), đủ cho W1/W2. **Chưa có** trong bất kỳ bản nào: CardSchedule, StudySession, XpEvent, DailyGoal, Friendship, LeagueEntry, endpoint STO nhận văn bản mới; các mục T3-5 (cục bộ), T4, T5 chờ backend phát hành. Chưa kiểm hash với staging (`/meta` chỉ cảnh báo `contractsDiffer`); chưa chạy `npm run export`
 - [x] **P-3** ADR đã viết và được xác nhận 2026-11-16: (a) trích xuất và bản sao cục bộ — sửa đổi 2026-11-16 ở `adr/004-local-extraction.md`; (b) SRS — `adr/005-srs-two-card-systems.md`; (c) XP và chống gian lận — `adr/006-xp-and-anti-cheat.md`
-- [ ] **P-5** Quy trình dependency: thêm theo đợt bằng `npx expo install`, mỗi đợt một commit lockfile
+- [x] **P-5** Quy trình dependency ở `docs/dependencies.md` (2026-11-16): `npx expo install` theo đợt, mỗi đợt một nhánh và một commit lockfile, cách cài khi mạng chập chờn, đợt D1 (thông báo), D2 (DOCX/PPTX), D3 (R7). Chưa cài gói nào
 - [ ] **P-6** Xác minh owner/projectId EAS `1d60d1e2-0017-4a99-ac67-1f02f5454443` và `updates.url` (đã khai trong `app.json`, chưa xác minh)
 
 ### T1 — Tệp gốc (đã chốt giữ bản sao cục bộ)
