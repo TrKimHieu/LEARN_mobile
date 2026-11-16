@@ -176,8 +176,8 @@ Kiểm tra T1-7 → T1-9: typecheck, lint 0 lỗi, 221 Jest, export web bundle �
 ### T2 — Ôn tập
 - [x] **T2-1** `src/features/reviews/sm2.ts` chép đúng SM-2 của backend (`core/srs/sm2.ts`), thêm `predictDueAt`; 9 test cùng bảng giá trị với backend (2026-11-16). Chưa nối vào UI
 - [ ] **T2-2** API + hook sinh thẻ (AI Job), sửa, thêm, xoá thẻ (trùng W1/W2)
-- [ ] **T2-5** Kiểm "đến hạn" theo múi giờ máy chủ bằng test đổi giờ máy
-- [ ] **T2-7** Lối vào ôn tập ở màn bài học (đã có ở Tổng quan)
+- [x] **T2-5** Test `due-clock.test.tsx`: đặt giờ máy sang năm sau, app vẫn gọi `/api/v1/reviews/due` không kèm giờ máy và hiện đúng số đến hạn của server (2026-11-16). Chưa thử đổi giờ trên thiết bị thật
+- [x] **T2-7** `ReviewEntry` thêm vào cuối màn bài học, chỉ hiện khi có thẻ đến hạn (2026-11-16)
 
 ### T3 — Thời gian học
 - [x] **T3-1** `src/features/focus/timer.ts` cùng logic `pomodoro.ts` của web; 18 test (2026-11-16). Chưa có UI

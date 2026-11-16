@@ -22,6 +22,7 @@ import {
   Txt,
 } from "@/components/ui";
 import { tocModeFor } from "@/features/navigation/screen-modes";
+import { ReviewEntry } from "@/features/reviews/components/review-entry";
 import {
   LessonSources,
   LowConfidenceNotice,
@@ -317,6 +318,8 @@ export default function LessonScreen() {
               />
             </View>
           )}
+
+          <ReviewEntry />
         </Screen>
         {tocSide && toc.length > 1 && (
           <ScrollView

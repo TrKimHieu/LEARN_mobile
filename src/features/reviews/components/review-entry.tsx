@@ -4,7 +4,7 @@ import { Button, Card, Txt } from '@/components/ui';
 import { space } from '@/theme/tokens';
 import { useDueReviews } from '../reviews-api';
 
-/** Lối vào ở Tổng quan: chỉ hiện khi có thẻ đến hạn. */
+/** Lối vào ở Tổng quan và cuối màn bài học (T2-7): chỉ hiện khi có thẻ đến hạn. */
 export function ReviewEntry() {
   const { data } = useDueReviews();
   if (!data || data.dueCount <= 0) return null;
