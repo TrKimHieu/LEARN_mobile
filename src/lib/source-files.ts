@@ -59,6 +59,52 @@ export async function saveSourceCopy(args: {
   return record;
 }
 
+export type SourceStatus = 'present' | 'missing';
+
+/** Gỡ app, đổi máy hoặc hệ điều hành dọn dẹp thì chỉ mục còn mà tệp mất (T1-7). */
+export function sourceStatus(rec: SourceFile): SourceStatus {
+  try {
+    return new File(rec.uri).exists ? 'present' : 'missing';
+  } catch {
+    return 'missing';
+  }
+}
+
+export class SourceMismatchError extends Error {
+  constructor() {
+    super('Tệp này khác tệp gốc đã nhập (SHA-256 không khớp).');
+  }
+}
+
+/** Gắn lại tệp gốc (T1-8): chỉ nhận khi SHA-256 trùng giá trị đã lưu. */
+export async function reattachSource(args: {
+  store: SourceFileStore;
+  dbName: string;
+  rec: SourceFile;
+  pickedUri: string;
+}): Promise<SourceFile> {
+  if ((await sha256Of(args.pickedUri)) !== args.rec.sha256) throw new SourceMismatchError();
+  return saveSourceCopy({
+    store: args.store, dbName: args.dbName, pickedUri: args.pickedUri, documentId: args.rec.documentId,
+    courseId: args.rec.courseId, filename: args.rec.filename, mime: args.rec.mime, now: args.rec.createdAt,
+  });
+}
+
+/** Xoá bản sao trên máy (T1-9). Tài liệu đã trích và bài học trên server không bị đụng tới. */
+export async function deleteSourceCopy(store: SourceFileStore, rec: SourceFile): Promise<void> {
+  try {
+    const f = new File(rec.uri);
+    if (f.exists) f.delete();
+  } catch {
+    // Tệp đã mất: chỉ cần bỏ chỉ mục.
+  }
+  await store.remove(rec.documentId);
+}
+
+export function totalBytes(list: Pick<SourceFile, 'sizeBytes'>[]): number {
+  return list.reduce((n, f) => n + f.sizeBytes, 0);
+}
+
 /** Đăng xuất hẳn: xoá mọi bản sao của tài khoản cùng với DB. */
 export function deleteSourceDir(dbName: string): void {
   try {

@@ -1,11 +1,13 @@
 import { View } from 'react-native';
-import { PageHeader, Screen, SectionTitle, Txt } from '@/components/ui';
+import { router } from 'expo-router';
+import { Button, PageHeader, Screen, SectionTitle, Txt } from '@/components/ui';
 import { ProfileCard } from '@/features/auth/components/profile-card';
 import { CurrentPlan } from '@/features/settings/components/current-plan';
 import { PlanList } from '@/features/settings/components/plan-list';
 import { ThemePicker } from '@/features/settings/components/theme-picker';
 import { usePlans, useSubscription } from '@/features/settings/subscription-api';
 import { config } from '@/lib/config';
+import { routes } from '@/lib/routes';
 import { APP_VERSION, useServerMeta } from '@/lib/server-meta';
 
 export default function SettingsScreen() {
@@ -20,6 +22,7 @@ export default function SettingsScreen() {
 
       <ProfileCard />
       <ThemePicker />
+      <Button label="Quản lý dung lượng" variant="secondary" icon="file" onPress={() => router.push(routes.storage)} />
 
       <View>
         <SectionTitle title="Gói hiện tại" />

@@ -1,3 +1,4 @@
+import { useQueryClient } from '@tanstack/react-query';
 import { useCallback, useState } from 'react';
 import * as DocumentPicker from 'expo-document-picker';
 import type { ImportTextDocumentInput } from '@/contracts';
@@ -39,6 +40,7 @@ function messageOf(e: unknown): string {
 export function useImport(courseId: string) {
   const importText = useImportText(courseId);
   const { sources } = useOffline();
+  const qc = useQueryClient();
   const pdf = usePdfExtractor();
   const [state, setState] = useState<ImportState>({ phase: 'idle' });
   const [source, setSource] = useState<Source | null>(null);
@@ -136,13 +138,14 @@ export function useImport(courseId: string) {
           store: sources.store, dbName: sources.dbName, pickedUri: source.uri,
           documentId: doc.id, courseId, filename: input.filename, mime: source.mime,
         }).catch(() => undefined);
+        void qc.invalidateQueries({ queryKey: ['source-files'] });
       }
       setState({ phase: 'done' });
     } catch (e) {
       setError(errorText(e, 'Không gửi được. Thử lại.'));
       setState({ phase: 'review' });
     }
-  }, [canSend, source, filename, method, pages, importText, sources, courseId]);
+  }, [canSend, source, filename, method, pages, importText, sources, courseId, qc]);
 
   const chars = pages.reduce((n, p) => n + p.text.length, 0);
 

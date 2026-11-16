@@ -165,10 +165,12 @@ Gộp các mục chưa có hoặc mới có một phần. Mục đã xong hoặc
 ### T1 — Tệp gốc (đã chốt giữ bản sao cục bộ)
 - [x] **T1-2** Sau khi server nhận văn bản, tệp được sao vào `Paths.document/sources/<tên DB tài khoản>/` và ghi chỉ mục ở bảng SQLite `source_files` (migration 2: mã tài liệu, khóa, tên, mime, kích thước, SHA-256, URI). Đăng xuất hẳn xoá cả thư mục; chế độ Testing không lưu. Lỗi sao chép không làm hỏng tài liệu (2026-11-16, `src/lib/source-files.ts`, 4 test). Chưa thử trên thiết bị
 - [ ] **T1-4** Trích xuất DOCX và PPTX trên máy (độc lập với (b); ADR 004 chưa có hai định dạng này)
-- [ ] **T1-7** Trạng thái "Tệp gốc không còn trên máy này" khi mất tệp (gỡ app, đổi máy)
-- [ ] **T1-8** Gắn lại tệp gốc, kiểm bằng SHA-256
-- [ ] **T1-9** Màn "Quản lý dung lượng": tổng dung lượng, xoá từng tệp, không xoá bài học
-- [ ] **T1-10** Giữ nguyên tài liệu cũ; tuỳ chọn "Tải về máy", không ép di chuyển
+- [x] **T1-7** Danh sách tài liệu hiện "Bản gốc đang lưu trên máy này" hoặc "Tệp gốc không còn trên máy này" theo chỉ mục + `File.exists` (2026-11-16)
+- [x] **T1-8** Nút "Gắn lại tệp": chọn tệp cùng loại, chỉ nhận khi SHA-256 trùng; sai thì báo "SHA-256 không khớp" (2026-11-16)
+- [x] **T1-9** Màn `/storage` "Quản lý dung lượng" mở từ Cài đặt: tổng dung lượng, danh sách, xoá từng bản sao có xác nhận; không xoá tài liệu hay bài học (2026-11-16)
+- [~] **T1-10** Tài liệu cũ và tài liệu từ web không có dòng bản gốc, không bị ép di chuyển (đã có). Còn thiếu "Tải về máy": contracts 1.5.0 chưa có endpoint tải tệp gốc cho mobile; chờ backend
+
+Kiểm tra T1-7 → T1-9: typecheck, lint 0 lỗi, 221 Jest, export web bundle được. Chưa thử trên thiết bị (gỡ app, đổi máy, chọn lại tệp thật).
 - [ ] Kết nối Google Drive (R7)
 
 ### T2 — Ôn tập

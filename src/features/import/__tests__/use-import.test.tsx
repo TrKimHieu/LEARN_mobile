@@ -14,6 +14,9 @@ jest.mock('../import-api', () => ({
   useImportText: () => ({ mutateAsync: (...a: unknown[]) => mockSend(...a) }),
 }));
 jest.mock('expo-document-picker', () => ({ getDocumentAsync: (...a: unknown[]) => mockPick(...a) }));
+jest.mock('@tanstack/react-query', () => ({ useQueryClient: () => ({ invalidateQueries: jest.fn() }) }));
+jest.mock('@/features/offline/offline-provider', () => ({ useOffline: () => ({ sources: null }) }));
+jest.mock('@/lib/source-files', () => ({ saveSourceCopy: jest.fn() }));
 jest.mock('../extract/types', () => ({
   ImportError: class ImportError extends Error {
     code: string;

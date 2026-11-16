@@ -1,5 +1,8 @@
 import { memorySourceFiles } from '../db/stores';
-import { saveSourceCopy, sourceDirName, sourceFileName, toHex } from '../source-files';
+import {
+  deleteSourceCopy, reattachSource, saveSourceCopy, SourceMismatchError, sourceDirName, sourceFileName,
+  sourceStatus, toHex, totalBytes,
+} from '../source-files';
 
 const mockFiles = new Map<string, Uint8Array>();
 jest.mock('expo-crypto', () => ({
@@ -51,6 +54,42 @@ describe('saveSourceCopy', () => {
     });
     expect(await store.get('d1')).toEqual(rec);
     expect(mockFiles.get(rec.uri)).toEqual(new Uint8Array([1, 2, 3]));
+  });
+});
+
+describe('status, reattach, delete', () => {
+  const rec = {
+    documentId: 'd2', courseId: 'c1', filename: 'b.pdf', mime: 'application/pdf',
+    sizeBytes: 2, sha256: 'ab01', uri: 'doc:/sources/acc/d2.pdf', createdAt: 9,
+  };
+
+  it('reports missing when the copy is gone, present after reattach', async () => {
+    const store = memorySourceFiles();
+    await store.put(rec);
+    expect(sourceStatus(rec)).toBe('missing');
+    mockFiles.set('picked://b.pdf', new Uint8Array([7, 8]));
+    const back = await reattachSource({ store, dbName: 'acc.db', rec, pickedUri: 'picked://b.pdf' });
+    expect(back).toMatchObject({ documentId: 'd2', sha256: 'ab01', createdAt: 9 });
+    expect(sourceStatus(back)).toBe('present');
+  });
+
+  it('rejects a different file', async () => {
+    const { digest } = jest.requireMock('expo-crypto') as { digest: jest.Mock };
+    digest.mockResolvedValueOnce(new Uint8Array([0xff]).buffer);
+    mockFiles.set('picked://other.pdf', new Uint8Array([1]));
+    await expect(
+      reattachSource({ store: memorySourceFiles(), dbName: 'acc.db', rec, pickedUri: 'picked://other.pdf' }),
+    ).rejects.toBeInstanceOf(SourceMismatchError);
+  });
+
+  it('delete removes file and index; total sums sizes', async () => {
+    const store = memorySourceFiles();
+    mockFiles.set(rec.uri, new Uint8Array([1, 2]));
+    await store.put(rec);
+    await deleteSourceCopy(store, rec);
+    expect(mockFiles.has(rec.uri)).toBe(false);
+    expect(await store.get('d2')).toBeNull();
+    expect(totalBytes([{ sizeBytes: 3 }, { sizeBytes: 4 }])).toBe(7);
   });
 });
 
