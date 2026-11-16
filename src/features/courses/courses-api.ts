@@ -46,3 +46,16 @@ export function useCreateCourse() {
     },
   });
 }
+
+/** W4: xoá khóa học (cùng endpoint với web). Bỏ khỏi cache trước để không hỏi lại khóa đã xoá. */
+export function useDeleteCourse(courseId: string) {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: () => apiFetch(`/api/v1/courses/${encodeURIComponent(courseId)}`, { method: 'DELETE' }),
+    onSuccess: () => {
+      queryClient.removeQueries({ queryKey: ['courses', courseId] });
+      void queryClient.invalidateQueries({ queryKey: ['courses'] });
+      void queryClient.invalidateQueries({ queryKey: ['progress'] });
+    },
+  });
+}

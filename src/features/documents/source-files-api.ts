@@ -1,6 +1,7 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import * as DocumentPicker from 'expo-document-picker';
 import { useOffline } from '@/features/offline/offline-provider';
+import { apiFetch } from '@/lib/api-client';
 import type { SourceFile } from '@/lib/db/stores';
 import { deleteSourceCopy, reattachSource, sourceStatus, type SourceStatus } from '@/lib/source-files';
 
@@ -41,5 +42,25 @@ export function useDeleteSource() {
       await deleteSourceCopy(sources.store, rec);
     },
     onSuccess: () => qc.invalidateQueries({ queryKey: ['source-files'] }),
+  });
+}
+
+/**
+ * W4: xoá tài liệu trên server, rồi xoá bản sao tệp gốc trên máy nếu có (tệp gốc không giữ lại khi
+ * tài liệu đã mất). Bài học đã sinh từ tài liệu do server quyết định giữ hay bỏ.
+ */
+export function useDeleteDocument() {
+  const { sources } = useOffline();
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async (documentId: string) => {
+      await apiFetch(`/api/v1/documents/${encodeURIComponent(documentId)}`, { method: 'DELETE' });
+      const rec = sources ? await sources.store.get(documentId) : null;
+      if (rec && sources) await deleteSourceCopy(sources.store, rec).catch(() => undefined);
+    },
+    onSuccess: () => {
+      void qc.invalidateQueries({ queryKey: ['courses'] });
+      void qc.invalidateQueries({ queryKey: ['source-files'] });
+    },
   });
 }

@@ -1,7 +1,8 @@
 import { StyleSheet, View } from 'react-native';
 import type { DocumentList as DocumentItem } from '@/contracts';
 import { Badge, Button, Card, Divider, ErrorState, Icon, InlineError, LoadingState, Txt } from '@/components/ui';
-import { useLocalSources, useReattachSource, type LocalSource } from '../source-files-api';
+import { confirmAction } from '@/lib/dialog';
+import { useDeleteDocument, useLocalSources, useReattachSource, type LocalSource } from '../source-files-api';
 import { errorText } from '@/lib/api-client';
 import { formatSize, humanizeCode, relativeTime } from '@/lib/format';
 import { usePalette } from '@/theme/theme';
@@ -92,6 +93,15 @@ function SourceLine({ source }: { source: LocalSource }) {
 function DocumentRow({ doc, source }: { doc: DocumentItem; source?: LocalSource }) {
   const p = usePalette();
   const failed = doc.status === 'FAILED';
+  const remove = useDeleteDocument();
+  const onDelete = async () => {
+    const ok = await confirmAction({
+      title: 'Xoá tài liệu này?',
+      message: 'Tài liệu và bản gốc lưu trên máy (nếu có) sẽ bị xoá.',
+      confirmLabel: 'Xoá',
+    });
+    if (ok) remove.mutate(doc.id);
+  };
   return (
     <View style={{ padding: space.md, gap: space.sm }}>
       <View style={styles.row}>
@@ -114,6 +124,17 @@ function DocumentRow({ doc, source }: { doc: DocumentItem; source?: LocalSource 
       </View>
       {failed && doc.errorMessage && <InlineError>{doc.errorMessage}</InlineError>}
       {source && <SourceLine source={source} />}
+      <Button
+        label="Xoá tài liệu"
+        variant="ghost"
+        size="sm"
+        icon="trash"
+        accessibilityLabel={`Xoá tài liệu ${doc.filename}`}
+        loading={remove.isPending}
+        onPress={() => void onDelete()}
+        style={{ alignSelf: 'flex-start' }}
+      />
+      {remove.error && <InlineError>{errorText(remove.error, 'Không xoá được tài liệu, vui lòng thử lại.')}</InlineError>}
     </View>
   );
 }
