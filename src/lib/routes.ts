@@ -5,6 +5,7 @@ import type { Href } from 'expo-router';
  * dữ liệu mới nhất từ query cache/API, không truyền cả object qua route).
  */
 export const routes = {
+  login: '/login' as Href,
   newCourse: '/course/new' as Href,
   course: (courseId: string): Href => ({ pathname: '/course/[courseId]', params: { courseId } }),
   lesson: (courseId: string, lessonId: string): Href => ({
