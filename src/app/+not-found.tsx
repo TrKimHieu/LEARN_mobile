@@ -1,16 +1,21 @@
-import { router, Stack } from 'expo-router';
+import { Redirect, router, Stack } from 'expo-router';
 import { View } from 'react-native';
 import { Mascot } from '@/components/mascot';
 import { Button, Txt } from '@/components/ui';
+import { useAuth } from '@/features/auth/auth-context';
+import { routes } from '@/lib/routes';
 import { usePalette } from '@/theme/theme';
 import { space } from '@/theme/tokens';
 
 /**
- * Đường dẫn không tồn tại (deep link cũ, bài học đã xoá, hoặc route cần đăng nhập khi đang là
- * khách) — như `apps/web/src/app/not-found.tsx`. Không phải ngõ cụt: luôn có đường về.
+ * Đường dẫn không tồn tại (deep link cũ, bài học đã xoá) — như `apps/web/src/app/not-found.tsx`.
+ * Khách thì về đăng nhập: `Stack.Protected` đẩy khách sang nhóm `(auth)`, mà nhóm này không có màn
+ * index nên URL `/(auth)` rơi vào đây; "Về Tổng quan" khi đó lại bị chặn và quay vòng.
  */
 export default function NotFoundScreen() {
   const p = usePalette();
+  const { status } = useAuth();
+  if (status === 'guest') return <Redirect href={routes.login} />;
   return (
     <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center', gap: space.md, padding: space.xl, backgroundColor: p.app }}>
       <Stack.Screen options={{ title: 'Không tìm thấy' }} />
