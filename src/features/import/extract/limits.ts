@@ -2,13 +2,22 @@ import { ImportError } from './types';
 
 export const LIMITS = { maxBytes: 26214400, maxPages: 100, timeoutMs: 30000 } as const;
 
-export function kindOf(name: string, mime: string | null): 'text' | 'pdf' | 'image' | null {
+export const OFFICE_MIME = {
+  docx: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+  pptx: 'application/vnd.openxmlformats-officedocument.presentationml.presentation',
+} as const;
+
+export function kindOf(name: string, mime: string | null): 'text' | 'pdf' | 'image' | 'docx' | 'pptx' | null {
   const ext = name.toLowerCase().match(/\.([a-z0-9]+)$/)?.[1];
   if (ext === 'txt' || ext === 'md') return 'text';
   if (ext === 'pdf') return 'pdf';
+  if (ext === 'docx') return 'docx';
+  if (ext === 'pptx') return 'pptx';
   if (ext === 'jpg' || ext === 'jpeg' || ext === 'png' || ext === 'heic') return 'image';
   const m = (mime ?? '').toLowerCase();
   if (m === 'application/pdf') return 'pdf';
+  if (m === OFFICE_MIME.docx) return 'docx';
+  if (m === OFFICE_MIME.pptx) return 'pptx';
   if (m.startsWith('text/')) return 'text';
   if (m.startsWith('image/')) return 'image';
   return null;

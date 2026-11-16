@@ -25,6 +25,37 @@ export interface OutboxStore {
   clear(): Promise<void>;
 }
 
+/** Chỉ mục bản sao tệp gốc trên máy (ADR 004 sửa đổi 2026-11-16). Tệp không bao giờ lên server. */
+export type SourceFile = {
+  documentId: string;
+  courseId: string;
+  filename: string;
+  mime: string;
+  sizeBytes: number;
+  sha256: string;
+  /** URI tệp trong thư mục riêng của app. */
+  uri: string;
+  createdAt: number;
+};
+
+export interface SourceFileStore {
+  put(file: SourceFile): Promise<void>;
+  get(documentId: string): Promise<SourceFile | null>;
+  /** Mới nhất trước. */
+  list(): Promise<SourceFile[]>;
+  remove(documentId: string): Promise<void>;
+}
+
+export function memorySourceFiles(): SourceFileStore {
+  const m = new Map<string, SourceFile>();
+  return {
+    put: async (f) => void m.set(f.documentId, { ...f }),
+    get: async (id) => (m.has(id) ? { ...m.get(id)! } : null),
+    list: async () => [...m.values()].sort((a, b) => b.createdAt - a.createdAt).map((f) => ({ ...f })),
+    remove: async (id) => void m.delete(id),
+  };
+}
+
 /** Bản trong bộ nhớ — cho test và khi chưa mở được DB. */
 export function memoryKv(): KvStore {
   const m = new Map<string, string>();

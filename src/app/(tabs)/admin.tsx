@@ -132,6 +132,7 @@ export default function AdminScreen() {
       </View>
 
       <Button label="AI Job" iconRight="arrow-right" variant="secondary" fullWidth onPress={() => router.push(routes.adminAiJobs)} />
+      <Button label="Người dùng, khóa học, gói" iconRight="arrow-right" variant="secondary" fullWidth onPress={() => router.push(routes.adminDirectory)} />
     </Screen>
   );
 }

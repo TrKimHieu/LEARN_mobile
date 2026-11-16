@@ -1,5 +1,5 @@
 import { useQueryClient } from '@tanstack/react-query';
-import { createContext, useCallback, useContext, useEffect, useMemo, useState } from 'react';
+import { createContext, useCallback, useContext, useEffect, useMemo, useState, useSyncExternalStore } from 'react';
 import type { LoginInput, NativeAuthResponse, RegisterInput, UserPublic } from '@/contracts';
 import {
   apiFetch,
@@ -10,6 +10,8 @@ import {
   storeSession,
 } from '@/lib/api-client';
 import { readLastUser, writeLastUser } from '@/lib/last-user';
+import { isTesting, startTesting, stopTesting, subscribeTesting } from '@/lib/testing-mode';
+import { setServerDisconnected } from '@/lib/server-connection';
 
 /**
  * `offline`: có phiên đã lưu nhưng không tới được máy chủ lúc mở app — khác `guest` (chưa đăng
@@ -25,6 +27,9 @@ export interface AuthContextValue {
   logout: () => Promise<void>;
   logoutAll: () => Promise<void>;
   retry: () => void;
+  testing: boolean;
+  enterTesting: () => Promise<void>;
+  exitTesting: () => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextValue | null>(null);
@@ -34,6 +39,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [status, setStatus] = useState<AuthStatus>('loading');
   const [user, setUser] = useState<UserPublic | null>(null);
   const [attempt, setAttempt] = useState(0);
+  const testing = useSyncExternalStore(subscribeTesting, isTesting, () => false);
 
   const toGuest = useCallback(() => {
     setUser(null);
@@ -44,6 +50,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   /** Mở app → đổi refresh token trong SecureStore lấy phiên mới. */
   useEffect(() => {
+    if (testing) return;
     let cancelled = false;
     (async () => {
       setStatus('loading');
@@ -76,7 +83,26 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     return () => {
       cancelled = true;
     };
-  }, [attempt]);
+  }, [attempt, testing]);
+
+  const enterTesting = useCallback(async () => {
+    await queryClient.cancelQueries();
+    // Mode listeners stop real persistence before clearing the shared query cache.
+    const session = startTesting();
+    queryClient.clear();
+    setUser(session.user as UserPublic);
+    setStatus('authed');
+  }, [queryClient]);
+
+  const exitTesting = useCallback(async () => {
+    await queryClient.cancelQueries();
+    queryClient.clear();
+    setUser(null);
+    setStatus('loading');
+    setServerDisconnected(false);
+    stopTesting();
+    setAttempt((n) => n + 1);
+  }, [queryClient]);
 
   useEffect(() => {
     setSessionExpiredHandler(toGuest);
@@ -85,9 +111,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const start = useCallback(async (data: NativeAuthResponse) => {
     await storeSession(data);
+    await writeLastUser(data.user as UserPublic);
+    // A real login response can arrive after the user has entered Testing.
+    if (isTesting()) return;
     setUser(data.user as UserPublic);
     setStatus('authed');
-    await writeLastUser(data.user as UserPublic);
   }, []);
 
   const login = useCallback(
@@ -110,6 +138,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const endSession = useCallback(
     async (path: '/api/v1/auth/logout' | '/api/v1/auth/logout-all') => {
+      if (isTesting()) { await exitTesting(); return; }
       try {
         const refreshToken = await readRefreshToken();
         await apiFetch(path, { method: 'POST', body: refreshToken ? { refreshToken } : undefined });
@@ -120,7 +149,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         toGuest();
       }
     },
-    [toGuest],
+    [toGuest, exitTesting],
   );
 
   const value = useMemo<AuthContextValue>(
@@ -132,8 +161,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       logout: () => endSession('/api/v1/auth/logout'),
       logoutAll: () => endSession('/api/v1/auth/logout-all'),
       retry: () => setAttempt((n) => n + 1),
+      testing,
+      enterTesting,
+      exitTesting,
     }),
-    [status, user, login, register, endSession],
+    [status, user, login, register, endSession, testing, enterTesting, exitTesting],
   );
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

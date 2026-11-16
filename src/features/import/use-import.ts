@@ -1,9 +1,13 @@
+import { useQueryClient } from '@tanstack/react-query';
 import { useCallback, useState } from 'react';
 import * as DocumentPicker from 'expo-document-picker';
 import type { ImportTextDocumentInput } from '@/contracts';
 import { errorText } from '@/lib/api-client';
+import { useOffline } from '@/features/offline/offline-provider';
+import { saveSourceCopy } from '@/lib/source-files';
 import { useImportText } from './import-api';
-import { assertSize, kindOf } from './extract/limits';
+import { assertSize, kindOf, OFFICE_MIME } from './extract/limits';
+import { extractOffice } from './extract/office';
 import { dataUrlToCacheFile, extractImage, isOcrAvailable, recognizeImage } from './extract/ocr';
 import { planPdfPages } from './extract/pdf-bridge';
 import { usePdfExtractor } from './extract/pdf-extractor';
@@ -19,13 +23,14 @@ export type ImportState =
   | { phase: 'done' }
   | { phase: 'error'; message: string };
 
-export const PICKER_TYPES = ['application/pdf', 'image/*', 'text/plain', 'text/markdown'];
+export const PICKER_TYPES = ['application/pdf', 'image/*', 'text/plain', 'text/markdown', OFFICE_MIME.docx, OFFICE_MIME.pptx];
 
-const MIME = { text: 'text/plain', pdf: 'application/pdf', image: 'image/jpeg' } as const;
+const MIME = { text: 'text/plain', pdf: 'application/pdf', image: 'image/jpeg', ...OFFICE_MIME } as const;
 
 interface Source {
   mime: string;
   size: number;
+  uri: string;
 }
 
 function messageOf(e: unknown): string {
@@ -35,6 +40,8 @@ function messageOf(e: unknown): string {
 /** Luồng nhập: chọn tệp, trích chữ tại máy, xem/sửa, gửi văn bản. */
 export function useImport(courseId: string) {
   const importText = useImportText(courseId);
+  const { sources } = useOffline();
+  const qc = useQueryClient();
   const pdf = usePdfExtractor();
   const [state, setState] = useState<ImportState>({ phase: 'idle' });
   const [source, setSource] = useState<Source | null>(null);
@@ -87,7 +94,7 @@ export function useImport(courseId: string) {
         return;
       }
       const kind = kindOf(asset.name, asset.mimeType ?? null);
-      if (!kind) throw new Error('Chỉ nhập được PDF, ảnh hoặc tệp văn bản.');
+      if (!kind) throw new Error('Chỉ nhập được PDF, Word (.docx), PowerPoint (.pptx), ảnh hoặc tệp văn bản.');
       assertSize(asset.size ?? 0);
       setState({ phase: 'extracting', label: 'Đang đọc tệp' });
       const out =
@@ -95,9 +102,11 @@ export function useImport(courseId: string) {
           ? await extractPlain(asset.uri)
           : kind === 'image'
             ? await extractImage(asset.uri)
-            : await extractPdf(asset.uri);
+            : kind === 'docx' || kind === 'pptx'
+              ? await extractOffice(asset.uri, kind)
+              : await extractPdf(asset.uri);
       if (!out.pages.some((p) => p.text.trim())) throw new Error('Không tìm thấy chữ trong tệp này.');
-      setSource({ mime: asset.mimeType ?? MIME[kind], size: asset.size ?? 0 });
+      setSource({ mime: asset.mimeType ?? MIME[kind], size: asset.size ?? 0, uri: asset.uri });
       setFilename(asset.name);
       setMethod(out.method);
       setPages(out.pages);
@@ -125,13 +134,21 @@ export function useImport(courseId: string) {
     setError(null);
     setState({ phase: 'sending' });
     try {
-      await importText.mutateAsync(input);
+      const doc = await importText.mutateAsync(input);
+      if (sources) {
+        // Văn bản đã lên server; lỗi sao chép chỉ làm mất bản gốc trên máy, không hỏng tài liệu.
+        await saveSourceCopy({
+          store: sources.store, dbName: sources.dbName, pickedUri: source.uri,
+          documentId: doc.id, courseId, filename: input.filename, mime: source.mime,
+        }).catch(() => undefined);
+        void qc.invalidateQueries({ queryKey: ['source-files'] });
+      }
       setState({ phase: 'done' });
     } catch (e) {
       setError(errorText(e, 'Không gửi được. Thử lại.'));
       setState({ phase: 'review' });
     }
-  }, [canSend, source, filename, method, pages, importText]);
+  }, [canSend, source, filename, method, pages, importText, sources, courseId, qc]);
 
   const chars = pages.reduce((n, p) => n + p.text.length, 0);
 

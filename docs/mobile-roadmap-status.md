@@ -102,3 +102,115 @@ Kiểm tra tự động: typecheck, lint (0 lỗi), 177 Jest, bundle web/Android
 - [ ] Ôn 10 thẻ offline rồi có mạng: server ghi đúng 10 lượt, lịch hôm sau đúng
 - [ ] Đổi giờ máy sang tương lai: lịch không bị đẩy xa
 - [ ] TalkBack/VoiceOver: lật thẻ rồi chấm được
+
+## W — Đồng bộ tính năng từ website (kế hoạch, 2026-11-16)
+
+Nguồn: rà soát `LEARN_web_standalone` (contracts 1.5.0) và `SPEC_flashcards_review_pomodoro.md`. Mobile hiện pin contracts thấp hơn web, nên mọi mục dưới đây bắt đầu bằng `npm run sync:contracts` lên bản có schema tương ứng, rồi typecheck và mock tests. Tuân thủ `UI_PLATFORM_RULES.md`: element mobile viết riêng, không chép layout web. Chưa triển khai mục nào; mọi ô còn trống.
+
+Thứ tự đề xuất: W1 → W2 → W3 → W4 → W5 → W6. W1–W3 dùng backend sẵn có; W4–W6 chỉ làm khi backend đã phát hành endpoint tương ứng.
+
+### W1 — Bộ thẻ và thẻ tự tạo (web: `features/flashcards`)
+Tách biệt khỏi ôn câu hỏi bài tập ở R5 (theo spec, thẻ web và thẻ bài tập là hai thực thể khác nhau). Tab "Thẻ" mới, hoặc mục trong Tổng quan nếu hết chỗ trên thanh tab.
+- [x] Tab "Thẻ" (`(tabs)/decks.tsx`): danh sách bộ kèm Mới / Đang học / Đến hạn, tạo bộ có gắn khóa tùy chọn; chi tiết bộ đổi tên, đổi khóa, xoá có xác nhận (2026-11-16)
+- [x] Chi tiết bộ (`deck/[deckId].tsx`): thêm, sửa, xoá, chuyển thẻ; báo lỗi tiếng Việt khi trống hoặc quá 2000 ký tự (giới hạn client, server kiểm lại)
+- [x] Ôn một bộ và "Ôn thẻ hôm nay" (`deck-review.tsx`): lật thẻ → Quên / Khó / Tốt / Dễ; key và giờ chấm giữ nguyên khi gửi lại; mất mạng thì vào outbox (`/cards/:id/review` thêm vào danh sách cho phép)
+- [~] Cache: query `decks` được persist SQLite như các query khác. Huy hiệu số đến hạn mới có ở tab Thẻ, chưa có trên thanh tab và Tổng quan
+- [~] Phiên ôn trống hiện thời điểm thẻ kế tiếp. TalkBack/VoiceOver dùng `FlipCard` như R5, chưa thử trên thiết bị
+
+Chưa kiểm với backend thật: backend trong `LEARN_backend_unified` hiện chưa có route `/decks` (nằm ở nhánh backend khác); mobile dựng theo contracts 1.5.0, giống web. Kiểm tra: typecheck, lint 0 lỗi, 242 Jest.
+
+### W2 — AI sinh thẻ nháp
+- [x] 2026-11-16: `flashcards-generate.tsx` (chọn khóa, một bài học hoặc một tài liệu đã trích xuất, 1–30 thẻ; tiến độ, dừng, lỗi theo mã, báo hết hạn mức) và `flashcards-drafts.tsx` (chọn sẵn tất cả, sửa, bỏ, thêm vào bộ có sẵn hoặc bộ mới rồi mở bộ đó). Lối vào ở tab Thẻ. Chưa kiểm với backend thật
+- [x] Màn "Sinh thẻ bằng AI": chọn khóa, nguồn (một bài học hoặc một tài liệu), số thẻ tối đa 1–30
+- [x] Theo dõi job (tiến độ, huỷ, lỗi), báo hết hạn mức AI của gói
+- [x] Màn duyệt thẻ nháp: sửa, bỏ bớt, thêm vào bộ có sẵn hoặc bộ mới; thẻ nháp không có lịch ôn cho đến khi chấp nhận
+
+### W3 — Pomodoro và nhắc ôn
+- [ ] Bộ đếm học/nghỉ chỉnh được (mặc định 25/5), tính giờ từ mốc thời gian thật để đúng khi app nền hoặc xoay màn; lưu cài đặt cục bộ
+- [ ] Thông báo cục bộ khi hết giờ và khi có thẻ đến hạn (expo-notifications, chỉ khi người dùng cấp quyền; từ chối vẫn dùng đủ tính năng); công tắc tắt trong Cài đặt
+- [ ] Không ghi phiên lên backend, không XP, giống phạm vi web
+
+### W4 — Tài liệu và khóa học
+- [x] Word (.docx), PowerPoint (.pptx) trích tại máy — xem T1-4 (2026-11-16)
+- [x] Xoá khóa học (cuối màn khóa) và xoá từng tài liệu, đều có xác nhận; xoá tài liệu xoá luôn bản gốc trên máy. Nhãn "Đã lưu trữ" đã có trên thẻ khóa học (2026-11-16)
+- [x] Nhãn trạng thái tài liệu (Chờ tải lên / Đã tải lên / Đang trích xuất / Đã trích xuất / Lỗi) đã có từ trước
+
+### W5 — Tiến trình
+- [x] Thẻ "lần làm bài 7 ngày gần nhất" ở tab Tiến trình, cùng logic `weekly-activity.ts` với web (2026-11-16)
+- [x] Chuỗi ngày học, bài đã xong, điểm trung bình đã có ở Tổng quan (`ProgressStats`)
+
+### W6 — Quản trị
+- [x] Màn `admin/directory` (mở từ tab Quản trị): người dùng tìm theo email, khóa học tìm theo tên, gói trả phí; chỉ xem, không lưu offline (2026-11-16)
+- [x] Bộ lọc trạng thái job AI đã có từ trước (mặc định "Thất bại")
+
+### Cài đặt
+- [x] Nâng cấp / huỷ gói đã có trong Cài đặt (`plan-list`, `current-plan`); thanh toán vẫn ở chế độ demo
+
+### Không đưa sang mobile
+Kéo thả tệp, trang `/dev/*`, nhắc ôn bằng Web Notification API, lưu Pomodoro bằng localStorage (thay bằng bộ nhớ cục bộ của app).
+
+## Bổ sung từ danh sách P / T / X (2026-11-16)
+
+Gộp các mục chưa có hoặc mới có một phần. Mục đã xong hoặc đã nằm ở R0–R8 không lặp lại. Mã giữ nguyên để đối chiếu.
+
+### Cần quyết trước khi làm
+- [x] **Lưu tệp gốc trên máy (T1-2, T1-7 → T1-10):** đã chọn giữ bản sao cục bộ (2026-11-16). Tệp gốc chỉ nằm trên máy, không upload lên server; server chỉ nhận văn bản và metadata. Việc kèm theo: cập nhật ADR 004 (lưu bản sao, SHA-256, dung lượng) trước T1-2; mục ADR (a) của P-3 gộp vào đó.
+- [x] **Thời gian học (T3-5):** đã chọn chỉ lưu cục bộ (2026-11-16), khớp W3. Ghi theo khóa/bài trong SQLite của tài khoản; không gửi lên server, không cần backend hay contracts mới. T3-6 đọc từ SQLite này, nên chỉ có trên máy đã học.
+- [x] **Hai hệ thẻ:** thẻ từ câu hỏi bài tập (R5) và thẻ tự tạo (W1) là hai thực thể riêng, dùng chung SM-2. Đã ghi ở `docs/adr/005-srs-two-card-systems.md` (đã xác nhận); đây là phần (b) của P-3.
+
+### Nền móng
+- [x] **P-1** Commit baseline sạch trên nhánh `chore/baseline-testing-mode-docs` (2026-11-16, chưa push, chưa PR). Thực tế nội dung là chế độ Testing, sửa lỗi offline và tài liệu; không tìm thấy refactor "tách component theo feature" chưa commit. typecheck 0 lỗi, lint 0 lỗi (37 cảnh báo), 187 Jest qua
+- [~] **P-2** Nâng pin lên contracts 1.5.0 (2026-11-16, nhánh `chore/contracts-1.5.0`): tgz lấy từ web vendor, SHA-256 `fc954293…abccc` khớp pin tin cậy của web; `sync:contracts`, typecheck, lint (0 lỗi), 187 Jest và 6 tooling đều qua. 1.5.0 thêm module `flashcard` (Deck, Card, `reviewCard`, `createDeckSchema`, `patchDeckSchema`), đủ cho W1/W2. **Chưa có** trong bất kỳ bản nào: CardSchedule, StudySession, XpEvent, DailyGoal, Friendship, LeagueEntry, endpoint STO nhận văn bản mới; các mục T3-5 (cục bộ), T4, T5 chờ backend phát hành. Chưa kiểm hash với staging (`/meta` chỉ cảnh báo `contractsDiffer`); chưa chạy `npm run export`
+- [x] **P-3** ADR đã viết và được xác nhận 2026-11-16: (a) trích xuất và bản sao cục bộ — sửa đổi 2026-11-16 ở `adr/004-local-extraction.md`; (b) SRS — `adr/005-srs-two-card-systems.md`; (c) XP và chống gian lận — `adr/006-xp-and-anti-cheat.md`
+- [x] **P-5** Quy trình dependency ở `docs/dependencies.md` (2026-11-16): `npx expo install` theo đợt, mỗi đợt một nhánh và một commit lockfile, cách cài khi mạng chập chờn, đợt D1 (thông báo), D2 (DOCX/PPTX), D3 (R7). Chưa cài gói nào
+- [ ] **P-6** Xác minh owner/projectId EAS `1d60d1e2-0017-4a99-ac67-1f02f5454443` và `updates.url` (đã khai trong `app.json`, chưa xác minh)
+
+### T1 — Tệp gốc (đã chốt giữ bản sao cục bộ)
+- [x] **T1-2** Sau khi server nhận văn bản, tệp được sao vào `Paths.document/sources/<tên DB tài khoản>/` và ghi chỉ mục ở bảng SQLite `source_files` (migration 2: mã tài liệu, khóa, tên, mime, kích thước, SHA-256, URI). Đăng xuất hẳn xoá cả thư mục; chế độ Testing không lưu. Lỗi sao chép không làm hỏng tài liệu (2026-11-16, `src/lib/source-files.ts`, 4 test). Chưa thử trên thiết bị
+- [x] **T1-4** DOCX/PPTX trích tại máy (`extract/office.ts`, `fflate` giải nén, đọc `<w:t>`/`<a:t>`): DOCX cắt khối 20.000 ký tự, PPTX mỗi slide một trang theo số tệp, tối đa 100; chặn giải nén quá 100 MiB. Method gửi server là `TEXT`. 8 test, bundle Android build được (2026-11-16). Chưa đo thời gian/RAM với tệp thật; bảng, ghi chú diễn giả và slide ẩn chưa xử lý riêng
+- [x] **T1-7** Danh sách tài liệu hiện "Bản gốc đang lưu trên máy này" hoặc "Tệp gốc không còn trên máy này" theo chỉ mục + `File.exists` (2026-11-16)
+- [x] **T1-8** Nút "Gắn lại tệp": chọn tệp cùng loại, chỉ nhận khi SHA-256 trùng; sai thì báo "SHA-256 không khớp" (2026-11-16)
+- [x] **T1-9** Màn `/storage` "Quản lý dung lượng" mở từ Cài đặt: tổng dung lượng, danh sách, xoá từng bản sao có xác nhận; không xoá tài liệu hay bài học (2026-11-16)
+- [~] **T1-10** Tài liệu cũ và tài liệu từ web không có dòng bản gốc, không bị ép di chuyển (đã có). Còn thiếu "Tải về máy": contracts 1.5.0 chưa có endpoint tải tệp gốc cho mobile; chờ backend
+
+Kiểm tra T1-7 → T1-9: typecheck, lint 0 lỗi, 221 Jest, export web bundle được. Chưa thử trên thiết bị (gỡ app, đổi máy, chọn lại tệp thật).
+- [ ] Kết nối Google Drive (R7)
+
+### T2 — Ôn tập
+- [x] **T2-1** `src/features/reviews/sm2.ts` chép đúng SM-2 của backend (`core/srs/sm2.ts`), thêm `predictDueAt`; 9 test cùng bảng giá trị với backend (2026-11-16). Chưa nối vào UI
+- [ ] **T2-2** API + hook sinh thẻ (AI Job), sửa, thêm, xoá thẻ (trùng W1/W2)
+- [x] **T2-5** Test `due-clock.test.tsx`: đặt giờ máy sang năm sau, app vẫn gọi `/api/v1/reviews/due` không kèm giờ máy và hiện đúng số đến hạn của server (2026-11-16). Chưa thử đổi giờ trên thiết bị thật
+- [x] **T2-7** `ReviewEntry` thêm vào cuối màn bài học, chỉ hiện khi có thẻ đến hạn (2026-11-16)
+
+### T3 — Thời gian học
+- [x] **T3-1** `src/features/focus/timer.ts` cùng logic `pomodoro.ts` của web; 18 test (2026-11-16). Chưa có UI
+- [x] **T3-3** Thông báo cục bộ khi hết chu kỳ, kể cả app ở nền (`src/lib/notifications.ts`, `expo-notifications`). Hỏi quyền lúc bấm Bắt đầu; từ chối thì bộ đếm vẫn chạy, không hỏi lại. Tạm dừng/đặt lại thì huỷ lịch (2026-11-16)
+- [x] **W3 nhắc ôn** Công tắc trong Cài đặt (mặc định tắt). Bật thì hẹn 19:00 khi server báo có thẻ đến hạn, không có thì huỷ. Cần development build mới vì là module native (2026-11-16)
+- [x] **T3-2** Màn `/focus` (Pomodoro), mở từ Tổng quan; học/nghỉ chỉnh được, lưu cục bộ bằng AsyncStorage (2026-11-16)
+- [x] **T3-4** Tạm dừng/tiếp tục; rời màn khi đang chạy thì hỏi, đồng ý thì tạm dừng rồi mới rời (`usePreventRemove`) (2026-11-16)
+- [~] **T3-5** Nút "Học tập trung (Pomodoro)" ở màn bài học mở `/focus?courseId&lessonId`; mỗi chu kỳ học chạy hết ghi số phút theo ngày, khóa và bài vào kv của DB SQLite tài khoản (giữ 90 ngày, không gửi server). Chưa có lối vào từ phiên ôn SRS; chu kỳ bỏ dở không tính (2026-11-16)
+- [x] **T3-6** Thẻ "Thời gian học 7 ngày" ở tab Tiến trình, chỉ số liệu của máy này (2026-11-16)
+
+### T4 — Mục tiêu và XP
+- [ ] **T4-1** Định nghĩa "ngày đã học" (hoàn thành bài / nộp bài / phiên SRS) theo múi giờ máy chủ; ghi vào ADR XP
+- [ ] **T4-2** Hiển thị XP và chuỗi ngày do server tính, client chỉ hiển thị
+- [ ] **T4-3** Chọn mục tiêu ngày + `ring` ở Tổng quan
+- [ ] **T4-4** Nhắc học cục bộ theo giờ, chỉ khi hôm nay chưa đạt mục tiêu
+- [ ] **T4-5** (Có thể) cảnh báo khi chuỗi sắp đứt
+
+### T5 — Bạn bè và xếp hạng
+- [ ] **T5-1** Kết bạn bằng mã mời hoặc email; chấp nhận, từ chối, huỷ
+- [ ] **T5-2** Bảng xếp hạng tuần theo XP trong nhóm bạn bè
+- [ ] **T5-3** Chế độ hiển thị tên, mặc định chỉ bạn bè thấy
+- [ ] **T5-4** Chống gian lận: chỉ tính XP do server, giới hạn XP tối đa mỗi ngày
+- [ ] **T5-5** Không lộ email, lịch sử học, nội dung khoá học cho người không phải bạn bè
+- [ ] **T5-6** Giới hạn tần suất lời mời (server)
+- [ ] **T5-7** Lối vào bạn bè và xếp hạng từ tab Tiến trình
+
+### X — Thiết kế
+- [x] **X-1** Không cần design system mới: ADR 002 đã thay ADR 001; token sáng/tối, bo góc 14/20/24 và font Inter/Plus Jakarta trong `src/theme/tokens.ts` khớp `theme.css` web ngày 2026-11-16. Màu trạng thái ok/bad/warn của web chưa có token riêng ở mobile; thêm khi tính năng cần
+- [x] **X-2** `components/ui/**` đã dùng token của `tokens.ts`; không cần đổi (2026-11-16)
+- [ ] **X-3** Visual pass từng tính năng sau khi luồng ổn định
+
+### Thứ tự đề xuất
+P-1 → P-3 (gồm sửa ADR 004) → P-2 → P-5 → X-1 → X-2 → T1 → T2 → T3 → T4 → T5 → X-3. Nhóm W (website) xen vào T2/T3/T5 vì trùng nội dung; làm một lần, không làm hai bản.

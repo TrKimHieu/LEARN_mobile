@@ -1,10 +1,10 @@
-import { Stack, useLocalSearchParams } from 'expo-router';
+import { router, Stack, useLocalSearchParams } from 'expo-router';
 import { useCallback, useState } from 'react';
 import { View } from 'react-native';
-import { ErrorState, Screen, SectionTitle, Skeleton } from '@/components/ui';
+import { Button, ErrorState, InlineError, Screen, SectionTitle, Skeleton } from '@/components/ui';
 import { AiJobProgress } from '@/features/ai/components/ai-job-progress';
 import { GenerateLessonsCard } from '@/features/ai/components/generate-lessons-card';
-import { useCourse, useCourseDocuments } from '@/features/courses/courses-api';
+import { useCourse, useCourseDocuments, useDeleteCourse } from '@/features/courses/courses-api';
 import { CourseHeader } from '@/features/courses/components/course-header';
 import { DocumentList } from '@/features/documents/components/document-list';
 import { DocumentUpload } from '@/features/documents/components/document-upload';
@@ -12,6 +12,7 @@ import { CourseLessons } from '@/features/learning/components/course-lessons';
 import { useLessons } from '@/features/learning/learning-api';
 import { resumeLesson } from '@/features/learning/progress';
 import { errorDetail, errorText } from '@/lib/api-client';
+import { confirmAction } from '@/lib/dialog';
 import { space } from '@/theme/tokens';
 
 export default function CourseDetailScreen() {
@@ -36,6 +37,16 @@ export default function CourseDetailScreen() {
   );
 
   const refresh = () => Promise.all([course.refetch(), documents.refetch(), lessons.refetch()]);
+
+  const deleteCourse = useDeleteCourse(courseId);
+  const onDeleteCourse = async () => {
+    const ok = await confirmAction({
+      title: 'Xoá khóa học này?',
+      message: 'Bài học, bài tập và tài liệu của khóa sẽ bị xoá. Không hoàn tác được.',
+      confirmLabel: 'Xoá khóa học',
+    });
+    if (ok) deleteCourse.mutate(undefined, { onSuccess: () => router.back() });
+  };
 
   if (course.isLoading) {
     return (
@@ -103,6 +114,16 @@ export default function CourseDetailScreen() {
           />
         </View>
       </View>
+
+      <Button
+        label="Xoá khóa học"
+        variant="danger"
+        icon="trash"
+        loading={deleteCourse.isPending}
+        onPress={() => void onDeleteCourse()}
+        style={{ alignSelf: 'flex-start' }}
+      />
+      {deleteCourse.error && <InlineError>{errorText(deleteCourse.error, 'Không xoá được khóa học, vui lòng thử lại.')}</InlineError>}
     </Screen>
   );
 }

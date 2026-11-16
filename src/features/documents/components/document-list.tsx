@@ -1,6 +1,8 @@
 import { StyleSheet, View } from 'react-native';
 import type { DocumentList as DocumentItem } from '@/contracts';
-import { Badge, Card, Divider, ErrorState, Icon, InlineError, LoadingState, Txt } from '@/components/ui';
+import { Badge, Button, Card, Divider, ErrorState, Icon, InlineError, LoadingState, Txt } from '@/components/ui';
+import { confirmAction } from '@/lib/dialog';
+import { useDeleteDocument, useLocalSources, useReattachSource, type LocalSource } from '../source-files-api';
 import { errorText } from '@/lib/api-client';
 import { formatSize, humanizeCode, relativeTime } from '@/lib/format';
 import { usePalette } from '@/theme/theme';
@@ -41,21 +43,65 @@ export function DocumentList({
       </Txt>
     );
   }
+  return <DocumentCard documents={documents} />;
+}
+
+function DocumentCard({ documents }: { documents: DocumentItem[] }) {
+  const local = useLocalSources();
+  const byId = new Map((local.data ?? []).map((s) => [s.documentId, s]));
   return (
     <Card padded={false}>
       {documents.map((doc, i) => (
         <View key={doc.id}>
           {i > 0 && <Divider />}
-          <DocumentRow doc={doc} />
+          <DocumentRow doc={doc} source={byId.get(doc.id)} />
         </View>
       ))}
     </Card>
   );
 }
 
-function DocumentRow({ doc }: { doc: DocumentItem }) {
+/** Tài liệu nhập từ máy này có chỉ mục bản sao; tài liệu cũ hoặc từ web thì không có dòng này (T1-10). */
+function SourceLine({ source }: { source: LocalSource }) {
+  const reattach = useReattachSource();
+  if (source.status === 'present') {
+    return (
+      <Txt variant="caption" tone="subtle">
+        Bản gốc đang lưu trên máy này · {formatSize(source.sizeBytes)}
+      </Txt>
+    );
+  }
+  return (
+    <View style={{ gap: space.xs }}>
+      <Txt variant="caption" tone="subtle">
+        Tệp gốc không còn trên máy này. Văn bản đã trích vẫn dùng được.
+      </Txt>
+      <Button
+        label="Gắn lại tệp"
+        variant="secondary"
+        size="sm"
+        icon="upload"
+        loading={reattach.isPending}
+        onPress={() => reattach.mutate(source)}
+        style={{ alignSelf: 'flex-start' }}
+      />
+      {reattach.error && <InlineError>{errorText(reattach.error, 'Không gắn lại được tệp.')}</InlineError>}
+    </View>
+  );
+}
+
+function DocumentRow({ doc, source }: { doc: DocumentItem; source?: LocalSource }) {
   const p = usePalette();
   const failed = doc.status === 'FAILED';
+  const remove = useDeleteDocument();
+  const onDelete = async () => {
+    const ok = await confirmAction({
+      title: 'Xoá tài liệu này?',
+      message: 'Tài liệu và bản gốc lưu trên máy (nếu có) sẽ bị xoá.',
+      confirmLabel: 'Xoá',
+    });
+    if (ok) remove.mutate(doc.id);
+  };
   return (
     <View style={{ padding: space.md, gap: space.sm }}>
       <View style={styles.row}>
@@ -77,6 +123,18 @@ function DocumentRow({ doc }: { doc: DocumentItem }) {
         />
       </View>
       {failed && doc.errorMessage && <InlineError>{doc.errorMessage}</InlineError>}
+      {source && <SourceLine source={source} />}
+      <Button
+        label="Xoá tài liệu"
+        variant="ghost"
+        size="sm"
+        icon="trash"
+        accessibilityLabel={`Xoá tài liệu ${doc.filename}`}
+        loading={remove.isPending}
+        onPress={() => void onDelete()}
+        style={{ alignSelf: 'flex-start' }}
+      />
+      {remove.error && <InlineError>{errorText(remove.error, 'Không xoá được tài liệu, vui lòng thử lại.')}</InlineError>}
     </View>
   );
 }

@@ -17,6 +17,8 @@ import {
   Skeleton,
   Txt,
 } from '@/components/ui';
+import { StudyTimeCard } from '@/features/focus/study-time-card';
+import { WeeklyActivityCard } from '@/features/learning/components/weekly-activity-card';
 import { useProgressCourses, useProgressHistoryPages } from '@/features/learning/learning-api';
 import { errorDetail, errorText } from '@/lib/api-client';
 import { relativeTime } from '@/lib/format';
@@ -33,6 +35,9 @@ export default function ProgressScreen() {
   return (
     <Screen topInset onRefresh={() => Promise.all([courses.refetch(), history.refetch()])}>
       <PageHeader title="Tiến trình" description="Tiến độ theo từng khóa học và lịch sử các lần làm bài tập." />
+
+      {items.length > 0 && <WeeklyActivityCard items={items} />}
+      <StudyTimeCard />
 
       <View>
         <SectionTitle title="Theo khóa học" />

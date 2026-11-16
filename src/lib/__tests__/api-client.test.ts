@@ -40,6 +40,18 @@ beforeEach(() => {
 });
 
 describe('apiFetch + refreshSession', () => {
+  it('times out an unreachable API without deleting the saved session', async () => {
+    jest.useFakeTimers();
+    globalThis.fetch = jest.fn((_url, init) => new Promise((_resolve, reject) => {
+      init?.signal?.addEventListener('abort', () => reject(new Error('aborted')));
+    })) as typeof fetch;
+    try {
+      const result = expect(apiFetch('/api/v1/health')).rejects.toMatchObject({ status: 0, code: 'NETWORK' });
+      await jest.advanceTimersByTimeAsync(8_000);
+      await result;
+      expect(mockStored).toBe('refresh-token-number-0-xxxxxxxx');
+    } finally { jest.useRealTimers(); }
+  });
   it('mọi request gửi header client native', async () => {
     const fetchFn = mockFetch(() => json(200, { ok: true }));
     await apiFetch('/api/v1/meta');

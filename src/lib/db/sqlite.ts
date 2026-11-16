@@ -1,6 +1,16 @@
 import { deleteDatabaseAsync, openDatabaseAsync } from 'expo-sqlite';
 import { migrate } from './migrations';
-import type { KvStore, OutboxItem, OutboxStore } from './stores';
+import type { KvStore, OutboxItem, OutboxStore, SourceFile, SourceFileStore } from './stores';
+
+type SourceRow = {
+  document_id: string; course_id: string; filename: string; mime: string;
+  size_bytes: number; sha256: string; uri: string; created_at: number;
+};
+
+const toSource = (r: SourceRow): SourceFile => ({
+  documentId: r.document_id, courseId: r.course_id, filename: r.filename, mime: r.mime,
+  sizeBytes: r.size_bytes, sha256: r.sha256, uri: r.uri, createdAt: r.created_at,
+});
 
 type OutboxRow = {
   event_id: string;
@@ -13,7 +23,9 @@ type OutboxRow = {
 };
 
 /** Mở DB của một tài khoản (tên từ `dbNameFor`), chạy migration, trả về hai store. */
-export async function openAccountDb(name: string): Promise<{ kv: KvStore; outbox: OutboxStore; close(): Promise<void> }> {
+export async function openAccountDb(
+  name: string,
+): Promise<{ kv: KvStore; outbox: OutboxStore; sourceFiles: SourceFileStore; close(): Promise<void> }> {
   const db = await openDatabaseAsync(name);
   await db.execAsync('PRAGMA journal_mode = WAL');
   await migrate(db);
@@ -48,7 +60,22 @@ export async function openAccountDb(name: string): Promise<{ kv: KvStore; outbox
     clear: async () => void (await db.runAsync('DELETE FROM outbox')),
   };
 
-  return { kv, outbox, close: () => db.closeAsync() };
+  const sourceFiles: SourceFileStore = {
+    put: async (f) => {
+      await db.runAsync(
+        'INSERT OR REPLACE INTO source_files (document_id, course_id, filename, mime, size_bytes, sha256, uri, created_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?)',
+        f.documentId, f.courseId, f.filename, f.mime, f.sizeBytes, f.sha256, f.uri, f.createdAt,
+      );
+    },
+    get: async (id) => {
+      const r = await db.getFirstAsync<SourceRow>('SELECT * FROM source_files WHERE document_id = ?', id);
+      return r ? toSource(r) : null;
+    },
+    list: async () => (await db.getAllAsync<SourceRow>('SELECT * FROM source_files ORDER BY created_at DESC')).map(toSource),
+    remove: async (id) => void (await db.runAsync('DELETE FROM source_files WHERE document_id = ?', id)),
+  };
+
+  return { kv, outbox, sourceFiles, close: () => db.closeAsync() };
 }
 
 export async function deleteAccountDb(name: string): Promise<void> {

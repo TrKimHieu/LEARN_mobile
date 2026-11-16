@@ -22,6 +22,7 @@ import {
   Txt,
 } from "@/components/ui";
 import { tocModeFor } from "@/features/navigation/screen-modes";
+import { ReviewEntry } from "@/features/reviews/components/review-entry";
 import {
   LessonSources,
   LowConfidenceNotice,
@@ -317,6 +318,14 @@ export default function LessonScreen() {
               />
             </View>
           )}
+
+          <Button
+            label="Học tập trung (Pomodoro)"
+            variant="secondary"
+            icon="clock"
+            onPress={() => router.push(routes.focus({ courseId, lessonId }))}
+          />
+          <ReviewEntry />
         </Screen>
         {tocSide && toc.length > 1 && (
           <ScrollView

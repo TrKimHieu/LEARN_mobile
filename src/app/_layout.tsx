@@ -10,6 +10,7 @@ import { LogoMark, Mascot } from '@/components/mascot';
 import { AuthProvider, useAuth } from '@/features/auth/auth-context';
 import { queryClient } from '@/lib/query-client';
 import { OfflinePill } from '@/components/offline-pill';
+import { ServerConnectionScreen, TestingBanner } from '@/components/server-connection-screen';
 import { OfflineProvider } from '@/features/offline/offline-provider';
 import { startNetworkSync } from '@/lib/offline/network';
 import { FONT_SOURCES } from '@/theme/fonts';
@@ -29,7 +30,11 @@ export default function RootLayout() {
         <ThemeProvider>
           <AuthProvider>
             <OfflineProvider>
-              <RootNavigator />
+              <View style={{ flex: 1 }}>
+                <TestingBanner />
+                <RootNavigator />
+                <ServerConnectionScreen />
+              </View>
               <OfflineBadge />
             </OfflineProvider>
           </AuthProvider>
@@ -83,7 +88,7 @@ function OfflineBadge() {
 }
 
 function RootNavigator() {
-  const { status, retry, user } = useAuth();
+  const { status, retry, user, enterTesting } = useAuth();
   const isAdmin = user?.role === 'ADMIN';
   const p = usePalette();
 
@@ -103,12 +108,13 @@ function RootNavigator() {
         <StatusBar style={p.scheme === 'dark' ? 'light' : 'dark'} />
         <Mascot state="alerting" size={88} />
         <Txt variant="heading" style={{ textAlign: 'center' }}>
-          Không kết nối được máy chủ
+          Sản phẩm đang không kết nối được với server
         </Txt>
         <Txt variant="small" tone="subtle" style={{ textAlign: 'center' }}>
           Phiên đăng nhập vẫn được giữ trên máy. Kiểm tra kết nối Internet rồi thử lại.
         </Txt>
         <Button label="Thử lại" icon="retry" onPress={retry} />
+        <Button label="Testing" variant="secondary" onPress={() => void enterTesting()} />
       </View>
     );
   }
@@ -131,6 +137,12 @@ function RootNavigator() {
         <Stack.Protected guard={authed}>
           <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
           <Stack.Screen name="review" options={{ title: 'Ôn tập' }} />
+          <Stack.Screen name="storage" options={{ title: 'Quản lý dung lượng' }} />
+          <Stack.Screen name="focus" options={{ title: 'Pomodoro' }} />
+          <Stack.Screen name="deck/[deckId]" options={{ title: 'Bộ thẻ' }} />
+          <Stack.Screen name="deck-review" options={{ title: 'Ôn thẻ' }} />
+          <Stack.Screen name="flashcards-generate" options={{ title: 'Sinh thẻ bằng AI' }} />
+          <Stack.Screen name="flashcards-drafts" options={{ title: 'Thẻ nháp' }} />
           <Stack.Screen name="course/new"options={{ presentation: 'modal', title: 'Tạo khóa học' }} />
           <Stack.Screen name="course/[courseId]/index" options={{ title: 'Khóa học' }} />
           <Stack.Screen name="course/[courseId]/lesson/[lessonId]/index" options={{ title: 'Bài học' }} />
@@ -143,6 +155,7 @@ function RootNavigator() {
         {/* Quản trị rút gọn: lớp UX — server chặn thật bằng RolesGuard. */}
         <Stack.Protected guard={authed && isAdmin}>
           <Stack.Screen name="admin/ai-jobs/index" options={{ title: 'AI Job' }} />
+          <Stack.Screen name="admin/directory" options={{ title: 'Quản trị' }} />
           <Stack.Screen name="admin/ai-jobs/[jobId]" options={{ title: 'AI Job' }} />
         </Stack.Protected>
         <Stack.Protected guard={!authed}>

@@ -13,6 +13,7 @@ import { usePalette } from '@/theme/theme';
 const TABS: { name: string; title: string; icon: IconName; adminOnly?: boolean }[] = [
   { name: 'index', title: 'Tổng quan', icon: 'home' },
   { name: 'courses', title: 'Khóa học', icon: 'layers' },
+  { name: 'decks', title: 'Thẻ', icon: 'list' },
   { name: 'progress', title: 'Tiến trình', icon: 'trend' },
   { name: 'settings', title: 'Cài đặt', icon: 'settings' },
   { name: 'admin', title: 'Quản trị', icon: 'shield', adminOnly: true },

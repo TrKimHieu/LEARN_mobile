@@ -14,6 +14,9 @@ jest.mock('../import-api', () => ({
   useImportText: () => ({ mutateAsync: (...a: unknown[]) => mockSend(...a) }),
 }));
 jest.mock('expo-document-picker', () => ({ getDocumentAsync: (...a: unknown[]) => mockPick(...a) }));
+jest.mock('@tanstack/react-query', () => ({ useQueryClient: () => ({ invalidateQueries: jest.fn() }) }));
+jest.mock('@/features/offline/offline-provider', () => ({ useOffline: () => ({ sources: null }) }));
+jest.mock('@/lib/source-files', () => ({ saveSourceCopy: jest.fn() }));
 jest.mock('../extract/types', () => ({
   ImportError: class ImportError extends Error {
     code: string;
@@ -25,6 +28,7 @@ jest.mock('../extract/types', () => ({
 }), { virtual: true });
 jest.mock('../extract/limits', () => ({
   LIMITS: { maxBytes: 26214400, maxPages: 100, timeoutMs: 30000 },
+  OFFICE_MIME: { docx: 'application/docx', pptx: 'application/pptx' },
   kindOf: (name: string) => (name.endsWith('.pdf') ? 'pdf' : name.endsWith('.png') ? 'image' : name.endsWith('.txt') ? 'text' : null),
   assertSize: (n: number) => {
     if (n > 26214400) {
@@ -33,6 +37,7 @@ jest.mock('../extract/limits', () => ({
     }
   },
 }), { virtual: true });
+jest.mock('../extract/office', () => ({ extractOffice: jest.fn() }), { virtual: true });
 jest.mock('../extract/plain', () => ({ extractPlain: (...a: unknown[]) => mockPlain(...a) }), { virtual: true });
 jest.mock('../extract/ocr', () => ({
   extractImage: (...a: unknown[]) => mockImage(...a),

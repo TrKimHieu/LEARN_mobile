@@ -1,6 +1,8 @@
 import { CLIENT_HEADER, NATIVE_CLIENT, type NativeAuthResponse } from '@/contracts';
 import { config } from './config';
 import { readRefreshToken, writeRefreshToken } from './token-store';
+import { isTesting, requestTesting } from './testing-mode';
+import { setServerDisconnected } from './server-connection';
 
 /** Access token chỉ sống trong bộ nhớ — HANDBOOK §10.1. */
 let accessToken: string | null = null;
@@ -91,26 +93,39 @@ export async function apiFetch<T = unknown>(
   path: string,
   options: ApiRequestOptions = {},
 ): Promise<T> {
+  if (isTesting()) {
+    const { status, payload } = requestTesting(path, options);
+    if (status >= 400) throw new ApiClientError(status, payload?.code, payload?.detail ?? 'Lỗi dữ liệu Testing.', payload?.requestId, payload?.meta);
+    return payload as T;
+  }
   const { method = 'GET', body, retried = false } = options;
   const headers: Record<string, string> = { ...options.headers, [CLIENT_HEADER]: NATIVE_CLIENT };
   if (accessToken) headers['Authorization'] = `Bearer ${accessToken}`;
   if (body !== undefined) headers['Content-Type'] = 'application/json';
 
   let res: Response;
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), 8_000);
   try {
     res = await fetch(`${config.apiUrl}${path}`, {
       method,
       headers,
       body: body !== undefined ? JSON.stringify(body) : undefined,
+      signal: controller.signal,
     });
   } catch {
+    if (!isTesting()) setServerDisconnected(true);
     throw new ApiClientError(0, 'NETWORK', NETWORK_MESSAGE);
+  } finally {
+    clearTimeout(timeout);
   }
 
-  if (res.status === 401 && !retried && !path.startsWith('/api/v1/auth/')) {
+  if (!isTesting()) setServerDisconnected(res.status >= 500);
+
+  if (res.status === 401 && !isTesting() && !retried && !path.startsWith('/api/v1/auth/')) {
     const ok = await refreshSession();
     if (ok) return apiFetch<T>(path, { ...options, retried: true });
-    onSessionExpired?.();
+    if (!isTesting()) onSessionExpired?.();
   }
 
   if (!res.ok) {
@@ -136,10 +151,12 @@ let refreshing: Promise<NativeAuthResponse | null> | null = null;
  * family (HANDBOOK §10.1).
  */
 export function refreshSession(): Promise<NativeAuthResponse | null> {
+  if (isTesting()) return Promise.resolve(null);
   if (refreshing) return refreshing;
   refreshing = (async () => {
     try {
       const refreshToken = await readRefreshToken();
+      if (isTesting()) return null;
       if (!refreshToken) return null;
       const data = await apiFetch<NativeAuthResponse>('/api/v1/auth/refresh', {
         method: 'POST',

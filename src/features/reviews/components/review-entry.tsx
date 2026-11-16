@@ -1,12 +1,31 @@
 import { router, type Href } from 'expo-router';
 import { View } from 'react-native';
-import { Button, Card, Txt } from '@/components/ui';
+import { Button, Card, Segmented, Txt } from '@/components/ui';
 import { space } from '@/theme/tokens';
+import { useEffect } from 'react';
+import { REMINDER_HOUR, syncReviewReminder, useReviewReminder } from '../reminder';
 import { useDueReviews } from '../reviews-api';
 
-/** Lối vào ở Tổng quan: chỉ hiện khi có thẻ đến hạn. */
+/** Công tắc nhắc ôn trong Cài đặt (W3). */
+export function ReminderToggle() {
+  const r = useReviewReminder();
+  return (
+    <Segmented
+      label={`Nhắc ôn lúc ${REMINDER_HOUR}:00 khi có thẻ đến hạn`}
+      value={r.enabled ? 'on' : 'off'}
+      options={[{ value: 'off', label: 'Tắt' }, { value: 'on', label: 'Bật' }] as const}
+      onChange={(v) => void r.set(v === 'on')}
+    />
+  );
+}
+
+/** Lối vào ở Tổng quan và cuối màn bài học (T2-7): chỉ hiện khi có thẻ đến hạn. */
 export function ReviewEntry() {
   const { data } = useDueReviews();
+  const due = data?.dueCount;
+  useEffect(() => {
+    if (due !== undefined) void syncReviewReminder(due);
+  }, [due]);
   if (!data || data.dueCount <= 0) return null;
   return (
     <Card>
