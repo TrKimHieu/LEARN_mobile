@@ -1,4 +1,6 @@
+import { usePreventRemove } from 'expo-router';
 import { View } from 'react-native';
+import { confirmAction } from '@/lib/dialog';
 import { Button, Card, Field, Notice, ProgressRing, Screen, Txt } from '@/components/ui';
 import { formatClock } from '@/features/focus/timer';
 import { useFocusTimer } from '@/features/focus/use-focus-timer';
@@ -9,8 +11,21 @@ const PHASE_LABEL = { focus: 'Học', break: 'Nghỉ' } as const;
 /** T3-2, T3-4: Pomodoro. Thông báo khi app ở nền (T3-3) chờ đợt dependency D1. */
 export default function FocusScreen() {
   const f = useFocusTimer();
-  // shortcut: chưa hỏi xác nhận khi rời màn (T3-4); bộ đếm giữ mốc giờ nên quay lại vẫn đúng.
   const totalMs = (f.phase === 'focus' ? f.settings.focusMin : f.settings.breakMin) * 60_000;
+
+  // T3-4: rời màn khi đang chạy thì hỏi trước. Tạm dừng rồi mới cho đi tiếp, khi chặn đã tắt.
+  usePreventRemove(f.running, ({ repeat }) => {
+    void confirmAction({
+      title: 'Rời Pomodoro?',
+      message: 'Bộ đếm sẽ tạm dừng. Quay lại để chạy tiếp.',
+      confirmLabel: 'Tạm dừng và rời',
+      cancelLabel: 'Ở lại',
+    }).then((ok) => {
+      if (!ok) return;
+      f.pause();
+      setTimeout(repeat, 0);
+    });
+  });
 
   return (
     <Screen width="reading">
