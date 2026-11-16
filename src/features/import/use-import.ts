@@ -6,7 +6,8 @@ import { errorText } from '@/lib/api-client';
 import { useOffline } from '@/features/offline/offline-provider';
 import { saveSourceCopy } from '@/lib/source-files';
 import { useImportText } from './import-api';
-import { assertSize, kindOf } from './extract/limits';
+import { assertSize, kindOf, OFFICE_MIME } from './extract/limits';
+import { extractOffice } from './extract/office';
 import { dataUrlToCacheFile, extractImage, isOcrAvailable, recognizeImage } from './extract/ocr';
 import { planPdfPages } from './extract/pdf-bridge';
 import { usePdfExtractor } from './extract/pdf-extractor';
@@ -22,9 +23,9 @@ export type ImportState =
   | { phase: 'done' }
   | { phase: 'error'; message: string };
 
-export const PICKER_TYPES = ['application/pdf', 'image/*', 'text/plain', 'text/markdown'];
+export const PICKER_TYPES = ['application/pdf', 'image/*', 'text/plain', 'text/markdown', OFFICE_MIME.docx, OFFICE_MIME.pptx];
 
-const MIME = { text: 'text/plain', pdf: 'application/pdf', image: 'image/jpeg' } as const;
+const MIME = { text: 'text/plain', pdf: 'application/pdf', image: 'image/jpeg', ...OFFICE_MIME } as const;
 
 interface Source {
   mime: string;
@@ -93,7 +94,7 @@ export function useImport(courseId: string) {
         return;
       }
       const kind = kindOf(asset.name, asset.mimeType ?? null);
-      if (!kind) throw new Error('Chỉ nhập được PDF, ảnh hoặc tệp văn bản.');
+      if (!kind) throw new Error('Chỉ nhập được PDF, Word (.docx), PowerPoint (.pptx), ảnh hoặc tệp văn bản.');
       assertSize(asset.size ?? 0);
       setState({ phase: 'extracting', label: 'Đang đọc tệp' });
       const out =
@@ -101,7 +102,9 @@ export function useImport(courseId: string) {
           ? await extractPlain(asset.uri)
           : kind === 'image'
             ? await extractImage(asset.uri)
-            : await extractPdf(asset.uri);
+            : kind === 'docx' || kind === 'pptx'
+              ? await extractOffice(asset.uri, kind)
+              : await extractPdf(asset.uri);
       if (!out.pages.some((p) => p.text.trim())) throw new Error('Không tìm thấy chữ trong tệp này.');
       setSource({ mime: asset.mimeType ?? MIME[kind], size: asset.size ?? 0, uri: asset.uri });
       setFilename(asset.name);

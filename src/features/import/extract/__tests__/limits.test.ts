@@ -17,7 +17,9 @@ describe('kindOf', () => {
     expect(kindOf('noext', 'application/pdf')).toBe('pdf');
   });
   it('trả null khi không hỗ trợ', () => {
-    expect(kindOf('a.docx', null)).toBeNull();
+    expect(kindOf('a.doc', null)).toBeNull();
+    expect(kindOf('a.DOCX', null)).toBe('docx');
+    expect(kindOf('noext', 'application/vnd.openxmlformats-officedocument.presentationml.presentation')).toBe('pptx');
     expect(kindOf('a.zip', 'application/zip')).toBeNull();
   });
 });

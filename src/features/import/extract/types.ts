@@ -20,7 +20,7 @@ const DEFAULT_MESSAGES: Record<ImportErrorCode, string> = {
   TOO_MANY_PAGES: 'Tài liệu quá 100 trang. Hãy tách nhỏ rồi nhập lại.',
   TIMEOUT: 'Đọc tệp quá 30 giây. Thử tệp ngắn hơn.',
   EMPTY: 'Không tìm thấy chữ trong tệp.',
-  UNSUPPORTED: 'Chưa hỗ trợ loại tệp này. Chọn PDF, ảnh hoặc tệp văn bản.',
+  UNSUPPORTED: 'Chưa hỗ trợ loại tệp này. Chọn PDF, Word (.docx), PowerPoint (.pptx), ảnh hoặc tệp văn bản.',
   UNREADABLE: 'Không đọc được tệp. Kiểm tra lại tệp rồi thử lại.',
   OCR_UNAVAILABLE: 'Nhận dạng chữ trong ảnh cần bản cài đặt đầy đủ của app, không chạy trong Expo Go.',
 };
