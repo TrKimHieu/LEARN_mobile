@@ -156,7 +156,7 @@ Gộp các mục chưa có hoặc mới có một phần. Mục đã xong hoặc
 - [x] **Hai hệ thẻ:** thẻ từ câu hỏi bài tập (R5) và thẻ tự tạo (W1) là hai thực thể riêng, dùng chung SM-2. Đã ghi ở `docs/adr/005-srs-two-card-systems.md` (đã xác nhận); đây là phần (b) của P-3.
 
 ### Nền móng
-- [ ] **P-1** Gộp refactor tách component theo feature thành một commit baseline sạch, trước mọi mục khác
+- [x] **P-1** Commit baseline sạch trên nhánh `chore/baseline-testing-mode-docs` (2026-11-16, chưa push, chưa PR). Thực tế nội dung là chế độ Testing, sửa lỗi offline và tài liệu; không tìm thấy refactor "tách component theo feature" chưa commit. typecheck 0 lỗi, lint 0 lỗi (37 cảnh báo), 187 Jest qua
 - [ ] **P-2** Sync contracts có Card, CardSchedule, CardReview, StudySession, XpEvent, DailyGoal, Friendship, LeagueEntry khi backend phát hành; chạy `sync:contracts`, typecheck, mock tests (hiện chỉ có tới 1.2.0)
 - [x] **P-3** ADR đã viết và được xác nhận 2026-11-16: (a) trích xuất và bản sao cục bộ — sửa đổi 2026-11-16 ở `adr/004-local-extraction.md`; (b) SRS — `adr/005-srs-two-card-systems.md`; (c) XP và chống gian lận — `adr/006-xp-and-anti-cheat.md`
 - [ ] **P-5** Quy trình dependency: thêm theo đợt bằng `npx expo install`, mỗi đợt một commit lockfile
