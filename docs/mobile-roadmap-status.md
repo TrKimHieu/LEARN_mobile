@@ -131,20 +131,20 @@ Chưa kiểm với backend thật: backend trong `LEARN_backend_unified` hiện 
 - [ ] Không ghi phiên lên backend, không XP, giống phạm vi web
 
 ### W4 — Tài liệu và khóa học
-- [ ] Hỗ trợ Word, PowerPoint ngoài PDF/ảnh/văn bản: giữ nguyên nguyên tắc trích chữ tại máy (ADR 004); nếu không trích được tại máy thì giữ chặn, không bật upload tệp gốc để lách gate
-- [ ] Xoá khóa học và xoá tài liệu có xác nhận (web có, mobile chưa); danh sách "Đã lưu trữ"
-- [ ] Trạng thái tài liệu (chờ tải / đang đọc / sẵn sàng / lỗi) khớp web
+- [x] Word (.docx), PowerPoint (.pptx) trích tại máy — xem T1-4 (2026-11-16)
+- [x] Xoá khóa học (cuối màn khóa) và xoá từng tài liệu, đều có xác nhận; xoá tài liệu xoá luôn bản gốc trên máy. Nhãn "Đã lưu trữ" đã có trên thẻ khóa học (2026-11-16)
+- [x] Nhãn trạng thái tài liệu (Chờ tải lên / Đã tải lên / Đang trích xuất / Đã trích xuất / Lỗi) đã có từ trước
 
 ### W5 — Tiến trình
-- [ ] Biểu đồ hoạt động 7 ngày gần nhất
-- [ ] Tổng quan thêm chuỗi ngày học, số bài đã xong, điểm trung bình
+- [x] Thẻ "lần làm bài 7 ngày gần nhất" ở tab Tiến trình, cùng logic `weekly-activity.ts` với web (2026-11-16)
+- [x] Chuỗi ngày học, bài đã xong, điểm trung bình đã có ở Tổng quan (`ProgressStats`)
 
 ### W6 — Quản trị
-- [ ] Trang người dùng (tìm theo email), khóa học (tìm theo tên), gói đăng ký trả phí; chỉ ADMIN, backend kiểm quyền thật
-- [ ] Bộ lọc trạng thái ở danh sách job AI
+- [x] Màn `admin/directory` (mở từ tab Quản trị): người dùng tìm theo email, khóa học tìm theo tên, gói trả phí; chỉ xem, không lưu offline (2026-11-16)
+- [x] Bộ lọc trạng thái job AI đã có từ trước (mặc định "Thất bại")
 
 ### Cài đặt
-- [ ] Nâng cấp / huỷ gói trong app (hiện chỉ xem gói); giữ thanh toán ở chế độ demo cho tới khi backend có cổng thật
+- [x] Nâng cấp / huỷ gói đã có trong Cài đặt (`plan-list`, `current-plan`); thanh toán vẫn ở chế độ demo
 
 ### Không đưa sang mobile
 Kéo thả tệp, trang `/dev/*`, nhắc ôn bằng Web Notification API, lưu Pomodoro bằng localStorage (thay bằng bộ nhớ cục bộ của app).

@@ -26,5 +26,6 @@ export const routes = {
   generateCards: '/flashcards-generate' as Href,
   drafts: (jobId?: string): Href => ({ pathname: '/flashcards-drafts', params: jobId ? { job: jobId } : {} }),
   adminAiJobs: '/admin/ai-jobs' as Href,
+  adminDirectory: '/admin/directory' as Href,
   adminAiJob: (jobId: string): Href => ({ pathname: '/admin/ai-jobs/[jobId]', params: { jobId } }),
 };

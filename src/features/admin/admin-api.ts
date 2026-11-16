@@ -1,5 +1,7 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import type { AdminAiJobDetail, AdminAiJobList, AdminMetrics, AuditLogEntry } from '@/contracts';
+import type {
+  AdminAiJobDetail, AdminAiJobList, AdminCourse, AdminMetrics, AdminSubscription, AdminUser, AuditLogEntry,
+} from '@/contracts';
 import { apiFetch } from '@/lib/api-client';
 import { humanizeCode } from '@/lib/format';
 
@@ -68,4 +70,26 @@ export function statusLabel(status: string) {
 
 export function jobTypeLabel(type: string) {
   return JOB_TYPE_LABELS[type] ?? humanizeCode(type);
+}
+
+// ── W6: danh bạ quản trị (cùng endpoint và khóa cache với web) ──
+export function useAdminUsers(q?: string) {
+  return useQuery({
+    queryKey: ['admin', 'users', q ?? ''],
+    queryFn: () => apiFetch<{ users: AdminUser[] }>(`/api/v1/admin/users${q ? `?q=${encodeURIComponent(q)}` : ''}`),
+  });
+}
+
+export function useAdminCourses(q?: string) {
+  return useQuery({
+    queryKey: ['admin', 'courses', q ?? ''],
+    queryFn: () => apiFetch<{ courses: AdminCourse[] }>(`/api/v1/admin/courses${q ? `?q=${encodeURIComponent(q)}` : ''}`),
+  });
+}
+
+export function useAdminSubscriptions() {
+  return useQuery({
+    queryKey: ['admin', 'subscriptions'],
+    queryFn: () => apiFetch<{ subscriptions: AdminSubscription[] }>('/api/v1/admin/subscriptions'),
+  });
 }

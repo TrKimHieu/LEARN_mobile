@@ -155,6 +155,7 @@ function RootNavigator() {
         {/* Quản trị rút gọn: lớp UX — server chặn thật bằng RolesGuard. */}
         <Stack.Protected guard={authed && isAdmin}>
           <Stack.Screen name="admin/ai-jobs/index" options={{ title: 'AI Job' }} />
+          <Stack.Screen name="admin/directory" options={{ title: 'Quản trị' }} />
           <Stack.Screen name="admin/ai-jobs/[jobId]" options={{ title: 'AI Job' }} />
         </Stack.Protected>
         <Stack.Protected guard={!authed}>
