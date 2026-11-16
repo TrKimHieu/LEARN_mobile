@@ -2,6 +2,7 @@ import { onlineManager } from '@tanstack/react-query';
 import { addNetworkStateListener, getNetworkStateAsync } from 'expo-network';
 import { useSyncExternalStore } from 'react';
 import { Platform } from 'react-native';
+import { isTesting, subscribeTesting } from '../testing-mode';
 
 type NetState = { isConnected?: boolean; isInternetReachable?: boolean };
 
@@ -15,19 +16,36 @@ export function isOnlineState(s: NetState): boolean {
  * trả về hàm huỷ. Trên web trình duyệt đã tự lo `online`/`offline` nên không làm gì.
  */
 export function startNetworkSync(): () => void {
-  if (Platform.OS === 'web') return () => {};
   onlineManager.setEventListener((setOnline) => {
     let active = true;
+    let deviceOnline = onlineManager.isOnline();
+    const update = (online: boolean) => {
+      deviceOnline = online;
+      setOnline(isTesting() || deviceOnline);
+    };
+    const offTesting = subscribeTesting(() => setOnline(isTesting() || deviceOnline));
+    if (Platform.OS === 'web') {
+      const onOnline = () => update(true);
+      const onOffline = () => update(false);
+      globalThis.addEventListener('online', onOnline);
+      globalThis.addEventListener('offline', onOffline);
+      update(globalThis.navigator.onLine);
+      return () => {
+        offTesting();
+        globalThis.removeEventListener('online', onOnline);
+        globalThis.removeEventListener('offline', onOffline);
+      };
+    }
     const sub = addNetworkStateListener((e) => {
       active = false; // sự kiện thật mới hơn giá trị đầu
-      setOnline(isOnlineState(e));
+      update(isOnlineState(e));
     });
     void getNetworkStateAsync()
       .then((s) => {
-        if (active) setOnline(isOnlineState(s));
+        if (active) update(isOnlineState(s));
       })
       .catch(() => {});
-    return () => sub.remove();
+    return () => { offTesting(); sub.remove(); };
   });
   return () => onlineManager.setEventListener(() => () => {});
 }

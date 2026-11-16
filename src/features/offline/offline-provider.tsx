@@ -10,6 +10,7 @@ import { deleteAccountDb, openAccountDb } from '@/lib/db/sqlite';
 import type { OutboxStore } from '@/lib/db/stores';
 import { enqueue, flushOutbox, setOutboxSink } from '@/lib/offline/outbox';
 import { createKvPersister, PERSIST_MAX_AGE, persistBuster, shouldPersistQuery } from '@/lib/offline/persister';
+import { isTesting, subscribeTesting } from '@/lib/testing-mode';
 
 type OfflineValue = {
   /** Số thao tác đang chờ gửi lên máy chủ. */
@@ -35,7 +36,9 @@ type Session = { name: string; outbox: OutboxStore; close: () => Promise<void>; 
  */
 export function OfflineProvider({ children }: { children: React.ReactNode }) {
   const queryClient = useQueryClient();
-  const userId = useAuth().user?.id ?? null;
+  const auth = useAuth();
+  // Demo data never opens a real account's cache or queues writes for later sync.
+  const userId = auth.testing ? null : auth.user?.id ?? null;
   const session = useRef<Session | null>(null);
   const [pendingCount, setPendingCount] = useState(0);
 
@@ -45,15 +48,16 @@ export function OfflineProvider({ children }: { children: React.ReactNode }) {
 
   const flush = useCallback(async () => {
     const s = session.current;
-    if (!s || !onlineManager.isOnline()) return;
-    const { sent } = await flushOutbox(s.outbox, (item) =>
-      apiFetch(item.path, {
+    if (!s || isTesting() || !onlineManager.isOnline()) return;
+    const { sent } = await flushOutbox(s.outbox, (item) => {
+      if (isTesting()) return Promise.reject(new Error('Testing: pause real outbox.'));
+      return apiFetch(item.path, {
         method: item.method,
         body: item.body ? JSON.parse(item.body) : undefined,
         // Gửi lại cùng key: server trả kết quả lần đầu thay vì ghi thêm (LEARN_backend#7).
         headers: { 'Idempotency-Key': item.eventId },
-      }).then(() => undefined),
-    );
+      }).then(() => undefined);
+    });
     await refreshCount();
     // Bài nộp / bài bắt đầu từ hàng chờ đã tới server: tiến độ và điểm trên máy đã cũ.
     if (sent > 0) await queryClient.invalidateQueries();
@@ -70,24 +74,38 @@ export function OfflineProvider({ children }: { children: React.ReactNode }) {
     return s.name;
   }, []);
 
+  // Stop persistence synchronously before any demo query can publish data.
+  useEffect(() => subscribeTesting(() => {
+    if (isTesting()) void closeSession();
+  }), [closeSession]);
+
   useEffect(() => {
     if (!userId) return;
     let cancelled = false;
     const name = dbNameFor({ environment: config.environment, origin: config.apiUrl, userId });
     (async () => {
       const db = await openAccountDb(name);
-      if (cancelled) {
+      if (cancelled || isTesting()) {
         await db.close();
         return;
       }
+      const current: Session = { name, outbox: db.outbox, close: db.close, stopPersist: () => {} };
+      session.current = current;
+      const persister = createKvPersister(db.kv);
+      const restore = persister.restoreClient;
+      persister.restoreClient = async () => {
+        const cached = await restore();
+        // Unsubscribing persistence cannot cancel an already-running SQLite read.
+        return !cancelled && !isTesting() && session.current === current ? cached : undefined;
+      };
       const [stopPersist] = persistQueryClient({
         queryClient,
-        persister: createKvPersister(db.kv),
+        persister,
         maxAge: PERSIST_MAX_AGE,
         buster: persistBuster(),
         dehydrateOptions: { shouldDehydrateQuery: shouldPersistQuery },
       });
-      session.current = { name, outbox: db.outbox, close: db.close, stopPersist };
+      current.stopPersist = stopPersist;
       setOutboxSink(async (req) => {
         await enqueue(db.outbox, req);
         await refreshCount();

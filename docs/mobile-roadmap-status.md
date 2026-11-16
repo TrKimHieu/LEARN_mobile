@@ -102,3 +102,108 @@ Kiểm tra tự động: typecheck, lint (0 lỗi), 177 Jest, bundle web/Android
 - [ ] Ôn 10 thẻ offline rồi có mạng: server ghi đúng 10 lượt, lịch hôm sau đúng
 - [ ] Đổi giờ máy sang tương lai: lịch không bị đẩy xa
 - [ ] TalkBack/VoiceOver: lật thẻ rồi chấm được
+
+## W — Đồng bộ tính năng từ website (kế hoạch, 2026-11-16)
+
+Nguồn: rà soát `LEARN_web_standalone` (contracts 1.5.0) và `SPEC_flashcards_review_pomodoro.md`. Mobile hiện pin contracts thấp hơn web, nên mọi mục dưới đây bắt đầu bằng `npm run sync:contracts` lên bản có schema tương ứng, rồi typecheck và mock tests. Tuân thủ `UI_PLATFORM_RULES.md`: element mobile viết riêng, không chép layout web. Chưa triển khai mục nào; mọi ô còn trống.
+
+Thứ tự đề xuất: W1 → W2 → W3 → W4 → W5 → W6. W1–W3 dùng backend sẵn có; W4–W6 chỉ làm khi backend đã phát hành endpoint tương ứng.
+
+### W1 — Bộ thẻ và thẻ tự tạo (web: `features/flashcards`)
+Tách biệt khỏi ôn câu hỏi bài tập ở R5 (theo spec, thẻ web và thẻ bài tập là hai thực thể khác nhau). Tab "Thẻ" mới, hoặc mục trong Tổng quan nếu hết chỗ trên thanh tab.
+- [ ] Danh sách bộ thẻ kèm số thẻ mới / đang học / đến hạn; tạo, đổi tên, xoá (có xác nhận) bộ thẻ; gắn khóa học tùy chọn
+- [ ] Chi tiết bộ: thêm, sửa, xoá, chuyển thẻ sang bộ khác; báo lỗi tiếng Việt khi mặt trước/sau trống hoặc quá dài
+- [ ] Ôn một bộ và "Ôn hôm nay" (gộp mọi thẻ đến hạn): lật thẻ → Quên / Khó / Tốt / Dễ theo SM-2, `Idempotency-Key`, vào outbox khi offline
+- [ ] Cache SQLite cho bộ thẻ và thẻ đến hạn; huy hiệu số thẻ đến hạn trên tab và Tổng quan
+- [ ] Phiên ôn trống hiện thời điểm thẻ kế tiếp đến hạn; TalkBack/VoiceOver lật và chấm được
+
+### W2 — AI sinh thẻ nháp
+- [ ] Màn "Sinh thẻ bằng AI": chọn khóa, nguồn (một bài học hoặc một tài liệu), số thẻ tối đa 1–30
+- [ ] Theo dõi job (tiến độ, huỷ, thành công một phần, lỗi), báo hết hạn mức AI của gói
+- [ ] Màn duyệt thẻ nháp: sửa, bỏ bớt, thêm vào bộ có sẵn hoặc bộ mới; thẻ nháp không có lịch ôn cho đến khi chấp nhận
+
+### W3 — Pomodoro và nhắc ôn
+- [ ] Bộ đếm học/nghỉ chỉnh được (mặc định 25/5), tính giờ từ mốc thời gian thật để đúng khi app nền hoặc xoay màn; lưu cài đặt cục bộ
+- [ ] Thông báo cục bộ khi hết giờ và khi có thẻ đến hạn (expo-notifications, chỉ khi người dùng cấp quyền; từ chối vẫn dùng đủ tính năng); công tắc tắt trong Cài đặt
+- [ ] Không ghi phiên lên backend, không XP, giống phạm vi web
+
+### W4 — Tài liệu và khóa học
+- [ ] Hỗ trợ Word, PowerPoint ngoài PDF/ảnh/văn bản: giữ nguyên nguyên tắc trích chữ tại máy (ADR 004); nếu không trích được tại máy thì giữ chặn, không bật upload tệp gốc để lách gate
+- [ ] Xoá khóa học và xoá tài liệu có xác nhận (web có, mobile chưa); danh sách "Đã lưu trữ"
+- [ ] Trạng thái tài liệu (chờ tải / đang đọc / sẵn sàng / lỗi) khớp web
+
+### W5 — Tiến trình
+- [ ] Biểu đồ hoạt động 7 ngày gần nhất
+- [ ] Tổng quan thêm chuỗi ngày học, số bài đã xong, điểm trung bình
+
+### W6 — Quản trị
+- [ ] Trang người dùng (tìm theo email), khóa học (tìm theo tên), gói đăng ký trả phí; chỉ ADMIN, backend kiểm quyền thật
+- [ ] Bộ lọc trạng thái ở danh sách job AI
+
+### Cài đặt
+- [ ] Nâng cấp / huỷ gói trong app (hiện chỉ xem gói); giữ thanh toán ở chế độ demo cho tới khi backend có cổng thật
+
+### Không đưa sang mobile
+Kéo thả tệp, trang `/dev/*`, nhắc ôn bằng Web Notification API, lưu Pomodoro bằng localStorage (thay bằng bộ nhớ cục bộ của app).
+
+## Bổ sung từ danh sách P / T / X (2026-11-16)
+
+Gộp các mục chưa có hoặc mới có một phần. Mục đã xong hoặc đã nằm ở R0–R8 không lặp lại. Mã giữ nguyên để đối chiếu.
+
+### Cần quyết trước khi làm
+- [x] **Lưu tệp gốc trên máy (T1-2, T1-7 → T1-10):** đã chọn giữ bản sao cục bộ (2026-11-16). Tệp gốc chỉ nằm trên máy, không upload lên server; server chỉ nhận văn bản và metadata. Việc kèm theo: cập nhật ADR 004 (lưu bản sao, SHA-256, dung lượng) trước T1-2; mục ADR (a) của P-3 gộp vào đó.
+- [x] **Thời gian học (T3-5):** đã chọn chỉ lưu cục bộ (2026-11-16), khớp W3. Ghi theo khóa/bài trong SQLite của tài khoản; không gửi lên server, không cần backend hay contracts mới. T3-6 đọc từ SQLite này, nên chỉ có trên máy đã học.
+- [x] **Hai hệ thẻ:** thẻ từ câu hỏi bài tập (R5) và thẻ tự tạo (W1) là hai thực thể riêng, dùng chung SM-2. Đã ghi ở `docs/adr/005-srs-two-card-systems.md` (đã xác nhận); đây là phần (b) của P-3.
+
+### Nền móng
+- [ ] **P-1** Gộp refactor tách component theo feature thành một commit baseline sạch, trước mọi mục khác
+- [ ] **P-2** Sync contracts có Card, CardSchedule, CardReview, StudySession, XpEvent, DailyGoal, Friendship, LeagueEntry khi backend phát hành; chạy `sync:contracts`, typecheck, mock tests (hiện chỉ có tới 1.2.0)
+- [x] **P-3** ADR đã viết và được xác nhận 2026-11-16: (a) trích xuất và bản sao cục bộ — sửa đổi 2026-11-16 ở `adr/004-local-extraction.md`; (b) SRS — `adr/005-srs-two-card-systems.md`; (c) XP và chống gian lận — `adr/006-xp-and-anti-cheat.md`
+- [ ] **P-5** Quy trình dependency: thêm theo đợt bằng `npx expo install`, mỗi đợt một commit lockfile
+- [ ] **P-6** Xác minh owner/projectId EAS `1d60d1e2-0017-4a99-ac67-1f02f5454443` và `updates.url` (đã khai trong `app.json`, chưa xác minh)
+
+### T1 — Tệp gốc (đã chốt giữ bản sao cục bộ)
+- [ ] **T1-2** Chọn tệp, sao vào thư mục riêng, ghi chỉ mục cục bộ (mã, tên, kích thước, SHA-256, đường dẫn)
+- [ ] **T1-4** Trích xuất DOCX và PPTX trên máy (độc lập với (b); ADR 004 chưa có hai định dạng này)
+- [ ] **T1-7** Trạng thái "Tệp gốc không còn trên máy này" khi mất tệp (gỡ app, đổi máy)
+- [ ] **T1-8** Gắn lại tệp gốc, kiểm bằng SHA-256
+- [ ] **T1-9** Màn "Quản lý dung lượng": tổng dung lượng, xoá từng tệp, không xoá bài học
+- [ ] **T1-10** Giữ nguyên tài liệu cũ; tuỳ chọn "Tải về máy", không ép di chuyển
+- [ ] Kết nối Google Drive (R7)
+
+### T2 — Ôn tập
+- [ ] **T2-1** Hàm thuần `sm2.ts` + unit test bộ ví dụ cố định, để kiểm lịch server trả về và dự đoán "đến hạn" offline
+- [ ] **T2-2** API + hook sinh thẻ (AI Job), sửa, thêm, xoá thẻ (trùng W1/W2)
+- [ ] **T2-5** Kiểm "đến hạn" theo múi giờ máy chủ bằng test đổi giờ máy
+- [ ] **T2-7** Lối vào ôn tập ở màn bài học (đã có ở Tổng quan)
+
+### T3 — Thời gian học
+- [ ] **T3-1** `timer.ts` thuần, tính từ mốc thời gian thật + unit test (trùng W3)
+- [ ] **T3-2, T3-3** Chu kỳ học/nghỉ chỉnh được; thông báo cục bộ khi hết chu kỳ kể cả app ở nền; xử lý khi từ chối quyền
+- [ ] **T3-4** Xác nhận khi thoát giữa chu kỳ; tạm dừng và tiếp tục
+- [ ] **T3-5** Bắt đầu từ bài học hoặc phiên SRS; ghi thời gian theo khóa và bài vào SQLite cục bộ (không gửi server)
+- [ ] **T3-6** Thống kê thời gian học theo ngày ở tab Tiến trình
+
+### T4 — Mục tiêu và XP
+- [ ] **T4-1** Định nghĩa "ngày đã học" (hoàn thành bài / nộp bài / phiên SRS) theo múi giờ máy chủ; ghi vào ADR XP
+- [ ] **T4-2** Hiển thị XP và chuỗi ngày do server tính, client chỉ hiển thị
+- [ ] **T4-3** Chọn mục tiêu ngày + `ring` ở Tổng quan
+- [ ] **T4-4** Nhắc học cục bộ theo giờ, chỉ khi hôm nay chưa đạt mục tiêu
+- [ ] **T4-5** (Có thể) cảnh báo khi chuỗi sắp đứt
+
+### T5 — Bạn bè và xếp hạng
+- [ ] **T5-1** Kết bạn bằng mã mời hoặc email; chấp nhận, từ chối, huỷ
+- [ ] **T5-2** Bảng xếp hạng tuần theo XP trong nhóm bạn bè
+- [ ] **T5-3** Chế độ hiển thị tên, mặc định chỉ bạn bè thấy
+- [ ] **T5-4** Chống gian lận: chỉ tính XP do server, giới hạn XP tối đa mỗi ngày
+- [ ] **T5-5** Không lộ email, lịch sử học, nội dung khoá học cho người không phải bạn bè
+- [ ] **T5-6** Giới hạn tần suất lời mời (server)
+- [ ] **T5-7** Lối vào bạn bè và xếp hạng từ tab Tiến trình
+
+### X — Thiết kế
+- [ ] **X-1** Chốt design system mới (token) + ADR thay ADR 001 (ADR 001 chỉ còn ở `LEARN_mobile/docs/adr`; ADR 002 đã chuyển token từ website)
+- [ ] **X-2** Cập nhật `components/ui/**` theo token mới trước khi tính năng dựng UI
+- [ ] **X-3** Visual pass từng tính năng sau khi luồng ổn định
+
+### Thứ tự đề xuất
+P-1 → P-3 (gồm sửa ADR 004) → P-2 → P-5 → X-1 → X-2 → T1 → T2 → T3 → T4 → T5 → X-3. Nhóm W (website) xen vào T2/T3/T5 vì trùng nội dung; làm một lần, không làm hai bản.

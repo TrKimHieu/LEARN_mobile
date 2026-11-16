@@ -30,11 +30,11 @@ function Probe() {
 }
 beforeEach(() => {
   jest.clearAllMocks();
-  qc = new QueryClient({ defaultOptions: { mutations: { retry: false } } });
+  qc = new QueryClient({ defaultOptions: { queries: { gcTime: Infinity }, mutations: { retry: false, gcTime: Infinity } } });
   qc.setQueryData(['reviews', 'due'], due);
   act(() => { tree = create(<QueryClientProvider client={qc}><Probe /></QueryClientProvider>); });
 });
-afterEach(() => { act(() => tree.unmount()); setOutboxSink(null); });
+afterEach(() => { act(() => tree.unmount()); qc.clear(); setOutboxSink(null); });
 
 const cached = () => qc.getQueryData<DueReviewsResponse>(['reviews', 'due'])!;
 

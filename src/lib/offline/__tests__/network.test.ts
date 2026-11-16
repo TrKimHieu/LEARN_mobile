@@ -3,6 +3,7 @@ import { act, create } from 'react-test-renderer';
 import { createElement } from 'react';
 import * as Network from 'expo-network';
 import { isOnlineState, startNetworkSync, useIsOnline } from '../network';
+import { startTesting, stopTesting } from '../../testing-mode';
 
 jest.mock('expo-network', () => ({
   getNetworkStateAsync: jest.fn(),
@@ -31,9 +32,26 @@ describe('isOnlineState', () => {
 
 describe('startNetworkSync', () => {
   afterEach(() => {
+    stopTesting();
     onlineManager.setEventListener(() => () => {});
     onlineManager.setOnline(true);
     jest.clearAllMocks();
+  });
+
+  it('allows local demo queries while the device is offline and restores connectivity on exit', async () => {
+    let update: (event: { isConnected: boolean }) => void = () => {};
+    addListener.mockImplementation((listener) => { update = listener; return { remove: jest.fn() }; });
+    getState.mockResolvedValue({ isConnected: false });
+    const stop = startNetworkSync();
+    await act(async () => { await Promise.resolve(); });
+    expect(onlineManager.isOnline()).toBe(false);
+    startTesting();
+    expect(onlineManager.isOnline()).toBe(true);
+    update({ isConnected: false });
+    expect(onlineManager.isOnline()).toBe(true);
+    stopTesting();
+    expect(onlineManager.isOnline()).toBe(false);
+    stop();
   });
 
   it('seeds from getNetworkStateAsync and follows listener, unsubscribes on cleanup', async () => {
