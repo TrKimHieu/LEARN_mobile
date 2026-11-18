@@ -1,5 +1,7 @@
 import { router } from 'expo-router';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
+import { useOffline } from '@/features/offline/offline-provider';
+import { markTodayDone } from '@/lib/today-store';
 import { StyleSheet, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import type { ReviewCard, ReviewGrade } from '@/contracts';
@@ -29,6 +31,11 @@ export function ReviewSession({ cards }: { cards: ReviewCard[] }) {
   const [index, setIndex] = useState(0);
   const [flipped, setFlipped] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const { kv } = useOffline();
+  const finished = deck.length > 0 && index >= deck.length;
+  useEffect(() => {
+    if (finished) void markTodayDone(kv, 'review');
+  }, [finished, kv]);
 
   if (deck.length === 0) {
     return (

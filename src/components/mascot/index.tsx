@@ -50,6 +50,8 @@ export type MascotState = Extract<
   | 'alerting'
   | 'sad'
   | 'confused'
+  | 'listening'
+  | 'excited'
 >;
 
 const MORPH_MS = 380;

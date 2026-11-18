@@ -1,6 +1,7 @@
 import { View } from 'react-native';
 import { router } from 'expo-router';
-import { Button, PageHeader, Screen, SectionTitle, Txt } from '@/components/ui';
+import { Button, Screen, SectionTitle, Txt } from '@/components/ui';
+import { useAuth } from '@/features/auth/auth-context';
 import { ProfileCard } from '@/features/auth/components/profile-card';
 import { CurrentPlan } from '@/features/settings/components/current-plan';
 import { PlanList } from '@/features/settings/components/plan-list';
@@ -16,15 +17,17 @@ export default function SettingsScreen() {
   const plans = usePlans();
   const subscription = useSubscription();
   const { meta, contractsDiffer } = useServerMeta();
+  const isAdmin = useAuth().user?.role === 'ADMIN';
 
   return (
-    <Screen width="reading" topInset onRefresh={() => Promise.all([plans.refetch(), subscription.refetch()])}>
-      <PageHeader title="Cài đặt" description="Hồ sơ, giao diện, gói đăng ký và hạn mức sử dụng." />
+    <Screen width="reading" onRefresh={() => Promise.all([plans.refetch(), subscription.refetch()])}>
 
       <ProfileCard />
       <ThemePicker />
       <ReminderToggle />
       <Button label="Quản lý dung lượng" variant="secondary" icon="file" onPress={() => router.push(routes.storage)} />
+      {/* Quản trị không còn là tab riêng (2026-11-19); server vẫn chặn thật bằng RolesGuard. */}
+      {isAdmin && <Button label="Quản trị" variant="secondary" icon="shield" onPress={() => router.push(routes.admin)} />}
 
       <View>
         <SectionTitle title="Gói hiện tại" />

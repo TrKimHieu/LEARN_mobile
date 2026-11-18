@@ -1,4 +1,6 @@
 import { router, Stack, useLocalSearchParams } from "expo-router";
+import { useOffline } from "@/features/offline/offline-provider";
+import { markTodayDone } from "@/lib/today-store";
 import { useEffect, useMemo, useRef, useState } from "react";
 import {
   Modal,
@@ -48,6 +50,7 @@ const STATUS_LABEL: Record<string, string> = {
 };
 
 export default function LessonScreen() {
+  const { kv } = useOffline();
   const p = usePalette();
   const insets = useSafeAreaInsets();
   const layout = useLayout();
@@ -372,7 +375,11 @@ export default function LessonScreen() {
           label="Làm bài tập"
           icon="target"
           style={{ flex: 1 }}
-          onPress={() => router.push(routes.practice(courseId, lessonId))}
+          onPress={() => {
+            // Tới cuối bài và sang luyện tập là xong việc "học bài" hôm nay (GĐ3 sẽ đổi sang bước cuối).
+            void markTodayDone(kv, `lesson:${lessonId}`);
+            router.push(routes.practice(courseId, lessonId));
+          }}
         />
         <IconButton
           icon="arrow-right"

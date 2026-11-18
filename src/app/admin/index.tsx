@@ -6,7 +6,6 @@ import {
   EmptyState,
   ErrorState,
   Grid,
-  PageHeader,
   Screen,
   SectionTitle,
   Skeleton,
@@ -33,8 +32,7 @@ export default function AdminScreen() {
 
   if (metrics.isLoading) {
     return (
-      <Screen topInset>
-        <PageHeader title="Quản trị" />
+      <Screen>
         <Grid columns={statColumns}>
           {[0, 1, 2, 3].map((i) => (
             <Skeleton key={i} height={84} style={styles.tile} />
@@ -46,8 +44,7 @@ export default function AdminScreen() {
 
   if (metrics.isError || !metrics.data) {
     return (
-      <Screen topInset onRefresh={metrics.refetch}>
-        <PageHeader title="Quản trị" />
+      <Screen onRefresh={metrics.refetch}>
         <ErrorState
           title="Không tải được số liệu"
           description={errorText(metrics.error, 'Vui lòng thử lại.')}
@@ -72,11 +69,8 @@ export default function AdminScreen() {
   ];
 
   return (
-    <Screen topInset onRefresh={metrics.refetch}>
-      <PageHeader
-        title="Quản trị"
-        description={`Cập nhật ${relativeTime(generatedAt)}. Bảng người dùng, khóa học và gói đăng ký có trên bản web.`}
-      />
+    <Screen onRefresh={metrics.refetch}>
+      <Txt variant="caption" tone="subtle">{`Cập nhật ${relativeTime(generatedAt)}`}</Txt>
 
       <Grid columns={statColumns}>
         {tiles.map((t) => (
