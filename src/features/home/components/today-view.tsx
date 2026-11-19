@@ -1,10 +1,12 @@
 import { router } from 'expo-router';
+import { useEffect } from 'react';
 import { StyleSheet, View } from 'react-native';
 import { Mascot } from '@/components/mascot';
 import {
   Button, Card, Divider, EmptyState, ErrorState, Icon, IconButton, ProgressRing, Screen, Skeleton, Txt, type IconName,
 } from '@/components/ui';
 import { UpdateNotice } from '@/components/update-notice';
+import { syncStudyReminder } from '@/features/reviews/reminder';
 import { errorText } from '@/lib/api-client';
 import { routes } from '@/lib/routes';
 import { usePalette } from '@/theme/theme';
@@ -17,6 +19,15 @@ import { useTodayPlan } from '../use-today-plan';
 export function TodayView() {
   const t = useTodayPlan();
   const p = usePalette();
+  // T4-4: nhắc học 19:00 theo việc hôm nay còn dở; xong hết thì huỷ nhắc.
+  const remaining = t.plan
+    ? t.plan.tasks.filter((task) => !isDone(t.plan!, task, t.liveDue)).map(reminderLabel)
+    : null;
+  // Khoá chuỗi để effect chỉ chạy khi danh sách việc còn dở thật sự đổi.
+  const remainingKey = remaining ? JSON.stringify(remaining) : null;
+  useEffect(() => {
+    if (remainingKey !== null) void syncStudyReminder(JSON.parse(remainingKey) as string[]);
+  }, [remainingKey]);
   const refresh = async () => {
     await Promise.all([t.overview.refetch()]);
     t.retry();
@@ -122,6 +133,18 @@ export function TodayView() {
       </View>
     </Screen>
   );
+}
+
+/** Một dòng trong thông báo nhắc học. */
+function reminderLabel(task: TodayTask): string {
+  switch (task.kind) {
+    case 'review':
+      return `${task.dueCount} thẻ đến hạn`;
+    case 'lesson':
+      return `Bài: ${task.title}`;
+    case 'exercise':
+      return `Luyện lại: ${task.lessonTitle}`;
+  }
 }
 
 function taskView(task: TodayTask): { icon: IconName; title: string; sub: string | null; action: string } {
