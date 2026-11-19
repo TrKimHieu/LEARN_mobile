@@ -1,9 +1,15 @@
 import { router, useLocalSearchParams } from 'expo-router';
+import { useState } from 'react';
+import type { SubmissionResult } from '@/contracts';
 import { EmptyState, ErrorState, LoadingState, Screen } from '@/components/ui';
+import type { AnswerState } from '@/features/exercises/answers';
 import { ExerciseSession } from '@/features/exercises/components/exercise-session';
+import { OfflineNotice, QuickSession, type QuickSummary } from '@/features/exercises/components/quick-session';
+import { ResultView } from '@/features/exercises/components/result-view';
 import { useExercise } from '@/features/exercises/exercises-api';
 import { useLessons } from '@/features/learning/learning-api';
 import { errorDetail, errorText, isNotFound } from '@/lib/api-client';
+import { useIsOnline } from '@/lib/offline/network';
 import { routes } from '@/lib/routes';
 
 export default function PracticeScreen() {
@@ -16,6 +22,16 @@ export default function PracticeScreen() {
   const lessons = useLessons(courseId);
   // Bài tập đang mở nằm trong params: deep link hay quay lại vẫn đúng bài tập.
   const openExercise = (id: string) => router.setParams({ exercise: id });
+  const online = useIsOnline();
+  // Mặc định chấm từng câu (spec web 4.4); "Làm kiểu kiểm tra" giữ giao diện làm hết rồi nộp.
+  const [mode, setMode] = useState<'quick' | 'exam' | null>(null);
+  const [run, setRun] = useState(0);
+  const [quick, setQuick] = useState<{
+    exerciseId: string;
+    result: SubmissionResult | undefined;
+    answers: AnswerState;
+    summary: QuickSummary;
+  } | null>(null);
 
   const list = lessons.data?.lessons ?? [];
   const lessonIndex = list.findIndex((l) => l.id === lessonId);
@@ -64,16 +80,75 @@ export default function PracticeScreen() {
   }
 
   if (!exercise.data) return null;
+  const data = exercise.data;
+
+  // Phiên chấm từng câu xong: màn kết quả chung, "Làm lại" mở một phiên chấm từng câu mới.
+  if (quick?.exerciseId === data.id) {
+    if (!quick.result) {
+      return (
+        <Screen width="reading">
+          <EmptyState
+            title="Đã lưu bài làm"
+            description="Bài nộp sẽ gửi khi có mạng; điểm hiện sau đó."
+            action={{ label: 'Về bài học', onPress: () => router.back() }}
+          />
+        </Screen>
+      );
+    }
+    return (
+      <ResultView
+        data={data}
+        result={quick.result}
+        answers={quick.answers}
+        nextLesson={nextLesson}
+        summary={summaryText(quick.summary)}
+        onRetry={() => {
+          setQuick(null);
+          setRun((n) => n + 1);
+        }}
+        onOpenExercise={(id) => {
+          setQuick(null);
+          openExercise(id);
+        }}
+      />
+    );
+  }
+
+  const examMode = () => setMode('exam');
+  if ((mode ?? (online ? 'quick' : 'exam')) === 'quick') {
+    if (!online) {
+      return (
+        <Screen width="reading">
+          <OfflineNotice onExamMode={examMode} />
+        </Screen>
+      );
+    }
+    return (
+      <QuickSession
+        key={`${data.id}:${run}`}
+        courseId={courseId}
+        lessonId={lessonId}
+        data={data}
+        onExamMode={examMode}
+        onFinished={(result, answers, summary) => setQuick({ exerciseId: data.id, result, answers, summary })}
+      />
+    );
+  }
 
   // `key`: đổi bài tập là một phiên làm bài mới, câu trả lời của bài trước không sót lại.
   return (
     <ExerciseSession
-      key={exercise.data.id}
+      key={data.id}
       courseId={courseId}
       lessonId={lessonId}
-      data={exercise.data}
+      data={data}
       nextLesson={nextLesson}
       onOpenExercise={openExercise}
     />
   );
+}
+
+function summaryText(s: QuickSummary): string {
+  const minutes = Math.max(1, Math.round(s.durationMs / 60_000));
+  return `Chuỗi đúng dài nhất ${s.bestStreak} · ${minutes} phút`;
 }

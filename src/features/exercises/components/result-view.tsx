@@ -27,8 +27,10 @@ export const ResultView = forwardRef<
     nextLesson?: NextLesson;
     onRetry: () => void;
     onOpenExercise: (id: string) => void;
+    /** Phiên chấm từng câu: một dòng tóm tắt, ví dụ "Chuỗi đúng dài nhất 4 · 3 phút". */
+    summary?: string;
   }
->(function ResultView({ data, result, answers, nextLesson, onRetry, onOpenExercise }, ref) {
+>(function ResultView({ data, result, answers, nextLesson, onRetry, onOpenExercise, summary }, ref) {
   const p = usePalette();
   const insets = useSafeAreaInsets();
   const byQuestion = new Map(result.results.map((r) => [r.questionId, r]));
@@ -72,6 +74,11 @@ export const ResultView = forwardRef<
               ? `Bạn đã hoàn thành bài tập, đúng ${correctCount}/${data.questions.length} câu.`
               : `Cần đạt ${data.passScore} điểm để qua bài. Xem lại các câu sai bên dưới.`}
           </Txt>
+          {summary && (
+            <Txt variant="caption" tone="subtle" style={{ textAlign: 'center' }}>
+              {summary}
+            </Txt>
+          )}
           {result.lessonCompleted ? (
             <View style={styles.inline}>
               <Icon name="book-check" size={16} />
