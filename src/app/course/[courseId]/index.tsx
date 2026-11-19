@@ -1,7 +1,7 @@
 import { router, Stack, useLocalSearchParams } from 'expo-router';
 import { useCallback, useState } from 'react';
-import { View } from 'react-native';
-import { Button, ErrorState, InlineError, Screen, SectionTitle, Skeleton } from '@/components/ui';
+import { Pressable, StyleSheet, View } from 'react-native';
+import { Button, ErrorState, Icon, InlineError, Screen, SectionTitle, Skeleton, Txt } from '@/components/ui';
 import { AiJobProgress } from '@/features/ai/components/ai-job-progress';
 import { GenerateLessonsCard } from '@/features/ai/components/generate-lessons-card';
 import { useCourse, useCourseDocuments, useDeleteCourse } from '@/features/courses/courses-api';
@@ -21,8 +21,10 @@ export default function CourseDetailScreen() {
   const documents = useCourseDocuments(courseId);
   const lessons = useLessons(courseId);
   const [activeJobId, setActiveJobId] = useState<string | null>(null);
+  const [docsOpen, setDocsOpen] = useState<boolean | null>(null);
 
   const docList = documents.data?.documents;
+  const docsShown = docsOpen ?? docList?.length === 0;
   const hasExtractedDoc = Boolean(docList?.some((d) => d.status === 'EXTRACTED'));
   const lessonList = lessons.data?.lessons ?? [];
   const completedCount = lessonList.filter((l) => l.progressStatus === 'COMPLETED').length;
@@ -86,15 +88,9 @@ export default function CourseDetailScreen() {
         resume={resumeLesson(lessonList) ?? lessonList[0]}
       />
 
+      {/* Học là việc chính (spec web 4.6): danh sách bài trước, việc quản lý sau. */}
       <View>
         <SectionTitle title="Lộ trình bài học" description="Chạm vào một bài để học. Mũi tên đổi thứ tự." />
-        <GenerateLessonsCard
-          courseId={courseId}
-          hasExtractedDoc={hasExtractedDoc}
-          documentsLoading={documents.isLoading}
-          busy={activeJobId !== null}
-          onStarted={setActiveJobId}
-        />
         {activeJobId ? (
           <AiJobProgress jobId={activeJobId} onDone={handleJobDone} />
         ) : (
@@ -102,17 +98,36 @@ export default function CourseDetailScreen() {
         )}
       </View>
 
+      <GenerateLessonsCard
+        courseId={courseId}
+        hasExtractedDoc={hasExtractedDoc}
+        documentsLoading={documents.isLoading}
+        busy={activeJobId !== null}
+        onStarted={setActiveJobId}
+      />
+
       <View>
-        <SectionTitle title="Tài liệu nguồn" />
-        <DocumentUpload courseId={courseId} />
-        <View style={{ marginTop: space.md }}>
-          <DocumentList
-            documents={docList}
-            isLoading={documents.isLoading}
-            error={documents.isError ? documents.error : null}
-            onRetry={() => void documents.refetch()}
-          />
-        </View>
+        {/* Gập sẵn; khóa chưa có tài liệu nào thì mở sẵn để thêm tài liệu đầu tiên. */}
+        <Pressable
+          accessibilityRole="button"
+          accessibilityState={{ expanded: docsShown }}
+          onPress={() => setDocsOpen(!docsShown)}
+          style={styles.docsHead}
+        >
+          <Txt variant="heading">{`Tài liệu (${docList?.length ?? 0})`}</Txt>
+          <Icon name={docsShown ? 'chevron-up' : 'chevron-down'} size={20} />
+        </Pressable>
+        {docsShown && (
+          <View style={{ gap: space.md }}>
+            <DocumentUpload courseId={courseId} />
+            <DocumentList
+              documents={docList}
+              isLoading={documents.isLoading}
+              error={documents.isError ? documents.error : null}
+              onRetry={() => void documents.refetch()}
+            />
+          </View>
+        )}
       </View>
 
       <Button
@@ -127,3 +142,7 @@ export default function CourseDetailScreen() {
     </Screen>
   );
 }
+
+const styles = StyleSheet.create({
+  docsHead: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', minHeight: 44, marginBottom: space.sm },
+});
