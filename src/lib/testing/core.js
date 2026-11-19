@@ -398,6 +398,16 @@ function createMockApi(options = {}) {
     if (!ex) throw notFound('Không tìm thấy bài tập.');
     return exerciseRead(ctx.user, l, ex);
   });
+  // Chấm một câu, không lưu gì (contracts 1.8.0), để chế độ Testing luyện tập từng câu được.
+  route('POST', '/api/v1/lessons/:lessonId/exercise/check', (ctx) => {
+    const l = ownLesson(ctx.user, ctx.params.lessonId);
+    const { exerciseId, answer } = body(ctx);
+    const ex = l.exercises.find((e) => e.id === exerciseId);
+    if (!ex) throw notFound('Không tìm thấy bài tập.');
+    const q = ex.questions.find((x) => x.id === answer?.questionId);
+    if (!q) throw notFound('Không tìm thấy câu hỏi.');
+    return { questionId: q.id, isCorrect: gradeQuestion(q, answer), correctAnswer: q.key, explanation: q.explanation ?? null };
+  });
   route('POST', '/api/v1/lessons/:lessonId/exercise/submit', (ctx) => {
     const l = ownLesson(ctx.user, ctx.params.lessonId);
     const { answers, exerciseId } = body(ctx);
