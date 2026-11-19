@@ -9,6 +9,8 @@ import { useIsOnline } from '@/lib/offline/network';
 import { usePalette } from '@/theme/theme';
 import { space } from '@/theme/tokens';
 import type { Answer, AnswerState } from '../answers';
+import { useOffline } from '@/features/offline/offline-provider';
+import { markTodayDone } from '@/lib/today-store';
 import { useSubmitExercise } from '../exercises-api';
 import { ActionBar } from './action-bar';
 import { ExercisePicker } from './exercise-picker';
@@ -39,6 +41,7 @@ export function ExerciseSession({
   const p = usePalette();
   const insets = useSafeAreaInsets();
   const submit = useSubmitExercise(courseId, lessonId);
+  const { kv } = useOffline();
   const online = useIsOnline();
   const scrollRef = useRef<ScrollViewInstance>(null);
   const questionY = useRef(new Map<string, number>());
@@ -83,6 +86,8 @@ export function ExerciseSession({
         exerciseId: data.id,
         durationMs: Math.min(3_600_000, Math.max(1, Date.now() - startedAt.current)),
       });
+      // Nộp (kể cả khi đang chờ mạng) là xong việc "Luyện lại" hôm nay, không cần phải đạt.
+      void markTodayDone(kv, `exercise:${data.id}`);
       if (!res) {
         setQueued(true);
         haptic(Haptics.NotificationFeedbackType.Success);

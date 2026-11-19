@@ -6,6 +6,8 @@ import type { Href } from 'expo-router';
  */
 export const routes = {
   login: '/login' as Href,
+  review: '/review' as Href,
+  settings: '/settings' as Href,
   newCourse: '/course/new' as Href,
   course: (courseId: string): Href => ({ pathname: '/course/[courseId]', params: { courseId } }),
   lesson: (courseId: string, lessonId: string): Href => ({
@@ -26,6 +28,7 @@ export const routes = {
   deckReview: (deckId?: string): Href => ({ pathname: '/deck-review', params: deckId ? { deck: deckId } : {} }),
   generateCards: '/flashcards-generate' as Href,
   drafts: (jobId?: string): Href => ({ pathname: '/flashcards-drafts', params: jobId ? { job: jobId } : {} }),
+  admin: '/admin' as Href,
   adminAiJobs: '/admin/ai-jobs' as Href,
   adminDirectory: '/admin/directory' as Href,
   adminAiJob: (jobId: string): Href => ({ pathname: '/admin/ai-jobs/[jobId]', params: { jobId } }),

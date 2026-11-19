@@ -1,6 +1,8 @@
 import { randomUUID } from 'expo-crypto';
 import { router, type Href } from 'expo-router';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
+import { useOffline } from '@/features/offline/offline-provider';
+import { markTodayDone } from '@/lib/today-store';
 import { StyleSheet, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import type { DueFlashcardsResponse } from '@/contracts';
@@ -25,6 +27,11 @@ export function CardReviewSession({ data }: { data: DueFlashcardsResponse }) {
   const submit = useSubmitCardReview();
   const [s, setS] = useState(() => startSession(data.cards));
   const [error, setError] = useState<string | null>(null);
+  const { kv } = useOffline();
+  const finished = s.cards.length > 0 && isFinished(s);
+  useEffect(() => {
+    if (finished) void markTodayDone(kv, 'review');
+  }, [finished, kv]);
 
   if (s.cards.length === 0) {
     return (

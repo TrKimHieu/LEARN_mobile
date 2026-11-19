@@ -139,6 +139,7 @@ function RootNavigator() {
           <Stack.Screen name="(tabs)" options={{ headerShown: false, title: 'Trang chính' }} />
           <Stack.Screen name="review" options={{ title: 'Ôn tập' }} />
           <Stack.Screen name="storage" options={{ title: 'Quản lý dung lượng' }} />
+          <Stack.Screen name="settings" options={{ title: 'Cài đặt' }} />
           <Stack.Screen name="focus" options={{ title: 'Pomodoro' }} />
           <Stack.Screen name="deck/[deckId]" options={{ title: 'Bộ thẻ' }} />
           <Stack.Screen name="deck-review" options={{ title: 'Ôn thẻ' }} />
@@ -155,6 +156,7 @@ function RootNavigator() {
         </Stack.Protected>
         {/* Quản trị rút gọn: lớp UX — server chặn thật bằng RolesGuard. */}
         <Stack.Protected guard={authed && isAdmin}>
+          <Stack.Screen name="admin/index" options={{ title: 'Quản trị' }} />
           <Stack.Screen name="admin/ai-jobs/index" options={{ title: 'AI Job' }} />
           <Stack.Screen name="admin/directory" options={{ title: 'Quản trị' }} />
           <Stack.Screen name="admin/ai-jobs/[jobId]" options={{ title: 'AI Job' }} />
