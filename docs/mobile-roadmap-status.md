@@ -196,7 +196,7 @@ Kiểm tra T1-7 → T1-9: typecheck, lint 0 lỗi, 221 Jest, export web bundle �
 - [~] **T4-2** Chuỗi ngày do server tính đã hiện ở màn Học (🔥 N, mascot theo nhịp học; mobile GĐ1, PR #17). Còn thiếu XP: spec web xếp XP vào "không phải mục tiêu lần này"
 - [~] **T4-3** Vòng mục tiêu ngày `X/Y` ở màn Học (PR #17); mục tiêu = 2–4 việc hôm nay do hệ thống gom, người dùng chưa tự chọn số mục tiêu
 - [x] **T4-4** Nhắc học 19:00 theo việc hôm nay còn dở (thông báo liệt kê việc); xong hết thì huỷ nhắc; qua 19:00 thì nhắc ngày mai bằng câu chung. Công tắc "Nhắc học" trong Cài đặt (2026-11-19)
-- [ ] **T4-5** (Có thể) cảnh báo khi chuỗi sắp đứt
+- [x] **T4-5** Thông báo 19:00 đổi thành "Giữ chuỗi N ngày" khi đang có chuỗi mà hôm nay chưa có ngày học theo server (chưa nộp bài, chưa ôn thẻ); vẫn nhắc cả khi việc hôm nay đã xong. Không trách móc (2026-11-20)
 
 ### T5 — Bạn bè và xếp hạng
 - [ ] **T5-1** Kết bạn bằng mã mời hoặc email; chấp nhận, từ chối, huỷ

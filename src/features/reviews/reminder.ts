@@ -35,17 +35,32 @@ export function useReviewReminder() {
  * Nội dung nhắc học (T4-4). `remaining` là các việc hôm nay chưa xong (rỗng = đạt mục tiêu, không nhắc).
  * Qua 19:00 thì lần nhắc kế tiếp là ngày mai, khi chưa biết việc của ngày mai: dùng câu chung.
  */
-export function studyReminderText(remaining: string[], now: Date, at: Date): { title: string; body: string } | null {
+export function studyReminderText(
+  remaining: string[],
+  now: Date,
+  at: Date,
+  /** T4-5: số ngày của chuỗi đang có nhưng hôm nay chưa có ngày học (chưa nộp bài, chưa ôn thẻ); 0 = không nguy cơ. */
+  streakAtRisk = 0,
+): { title: string; body: string } | null {
+  if (at.getDate() !== now.getDate()) {
+    return remaining.length > 0 || streakAtRisk > 0 ? { title: 'Đến giờ học', body: 'Mở LEARN để xem việc hôm nay.' } : null;
+  }
+  // Không trách móc (phản mục tiêu của spec): chỉ nói chuỗi còn giữ được.
+  if (streakAtRisk > 0) {
+    return {
+      title: `Giữ chuỗi ${streakAtRisk} ngày`,
+      body: remaining.length > 0 ? remaining.join(' · ') : 'Ôn vài thẻ hoặc làm một bài luyện tập để giữ chuỗi.',
+    };
+  }
   if (remaining.length === 0) return null;
-  if (at.getDate() !== now.getDate()) return { title: 'Đến giờ học', body: 'Mở LEARN để xem việc hôm nay.' };
   return { title: `Còn ${remaining.length} việc hôm nay`, body: remaining.join(' · ') };
 }
 
-/** Gọi khi màn Học biết danh sách việc hôm nay: còn việc thì hẹn nhắc lúc 19:00, xong hết thì huỷ. */
-export async function syncStudyReminder(remaining: string[], now = new Date()): Promise<void> {
+/** Gọi khi màn Học biết danh sách việc hôm nay: còn việc (hoặc chuỗi sắp đứt) thì hẹn nhắc 19:00, không thì huỷ. */
+export async function syncStudyReminder(remaining: string[], now = new Date(), streakAtRisk = 0): Promise<void> {
   const on = (await AsyncStorage.getItem(KEY).catch(() => null)) === '1';
   const at = nextReminderAt(now);
-  const text = on ? studyReminderText(remaining, now, at) : null;
+  const text = on ? studyReminderText(remaining, now, at, streakAtRisk) : null;
   if (!text) return cancelScheduled(NOTIFY_ID);
   return scheduleAt(NOTIFY_ID, at, text.title, text.body);
 }

@@ -51,3 +51,24 @@ describe('study reminder (T4-4)', () => {
     expect(notify.scheduleAt).not.toHaveBeenCalled();
   });
 });
+
+describe('streak at risk (T4-5)', () => {
+  const { studyReminderText } = jest.requireActual('../reminder') as typeof import('../reminder');
+  const morning = new Date(2026, 10, 20, 8);
+  const seven = new Date(2026, 10, 20, 19);
+
+  it('leads with keeping the streak and still lists the tasks', () => {
+    expect(studyReminderText(['Bài: A'], morning, seven, 5)).toEqual({ title: 'Giữ chuỗi 5 ngày', body: 'Bài: A' });
+  });
+
+  it('reminds even with no task left when today is not a study day yet', () => {
+    expect(studyReminderText([], morning, seven, 3)).toEqual({
+      title: 'Giữ chuỗi 3 ngày',
+      body: 'Ôn vài thẻ hoặc làm một bài luyện tập để giữ chuỗi.',
+    });
+  });
+
+  it('stays silent when nothing is left and the streak is safe', () => {
+    expect(studyReminderText([], morning, seven, 0)).toBeNull();
+  });
+});

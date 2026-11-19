@@ -49,7 +49,8 @@ it('lists today tasks with streak and goal, and opens a task', () => {
   expect(text()).toContain('Khóa A · Bài 2/4');
   expect(text()).toContain('Đã xong 0 trên 2 việc hôm nay');
   expect(mockMascot).toHaveBeenLastCalledWith({ state: 'listening', size: 88 });
-  expect(mockSync).toHaveBeenLastCalledWith(['5 thẻ đến hạn', 'Bài: Bài một']);
+  // Chuỗi 3, học lần cuối hôm qua: hôm nay chưa có ngày học nên chuỗi có nguy cơ.
+  expect(mockSync).toHaveBeenLastCalledWith(['5 thẻ đến hạn', 'Bài: Bài một'], expect.any(Date), 3);
   const learn = tree.root.findAll((n) => n.props.label === 'Học' && typeof n.props.onPress === 'function')[0]!;
   act(() => learn.props.onPress());
   expect(mockPush).toHaveBeenCalledWith({ pathname: '/course/[courseId]/lesson/[lessonId]', params: { courseId: 'C', lessonId: 'L' } });
@@ -61,5 +62,5 @@ it('celebrates when every task is done and hides the action buttons', () => {
   expect(text()).toContain('Đã xong 2 trên 2 việc hôm nay');
   expect(text().split('|')).not.toContain('Ôn');
   expect(mockMascot).toHaveBeenLastCalledWith({ state: 'celebrate', size: 88 });
-  expect(mockSync).toHaveBeenLastCalledWith([]);
+  expect(mockSync).toHaveBeenLastCalledWith([], expect.any(Date), 3);
 });
