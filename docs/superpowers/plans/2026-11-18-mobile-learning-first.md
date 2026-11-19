@@ -1,6 +1,6 @@
 # Mobile: theo kịp web "lấy việc học làm trung tâm"
 
-Ngày: 2026-11-18 · Trạng thái: đã duyệt 2026-11-19
+Ngày: 2026-11-18 · Trạng thái: đã duyệt 2026-11-19 · GĐ0–GĐ4 xong (PR #16–#20)
 
 Nguồn:
 - Spec web `docs/superpowers/specs/2026-11-17-learning-first-ui-design.md` (workspace).
