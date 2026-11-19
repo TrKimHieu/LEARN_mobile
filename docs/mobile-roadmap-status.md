@@ -192,10 +192,10 @@ Kiểm tra T1-7 → T1-9: typecheck, lint 0 lỗi, 221 Jest, export web bundle �
 - [x] **T3-6** Thẻ "Thời gian học 7 ngày" ở tab Tiến trình, chỉ số liệu của máy này (2026-11-16)
 
 ### T4 — Mục tiêu và XP
-- [ ] **T4-1** Định nghĩa "ngày đã học" (hoàn thành bài / nộp bài / phiên SRS) theo múi giờ máy chủ; ghi vào ADR XP
-- [ ] **T4-2** Hiển thị XP và chuỗi ngày do server tính, client chỉ hiển thị
-- [ ] **T4-3** Chọn mục tiêu ngày + `ring` ở Tổng quan
-- [ ] **T4-4** Nhắc học cục bộ theo giờ, chỉ khi hôm nay chưa đạt mục tiêu
+- [x] **T4-1** Ngày đã học = có nộp bài luyện tập hoặc chấm Mức nhớ một thẻ; đọc bài và câu hỏi nhanh không tính. Backend tính theo `APP_TIMEZONE`, trả `activeStreak` và `lastStudyDay` (backend #15, contracts 1.7.0)
+- [~] **T4-2** Chuỗi ngày do server tính đã hiện ở màn Học (🔥 N, mascot theo nhịp học; mobile GĐ1, PR #17). Còn thiếu XP: spec web xếp XP vào "không phải mục tiêu lần này"
+- [~] **T4-3** Vòng mục tiêu ngày `X/Y` ở màn Học (PR #17); mục tiêu = 2–4 việc hôm nay do hệ thống gom, người dùng chưa tự chọn số mục tiêu
+- [x] **T4-4** Nhắc học 19:00 theo việc hôm nay còn dở (thông báo liệt kê việc); xong hết thì huỷ nhắc; qua 19:00 thì nhắc ngày mai bằng câu chung. Công tắc "Nhắc học" trong Cài đặt (2026-11-19)
 - [ ] **T4-5** (Có thể) cảnh báo khi chuỗi sắp đứt
 
 ### T5 — Bạn bè và xếp hạng

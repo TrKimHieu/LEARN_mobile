@@ -7,6 +7,8 @@ let mockState: Record<string, unknown>;
 const mockMascot = jest.fn((_: { state: string }) => null);
 jest.mock('expo-router', () => ({ router: { push: (...a: unknown[]) => mockPush(...a), navigate: jest.fn() } }));
 jest.mock('../use-today-plan', () => ({ useTodayPlan: () => mockState }));
+const mockSync = jest.fn();
+jest.mock('@/features/reviews/reminder', () => ({ syncStudyReminder: (...a: unknown[]) => mockSync(...a) }));
 jest.mock('@/components/mascot', () => ({ Mascot: (p: { state: string }) => mockMascot(p) }));
 jest.mock('@/components/update-notice', () => ({ UpdateNotice: () => null }));
 jest.mock('@/components/ui/icon', () => ({ Icon: () => null }));
@@ -47,6 +49,7 @@ it('lists today tasks with streak and goal, and opens a task', () => {
   expect(text()).toContain('Khóa A · Bài 2/4');
   expect(text()).toContain('Đã xong 0 trên 2 việc hôm nay');
   expect(mockMascot).toHaveBeenLastCalledWith({ state: 'listening', size: 88 });
+  expect(mockSync).toHaveBeenLastCalledWith(['5 thẻ đến hạn', 'Bài: Bài một']);
   const learn = tree.root.findAll((n) => n.props.label === 'Học' && typeof n.props.onPress === 'function')[0]!;
   act(() => learn.props.onPress());
   expect(mockPush).toHaveBeenCalledWith({ pathname: '/course/[courseId]/lesson/[lessonId]', params: { courseId: 'C', lessonId: 'L' } });
@@ -58,4 +61,5 @@ it('celebrates when every task is done and hides the action buttons', () => {
   expect(text()).toContain('Đã xong 2 trên 2 việc hôm nay');
   expect(text().split('|')).not.toContain('Ôn');
   expect(mockMascot).toHaveBeenLastCalledWith({ state: 'celebrate', size: 88 });
+  expect(mockSync).toHaveBeenLastCalledWith([]);
 });

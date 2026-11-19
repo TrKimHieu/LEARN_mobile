@@ -8,7 +8,7 @@ jest.mock('../reviews-api', () => ({ useDueReviews: () => ({ data: mockData }) }
 jest.mock('expo-router', () => ({ router: { push: (...a: unknown[]) => mockPush(...a) } }));
 jest.mock('@/theme/theme', () => ({ usePalette: () => jest.requireActual('@/theme/tokens').light }));
 jest.mock('@/components/ui/icon', () => ({ Icon: () => null }));
-jest.mock('../reminder', () => ({ REMINDER_HOUR: 19, syncReviewReminder: jest.fn(), useReviewReminder: jest.fn() }));
+jest.mock('../reminder', () => ({ REMINDER_HOUR: 19, useReviewReminder: jest.fn() }));
 
 let tree: ReactTestRenderer;
 afterEach(() => { if (tree) act(() => tree.unmount()); });

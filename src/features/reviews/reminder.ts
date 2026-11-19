@@ -31,9 +31,21 @@ export function useReviewReminder() {
   return { enabled, set };
 }
 
-/** Gọi mỗi khi biết số thẻ đến hạn từ server: có thẻ thì hẹn nhắc, không có thì huỷ. */
-export async function syncReviewReminder(dueCount: number, now = new Date()): Promise<void> {
+/**
+ * Nội dung nhắc học (T4-4). `remaining` là các việc hôm nay chưa xong (rỗng = đạt mục tiêu, không nhắc).
+ * Qua 19:00 thì lần nhắc kế tiếp là ngày mai, khi chưa biết việc của ngày mai: dùng câu chung.
+ */
+export function studyReminderText(remaining: string[], now: Date, at: Date): { title: string; body: string } | null {
+  if (remaining.length === 0) return null;
+  if (at.getDate() !== now.getDate()) return { title: 'Đến giờ học', body: 'Mở LEARN để xem việc hôm nay.' };
+  return { title: `Còn ${remaining.length} việc hôm nay`, body: remaining.join(' · ') };
+}
+
+/** Gọi khi màn Học biết danh sách việc hôm nay: còn việc thì hẹn nhắc lúc 19:00, xong hết thì huỷ. */
+export async function syncStudyReminder(remaining: string[], now = new Date()): Promise<void> {
   const on = (await AsyncStorage.getItem(KEY).catch(() => null)) === '1';
-  if (!on || dueCount <= 0) return cancelScheduled(NOTIFY_ID);
-  return scheduleAt(NOTIFY_ID, nextReminderAt(now), 'Đến giờ ôn tập', `Bạn có ${dueCount} thẻ đến hạn.`);
+  const at = nextReminderAt(now);
+  const text = on ? studyReminderText(remaining, now, at) : null;
+  if (!text) return cancelScheduled(NOTIFY_ID);
+  return scheduleAt(NOTIFY_ID, at, text.title, text.body);
 }
