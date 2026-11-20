@@ -18,6 +18,7 @@ import {
   Txt,
 } from '@/components/ui';
 import { StudyTimeCard } from '@/features/focus/study-time-card';
+import { FriendsEntry } from '@/features/friends/components/friends-entry';
 import { WeeklyActivityCard } from '@/features/learning/components/weekly-activity-card';
 import { useProgressCourses, useProgressHistoryPages } from '@/features/learning/learning-api';
 import { errorDetail, errorText } from '@/lib/api-client';
@@ -38,6 +39,7 @@ export default function ProgressScreen() {
 
       {items.length > 0 && <WeeklyActivityCard items={items} />}
       <StudyTimeCard />
+      <FriendsEntry />
 
       <View>
         <SectionTitle title="Theo khóa học" />

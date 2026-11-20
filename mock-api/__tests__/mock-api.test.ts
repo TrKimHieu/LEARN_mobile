@@ -19,6 +19,9 @@ import {
   documentListSchema,
   errorSchema,
   exerciseReadSchema,
+  friendsOverviewSchema,
+  inviteFriendResultSchema,
+  leaderboardSchema,
   historyPageSchema,
   lessonReadSchema,
   lessonSourceSchema,
@@ -430,5 +433,44 @@ describe('gói đăng ký và quản trị', () => {
     const res = await call('GET', '/api/v1/khong-co');
     expect(res.status).toBe(404);
     expect(errorSchema.parse(res.json).code).toBe('NOT_FOUND');
+  });
+});
+
+describe('XP và bạn học (spec 2026-11-20)', () => {
+  it('tổng quan trả XP do máy chủ tính', async () => {
+    const { accessToken: token } = await login();
+    const res = await call('GET', '/api/v1/progress/overview', { token });
+    expect(res.json).toEqual(expect.objectContaining({ xpToday: expect.any(Number), dailyXpCap: 100 }));
+    expect(res.json.xpToday).toBeLessThanOrEqual(100);
+  });
+
+  it('mời, chấp nhận, xếp hạng, ẩn mình', async () => {
+    const { accessToken: token } = await login();
+    const first = ok(friendsOverviewSchema, await call('GET', '/api/v1/friends', { token }));
+    expect(first.myCode).toMatch(/^[A-HJ-NP-Z2-9]{8}$/);
+
+    // Email luôn cùng một câu; mã lạ thì 404; mã của mình thì 400.
+    const viaEmail = ok(inviteFriendResultSchema, await call('POST', '/api/v1/friends/invite', { token, body: { email: 'ai@do.vn' } }), 201);
+    expect(viaEmail.message).toMatch(/Nếu email này có tài khoản/);
+    expect((await call('POST', '/api/v1/friends/invite', { token, body: { code: 'ZZZZZZZZ' } })).status).toBe(404);
+    expect((await call('POST', '/api/v1/friends/invite', { token, body: { code: first.myCode } })).status).toBe(400);
+    ok(inviteFriendResultSchema, await call('POST', '/api/v1/friends/invite', { token, body: { code: 'KETBAN22' } }), 201);
+
+    const req = first.incoming[0]!;
+    expect((await call('POST', `/api/v1/friends/requests/${req.id}/accept`, { token })).status).toBe(201);
+    const after = ok(friendsOverviewSchema, await call('GET', '/api/v1/friends', { token }));
+    expect(after.incoming).toHaveLength(0);
+    expect(after.outgoing).toHaveLength(1);
+    expect(after.friends.map((f) => f.displayName)).toContain(req.displayName);
+
+    const board = ok(leaderboardSchema, await call('GET', '/api/v1/friends/leaderboard', { token }));
+    expect(board.entries.filter((e) => e.me)).toHaveLength(1);
+    expect(board.entries.map((e) => e.rank)).toEqual(board.entries.map((_, i) => i + 1));
+    // Bạn đã ẩn XP không có trên bảng.
+    const hiddenFriend = after.friends.find((f) => f.xpThisWeek === null)!;
+    expect(board.entries.some((e) => e.userId === hiddenFriend.userId)).toBe(false);
+
+    expect((await call('PATCH', '/api/v1/friends/settings', { token, body: { leaderboardHidden: true } })).status).toBe(200);
+    expect(ok(friendsOverviewSchema, await call('GET', '/api/v1/friends', { token })).leaderboardHidden).toBe(true);
   });
 });

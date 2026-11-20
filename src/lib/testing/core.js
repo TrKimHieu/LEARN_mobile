@@ -433,6 +433,32 @@ function createMockApi(options = {}) {
   });
 
   // Tiến trình
+  // XP như server (spec 2026-11-20): lần nộp đầu mỗi bài tập mỗi ngày 10 (+5 nếu đạt), trần 100/ngày.
+  // Mock không cộng XP ôn thẻ.
+  const DAILY_XP_CAP = 100;
+  function xpSummary(user) {
+    const byDay = new Map();
+    const seen = new Set();
+    for (const s of [...mySubs(user)].reverse()) {
+      const day = s.createdAt.slice(0, 10);
+      if (seen.has(day + s.exerciseId)) continue;
+      seen.add(day + s.exerciseId);
+      byDay.set(day, Math.min(DAILY_XP_CAP, (byDay.get(day) ?? 0) + (s.passed ? 15 : 10)));
+    }
+    const today = iso(Date.now()).slice(0, 10);
+    const week = weekStart(today);
+    let xpThisWeek = 0;
+    let xpTotal = 0;
+    for (const [day, xp] of byDay) {
+      xpTotal += xp;
+      if (day >= week) xpThisWeek += xp;
+    }
+    return { xpToday: byDay.get(today) ?? 0, xpThisWeek, xpTotal, dailyXpCap: DAILY_XP_CAP };
+  }
+  const weekStart = (day) => {
+    const d = new Date(day + 'T00:00:00Z');
+    return iso(d.getTime() - ((d.getUTCDay() + 6) % 7) * DAY).slice(0, 10);
+  };
   const mySubs = (user) => state.submissions.filter((s) => s.userId === user.id).sort((a, b) => b.createdAt.localeCompare(a.createdAt));
   route('GET', '/api/v1/progress/overview', (ctx) => {
     const courses = state.courses.filter((c) => c.userId === ctx.user.id);
@@ -453,6 +479,7 @@ function createMockApi(options = {}) {
       totalLessons: all.length,
       averageScore: scores.length ? scores.reduce((a, b) => a + b, 0) / scores.length : null,
       activeStreak: streak,
+      ...xpSummary(ctx.user),
     };
   });
   route('GET', '/api/v1/progress/courses', (ctx) => ({
@@ -573,8 +600,98 @@ function createMockApi(options = {}) {
     return result;
   });
 
+  // Bạn học (spec 2026-11-20). Dữ liệu mẫu theo người dùng; mã `KETBAN22` mời được.
+  const friendBook = new Map();
+  const DEMO_CODE = 'KETBAN22';
+  const EMAIL_INVITE_MESSAGE = 'Nếu email này có tài khoản, lời mời kết bạn đã được gửi.';
+  function book(user) {
+    if (!friendBook.has(user.id)) {
+      const ago = (d) => iso(Date.now() - d * DAY);
+      friendBook.set(user.id, {
+        myCode: 'K7M2Q9XA',
+        hidden: false,
+        friends: [
+          { userId: randomUUID(), displayName: 'Lan Anh', xp: 85, since: ago(20), hidden: false },
+          { userId: randomUUID(), displayName: 'Minh Quân', xp: 40, since: ago(6), hidden: false },
+          { userId: randomUUID(), displayName: 'Thảo', xp: 0, since: ago(3), hidden: true },
+        ],
+        incoming: [{ id: randomUUID(), userId: randomUUID(), displayName: 'Hoàng Nam', createdAt: ago(1) }],
+        outgoing: [],
+      });
+    }
+    return friendBook.get(user.id);
+  }
+  const findRequest = (b, id) => {
+    const inc = b.incoming.find((r) => r.id === id);
+    const out = b.outgoing.find((r) => r.id === id);
+    if (!inc && !out) throw notFound('Không tìm thấy lời mời.');
+    return { inc, out };
+  };
+  route('GET', '/api/v1/friends', (ctx) => {
+    const b = book(ctx.user);
+    return {
+      myCode: b.myCode,
+      leaderboardHidden: b.hidden,
+      friends: b.friends.map((f) => ({ userId: f.userId, displayName: f.displayName, xpThisWeek: f.hidden ? null : f.xp, since: f.since })),
+      incoming: b.incoming,
+      outgoing: b.outgoing,
+    };
+  });
+  route('GET', '/api/v1/friends/leaderboard', (ctx) => {
+    const b = book(ctx.user);
+    const rows = [
+      { userId: ctx.user.id, displayName: ctx.user.displayName, xp: xpSummary(ctx.user).xpThisWeek, me: true },
+      ...b.friends.filter((f) => !f.hidden).map((f) => ({ userId: f.userId, displayName: f.displayName, xp: f.xp, me: false })),
+    ].sort((x, y) => y.xp - x.xp || x.displayName.localeCompare(y.displayName, 'vi'));
+    return { weekStart: weekStart(iso(Date.now()).slice(0, 10)), entries: rows.map((r, i) => ({ rank: i + 1, ...r })) };
+  });
+  route('POST', '/api/v1/friends/code/rotate', (ctx) => {
+    const b = book(ctx.user);
+    b.myCode = randomUUID().replace(/[^A-HJ-NP-Z2-9]/gi, '').toUpperCase().slice(0, 8).padEnd(8, 'X');
+    return [201, { myCode: b.myCode }];
+  });
+  route('POST', '/api/v1/friends/invite', (ctx) => {
+    const input = body(ctx);
+    const b = book(ctx.user);
+    if (typeof input.email === 'string') return [201, { message: EMAIL_INVITE_MESSAGE }];
+    const code = String(input.code ?? '').trim().toUpperCase();
+    if (!/^[A-HJ-NP-Z2-9]{8}$/.test(code)) throw bad('Mã mời gồm 8 ký tự chữ và số.');
+    if (code === b.myCode) throw new HttpError(400, 'BAD_REQUEST', 'Đây là mã mời của chính bạn.');
+    if (code !== DEMO_CODE) throw notFound('Không tìm thấy mã mời này.');
+    if (b.outgoing.some((r) => r.displayName === 'Bạn Demo')) return [201, { message: 'Bạn đã gửi lời mời này rồi.' }];
+    b.outgoing.unshift({ id: randomUUID(), userId: randomUUID(), displayName: 'Bạn Demo', createdAt: iso(Date.now()) });
+    return [201, { message: 'Đã gửi lời mời kết bạn.' }];
+  });
+  route('POST', '/api/v1/friends/requests/:id/accept', (ctx) => {
+    const b = book(ctx.user);
+    const { inc } = findRequest(b, ctx.params.id);
+    if (!inc) throw notFound('Không tìm thấy lời mời.');
+    b.incoming = b.incoming.filter((r) => r !== inc);
+    b.friends.push({ userId: inc.userId, displayName: inc.displayName, xp: 0, since: iso(Date.now()), hidden: false });
+    return [201, { ok: true }];
+  });
+  route('DELETE', '/api/v1/friends/requests/:id', (ctx) => {
+    const b = book(ctx.user);
+    findRequest(b, ctx.params.id);
+    b.incoming = b.incoming.filter((r) => r.id !== ctx.params.id);
+    b.outgoing = b.outgoing.filter((r) => r.id !== ctx.params.id);
+    return { ok: true };
+  });
+  route('PATCH', '/api/v1/friends/settings', (ctx) => {
+    const input = body(ctx);
+    if (typeof input.leaderboardHidden !== 'boolean') throw bad('Thiếu leaderboardHidden.');
+    book(ctx.user).hidden = input.leaderboardHidden;
+    return { leaderboardHidden: input.leaderboardHidden };
+  });
+  route('DELETE', '/api/v1/friends/:userId', (ctx) => {
+    const b = book(ctx.user);
+    if (!b.friends.some((f) => f.userId === ctx.params.userId)) throw notFound('Không tìm thấy bạn học.');
+    b.friends = b.friends.filter((f) => f.userId !== ctx.params.userId);
+    return { ok: true };
+  });
+
   // Công cụ của mock
-  route('POST', '/__mock/reset', () => { state = createState(options); reviewState.clear(); return [200, { reset: true }]; }, { auth: false });
+  route('POST', '/__mock/reset', () => { state = createState(options); reviewState.clear(); friendBook.clear(); return [200, { reset: true }]; }, { auth: false });
 
   // Transport-independent dispatcher, shared by HTTP and in-app testing.
   function request(path, { method = 'GET', body = null, headers = {} } = {}) {

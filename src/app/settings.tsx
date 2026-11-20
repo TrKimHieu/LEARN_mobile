@@ -6,6 +6,7 @@ import { ProfileCard } from '@/features/auth/components/profile-card';
 import { CurrentPlan } from '@/features/settings/components/current-plan';
 import { PlanList } from '@/features/settings/components/plan-list';
 import { ReminderToggle } from '@/features/reviews/components/review-entry';
+import { LeaderboardToggle } from '@/features/friends/components/leaderboard-toggle';
 import { ThemePicker } from '@/features/settings/components/theme-picker';
 import { usePlans, useSubscription } from '@/features/settings/subscription-api';
 import { config } from '@/lib/config';
@@ -25,6 +26,7 @@ export default function SettingsScreen() {
       <ProfileCard />
       <ThemePicker />
       <ReminderToggle />
+      <LeaderboardToggle />
       <Button label="Quản lý dung lượng" variant="secondary" icon="file" onPress={() => router.push(routes.storage)} />
       {/* Quản trị không còn là tab riêng (2026-11-19); server vẫn chặn thật bằng RolesGuard. */}
       {isAdmin && <Button label="Quản trị" variant="secondary" icon="shield" onPress={() => router.push(routes.admin)} />}

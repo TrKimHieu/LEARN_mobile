@@ -140,6 +140,7 @@ function RootNavigator() {
           <Stack.Screen name="review" options={{ title: 'Ôn tập' }} />
           <Stack.Screen name="storage" options={{ title: 'Quản lý dung lượng' }} />
           <Stack.Screen name="settings" options={{ title: 'Cài đặt' }} />
+          <Stack.Screen name="friends" options={{ title: 'Bạn học' }} />
           <Stack.Screen name="focus" options={{ title: 'Pomodoro' }} />
           <Stack.Screen name="deck/[deckId]" options={{ title: 'Bộ thẻ' }} />
           <Stack.Screen name="deck-review" options={{ title: 'Ôn thẻ' }} />
