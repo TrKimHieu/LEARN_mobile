@@ -68,6 +68,9 @@ export function TodayView() {
   const total = plan.tasks.length;
   const doneCount = plan.tasks.filter((task) => isDone(plan, task, t.liveDue)).length;
   const streak = t.overview.data?.activeStreak ?? 0;
+  // Máy chủ cũ (trước contracts 1.9.0) không trả XP: ẩn dòng XP.
+  const xpToday = t.overview.data?.xpToday;
+  const xpCap = t.overview.data?.dailyXpCap ?? 100;
   const mood = moodFor({
     today: t.day,
     lastStudyDay: t.overview.data?.lastStudyDay ?? null,
@@ -103,6 +106,11 @@ export function TodayView() {
             <Txt variant="small" tone="subtle">ngày</Txt>
           </View>
           <Txt variant="small" tone="subtle">{`Đã xong ${doneCount} trên ${total} việc hôm nay`}</Txt>
+          {typeof xpToday === 'number' && (
+            <Txt variant="caption" tone="subtle" accessibilityLabel={`XP hôm nay ${xpToday} trên ${xpCap}`}>
+              {`XP hôm nay ${xpToday}/${xpCap}`}
+            </Txt>
+          )}
         </View>
         {total > 0 && (
           <ProgressRing value={doneCount} max={total} size={64} label={`Mục tiêu hôm nay: ${doneCount} trên ${total} việc`}>

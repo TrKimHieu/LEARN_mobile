@@ -8,6 +8,7 @@ export const routes = {
   login: '/login' as Href,
   review: '/review' as Href,
   settings: '/settings' as Href,
+  friends: '/friends' as Href,
   newCourse: '/course/new' as Href,
   course: (courseId: string): Href => ({ pathname: '/course/[courseId]', params: { courseId } }),
   lesson: (courseId: string, lessonId: string): Href => ({

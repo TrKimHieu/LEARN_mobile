@@ -193,19 +193,19 @@ Kiểm tra T1-7 → T1-9: typecheck, lint 0 lỗi, 221 Jest, export web bundle �
 
 ### T4 — Mục tiêu và XP
 - [x] **T4-1** Ngày đã học = có nộp bài luyện tập hoặc chấm Mức nhớ một thẻ; đọc bài và câu hỏi nhanh không tính. Backend tính theo `APP_TIMEZONE`, trả `activeStreak` và `lastStudyDay` (backend #15, contracts 1.7.0)
-- [~] **T4-2** Chuỗi ngày do server tính đã hiện ở màn Học (🔥 N, mascot theo nhịp học; mobile GĐ1, PR #17). Còn thiếu XP: spec web xếp XP vào "không phải mục tiêu lần này"
+- [x] **T4-2** Chuỗi ngày do server tính đã hiện ở màn Học (🔥 N, mascot theo nhịp học; mobile GĐ1, PR #17). XP do server tính (backend #17, contracts 1.9.0): màn Học hiện "XP hôm nay x/100"; máy chủ cũ không trả XP thì ẩn dòng này (2026-11-20)
 - [~] **T4-3** Vòng mục tiêu ngày `X/Y` ở màn Học (PR #17); mục tiêu = 2–4 việc hôm nay do hệ thống gom, người dùng chưa tự chọn số mục tiêu
 - [x] **T4-4** Nhắc học 19:00 theo việc hôm nay còn dở (thông báo liệt kê việc); xong hết thì huỷ nhắc; qua 19:00 thì nhắc ngày mai bằng câu chung. Công tắc "Nhắc học" trong Cài đặt (2026-11-19)
 - [x] **T4-5** Thông báo 19:00 đổi thành "Giữ chuỗi N ngày" khi đang có chuỗi mà hôm nay chưa có ngày học theo server (chưa nộp bài, chưa ôn thẻ); vẫn nhắc cả khi việc hôm nay đã xong. Không trách móc (2026-11-20)
 
 ### T5 — Bạn bè và xếp hạng
-- [ ] **T5-1** Kết bạn bằng mã mời hoặc email; chấp nhận, từ chối, huỷ
-- [ ] **T5-2** Bảng xếp hạng tuần theo XP trong nhóm bạn bè
-- [ ] **T5-3** Chế độ hiển thị tên, mặc định chỉ bạn bè thấy
-- [ ] **T5-4** Chống gian lận: chỉ tính XP do server, giới hạn XP tối đa mỗi ngày
-- [ ] **T5-5** Không lộ email, lịch sử học, nội dung khoá học cho người không phải bạn bè
-- [ ] **T5-6** Giới hạn tần suất lời mời (server)
-- [ ] **T5-7** Lối vào bạn bè và xếp hạng từ tab Tiến trình
+- [x] **T5-1** Kết bạn bằng mã mời hoặc email; chấp nhận, từ chối, huỷ, xoá bạn. Màn Bạn học; mã chia sẻ bằng bảng chia sẻ hệ thống (2026-11-20)
+- [x] **T5-2** Bảng xếp hạng tuần theo XP trong nhóm bạn bè (tuần từ thứ Hai). Chưa có chuỗi ngày của từng bạn (backend chưa trả)
+- [x] **T5-3** Chỉ bạn bè thấy tên và XP tuần; công tắc "Bảng xếp hạng" Hiện/Ẩn trong Cài đặt
+- [x] **T5-4** Chống gian lận: chỉ tính XP do server, trần 100 XP/ngày
+- [x] **T5-5** Không lộ email, lịch sử học, nội dung khoá học cho người không phải bạn bè; mời bằng email luôn nhận cùng một câu
+- [x] **T5-6** Giới hạn tần suất lời mời (server: 20/ngày, tối đa 100 bạn)
+- [x] **T5-7** Lối vào bạn bè và xếp hạng từ tab Tiến trình (thẻ "Bạn học" hiện hạng tuần; ẩn khi máy chủ chưa có tính năng)
 
 ### X — Thiết kế
 - [x] **X-1** Không cần design system mới: ADR 002 đã thay ADR 001; token sáng/tối, bo góc 14/20/24 và font Inter/Plus Jakarta trong `src/theme/tokens.ts` khớp `theme.css` web ngày 2026-11-16. Màu trạng thái ok/bad/warn của web chưa có token riêng ở mobile; thêm khi tính năng cần

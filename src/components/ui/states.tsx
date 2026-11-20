@@ -117,7 +117,8 @@ export function Notice({
   return (
     <View style={[styles.inline, { borderColor: p.line, backgroundColor: p.muted }, style]}>
       <Icon name={icon} size={18} color={p.fgMuted} />
-      <View style={{ flex: 1 }}>{children}</View>
+      {/* Chữ trần trong View là lỗi trên web; bọc chuỗi bằng Txt. */}
+      <View style={{ flex: 1 }}>{typeof children === 'string' ? <Txt variant="small">{children}</Txt> : children}</View>
     </View>
   );
 }
