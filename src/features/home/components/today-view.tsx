@@ -25,9 +25,13 @@ export function TodayView() {
     : null;
   // Khoá chuỗi để effect chỉ chạy khi danh sách việc còn dở thật sự đổi.
   const remainingKey = remaining ? JSON.stringify(remaining) : null;
+  // T4-5: có chuỗi mà hôm nay chưa có ngày học (ngày học theo server, xem T4-1) thì nhắc giữ chuỗi.
+  const lastStudyDay = t.overview.data?.lastStudyDay ?? null;
+  const activeStreak = t.overview.data?.activeStreak ?? 0;
+  const streakAtRisk = activeStreak > 0 && (lastStudyDay === null || lastStudyDay < t.day) ? activeStreak : 0;
   useEffect(() => {
-    if (remainingKey !== null) void syncStudyReminder(JSON.parse(remainingKey) as string[]);
-  }, [remainingKey]);
+    if (remainingKey !== null) void syncStudyReminder(JSON.parse(remainingKey) as string[], new Date(), streakAtRisk);
+  }, [remainingKey, streakAtRisk]);
   const refresh = async () => {
     await Promise.all([t.overview.refetch()]);
     t.retry();
