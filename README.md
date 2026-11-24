@@ -1,3 +1,5 @@
+> **Repo này đã ngừng phát triển (2026-11-24).** Mã nguồn và lịch sử đã chuyển vào monorepo [TrKimHieu/LEARN_backend](https://github.com/TrKimHieu/LEARN_backend), thư mục `apps/mobile`.
+
 # LEARN mobile
 
 Standalone private mobile repository. Public contracts 1.0.0 are pinned in vendor/ with SHA-256. No backend or other client checkout is required.
